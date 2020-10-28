@@ -7,6 +7,11 @@ typedef struct
   int allocSize;	// velikost alokovane pameti
 } string;
 
+typedef enum {
+    STR_SUCCESS,
+    STR_ERROR
+} ErrorString;
+
 
 int strInit(string *s);
 void strFree(string *s);

@@ -17,7 +17,6 @@ typedef enum  {
     /* Operation */
     TokenAdd,
     TokenSubtract,
-    TokenDivide,
     TokenMultiply,
     /* Feature or/and */
     TokenAndSecond,
@@ -35,22 +34,32 @@ typedef enum  {
     TokenComma,
     TokenSemicolon,
     TokenIdentifier,
+    TokenEOL,
+    TokenEOF,
     /* Key words */ 
     TokenFor,
     TokenReturn,
     TokenElse,
-    TokenFloat64,
+    // TokenFloat64,
     TokenFunc,
     TokenIf,
-    TokenInt,
-    TokenString,
-    TokenPackage
+    // TokenInt,
+    // TokenString,
+    TokenPackage,
+    TokenDataType
 } _TokenType;
+
+typedef enum {
+  TypeInt,
+  TypeFloat64,
+  TypeString
+} DataType;
 
 typedef union {
   int64_t i;
   double d;
   string s;
+  DataType t;
 } Atribute;
 
 typedef struct {
