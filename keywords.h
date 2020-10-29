@@ -1,31 +1,34 @@
 #include <token.h>
 
 typedef struct {
-    char* key;
-    _TokenType value;
+    const char* key;
+    const Token value;
 } keywordEntry;
 
 
 const keywordEntry keywords[] = {
     {
-    "else", TokenElse
+    "else", {TokenElse}
     },
     {
-    "float64", TokenFloat64
+    "float64", {TokenDataType, {.t = TypeFloat64}}
     },
     {
-    "for", TokenFor
+    "for", {TokenFor}
     },
     {
-    "func", TokenFunc
+    "func", {TokenFunc}
     },
     {
-    "if", TokenIf
+    "if", {TokenIf}
     },
     {
-    "int", TokenInt
+    "int", {TokenDataType, {.t = TypeInt}}
     },
     {
-    "package", TokenPackage
+    "package", {TokenPackage}
+    },
+    {
+    "string", {TokenDataType, {.t = TypeString}}
     }    
 };
