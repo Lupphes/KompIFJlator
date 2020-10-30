@@ -3,11 +3,11 @@ PRJ=scanner
 #
 PROGS=$(PRJ)-test
 CC=gcc
-CFLAGS=-Wall -std=c99 -lm
+CFLAGS= -Wall -Werror -pedantic -std=c99
 
 all: $(PROGS)
 
-$(PRJ)-test: $(PRJ).c $(PRJ)-test.c token.h str.c str.h keywords.h error.h
+$(PRJ)-test: *.c *.h
 	$(CC) $(CFLAGS) -o $@ $(PRJ).c $(PRJ)-test.c
 
 clean:

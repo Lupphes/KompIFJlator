@@ -13,6 +13,8 @@
  |                                       __/ |                       |
  |                                      |___/                        |
  *-------------------------------------------------------------------*/
+#ifndef SCANNER_H
+#define SCANNER_H
 #include <stdint.h>
 #include "str.h"
 #include "keywords.h"
@@ -63,3 +65,4 @@ int unGetCharCheck(int value);
 int getToken(Token* token);
 _TokenType processIdentifier(); // Compare strings and return tokens
 
+#endif

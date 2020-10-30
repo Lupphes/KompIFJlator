@@ -1,4 +1,7 @@
+#ifndef TOKEN_H
+#define TOKEN_H
 #include <stdint.h>
+#include "str.h"
 
 typedef enum  {
     /* Definition of Tokens */
@@ -63,3 +66,5 @@ typedef struct {
     _TokenType type;
     Atribute atribute;
 } Token;
+
+#endif

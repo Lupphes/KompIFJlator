@@ -1,4 +1,7 @@
+
 //hlavickovy soubor pro praci s nekonecne dlouhymi retezci
+#ifndef STR_H
+#define STR_H
 
 typedef struct
 {
@@ -20,7 +23,9 @@ void strClear(string *s);
 int strAddChar(string *s1, char c);
 int strCopyString(string *s1, string *s2);
 int strCmpString(string *s1, string *s2);
-int strCmpConstStr(string *s1, char *s2);
+int strCmpConstStr(string *s1, const char *s2);
 
 char *strGetStr(string *s);
 int strGetLength(string *s);
+
+#endif

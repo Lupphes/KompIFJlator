@@ -13,39 +13,42 @@
  |                                       __/ |                       |
  |                                      |___/                        |
  *-------------------------------------------------------------------*/
+#ifndef KEYWORDS_H
+#define KEYWORDS_H
 #include "token.h"
+#include "str.h"
 
 typedef struct {
-    const string key;
+    const char* key;
     const Token value;
 } keywordEntry;
 
+
 const keywordEntry keywords[] = {
     {
-    "else", TokenElse
+    "else", {TokenElse}
     },
     {
     "float64", {TokenDataType, {.t = TypeFloat64}}
     },
     {
-    "for", TokenFor
+    "for", {TokenFor}
     },
     {
-    "func", TokenFunc
+    "func", {TokenFunc}
     },
     {
-    "if", TokenIf
+    "if", {TokenIf}
     },
     {
     "int", {TokenDataType, {.t = TypeInt}}
     },
     {
-    "package", TokenPackage
-    },  
-    {
-    "return", TokenReturn
+    "package", {TokenPackage}
     },
     {
     "string", {TokenDataType, {.t = TypeString}}
     }
 };
+
+#endif

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "scanner.c"
+#include "scanner.h"
 
 int main(int argc, char const *argv[])
 {

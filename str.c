@@ -70,7 +70,7 @@ int strCmpString(string *s1, string *s2)
    return strcmp(s1->str, s2->str);
 }
 
-int strCmpConstStr(string *s1, char* s2)
+int strCmpConstStr(string *s1, const char* s2)
 // porovna nas retezec s konstantnim retezcem
 {
    return strcmp(s1->str, s2);

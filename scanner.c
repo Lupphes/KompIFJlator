@@ -392,7 +392,7 @@ int getToken(Token* token) {
             } while ((currChar >= 'A' && currChar <= 'Z') || (currChar >= 'a' && currChar <= 'z') || currChar == '_' || (currChar >= '0' && currChar <= '9'));
             for (int i = 0; i < 9; i++)
             {
-                if(strCmpString(&stringIdentifier, &keywords[i].key) == 0) {
+                if(strCmpConstStr(&stringIdentifier, keywords[i].key) == 0) {
                     token->type = keywords[i].value.type;
                     token->atribute.t = keywords[i].value.atribute.t;
                     break;
@@ -439,8 +439,7 @@ int getToken(Token* token) {
                 if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
                     return UNEXPECTED_EOF_ERROR;
                 }
-                char* convertedCharNumber;
-                strCmpConstStr(&number, convertedCharNumber);
+                char* convertedCharNumber = strGetStr(&number);
                 sscanf(convertedCharNumber, "%ld", &token->atribute.i);
                 token->atribute.t = TypeInt;
                 token->type = TokenDataType;
@@ -485,8 +484,7 @@ int getToken(Token* token) {
                     break;
                 } else {
                     // process whole number 0.0004854
-                    char* convertedCharNumber;
-                    strCmpConstStr(&number, convertedCharNumber);
+                    char* convertedCharNumber = strGetStr(&number);
                     sscanf(convertedCharNumber, "%lf", &token->atribute.d);
                     token->atribute.t = TypeFloat64;
                     token->type = TokenDataType;
@@ -538,8 +536,7 @@ int getToken(Token* token) {
                 }
             } else {
                 // process whole number 0.000E4854
-                char* convertedCharNumber;
-                strCmpConstStr(&number, convertedCharNumber);
+                char* convertedCharNumber = strGetStr(&number);
                 sscanf(convertedCharNumber, "%lf", &token->atribute.d);
                 token->atribute.t = TypeFloat64;
                 token->type = TokenDataType;
@@ -576,8 +573,7 @@ int getToken(Token* token) {
                 }
             } else {
                 // process whole number 0.000E+4854
-                char* convertedCharNumber;
-                strCmpConstStr(&number, convertedCharNumber);
+                char* convertedCharNumber = strGetStr(&number);
                 sscanf(convertedCharNumber, "%lf", &token->atribute.d);
                 token->atribute.t = TypeFloat64;
                 token->type = TokenDataType;
@@ -622,8 +618,7 @@ int getToken(Token* token) {
                         return UNEXPECTED_EOF_ERROR;
                     }
                     // process whole number 154
-                    char* convertedCharNumber;
-                    strCmpConstStr(&number, convertedCharNumber);
+                    char* convertedCharNumber = strGetStr(&number);
                     sscanf(convertedCharNumber, "%ld", &token->atribute.i);
                     token->atribute.t = TypeInt;
                     token->type = TokenDataType;
