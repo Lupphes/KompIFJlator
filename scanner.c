@@ -20,6 +20,8 @@
 #include <stdint.h>
 
 #include "scanner.h"
+#include "keywords.h"
+#include "str.h"
 
 #define EOL '\0'
 
