@@ -1,5 +1,22 @@
-#include <str.h>
+/*File name: scanner.h ----------------------------------------------*
+ |Project:    Implementace překladače imperativního jazyka IFJ20     |
+ |Team:       124, varianta II                                       |
+ |Authors:    Ondřej Sloup (xsloup02)                                |
+ |                                                                   |
+ |                                                                   |
+ |  _      _     _   __                   __  _        _             |
+ | | |    (_)   | | /_/                  /_/ | |      | |            |
+ | | |     _  __| | ___   _   _  __   ___   _| |_ __ _| |__  _   _   |
+ | | |    | |/ _` |/ _ \ | | | | \ \ / / | | | __/ _` | '_ \| | | |  |
+ | | |____| | (_| |  __/ | |_| |  \ V /| |_| | || (_| | | | | |_| |  |
+ | |______|_|\__,_|\___|  \__,_|   \_/  \__, |\__\__,_|_| |_|\__,_|  |
+ |                                       __/ |                       |
+ |                                      |___/                        |
+ *-------------------------------------------------------------------*/
 #include <stdint.h>
+#include "str.h"
+#include "keywords.h"
+
 
 typedef enum {
     SUCCESS = 0,
@@ -12,65 +29,37 @@ typedef enum {
 typedef enum {
     /* Start */
     StateStart,
-    /* Brackets, commas, semicolons */
-    StateComma,
-    StateSemicolon,
-    StateRightBracket,
-    StateLeftBracket,
-    StateLeftCurlyBracket,
-    StateRightCurlyBracket,
-    StateEOL,
-    StateEOF,
     /* String */
     StateStartOfString,
-    StateEscapeSequence,
-    StateEscapedHex,
-    StateHexFirst,
-    StateEndOfString,
     /* Comments */
     StateSlash,
-    StateCommentModeLine,
-    StateStarStart,
-    StateCommentModeMulti,
-    StateCommentDone,
     /* White spaces */
-    StateWhiteSpace,
     /* Identifier */
     StateIdentifier,
     /* Conditions */
     StateEquals,
-    StateVarDefine,
-    StateIsEqual,
     StateExclamationMark, // Feature
-    StateNotEqual,
     StateIsGreaterThan,
-    StateIsGreaterEqual,
     StateIsLessThan,
-    StateIsLessEqual,
-    /* Operators */
-    StateMultiply,
-    StateAdd,
-    StateSubtract,
     /* Conditional operators -- feature */
     StateAndFirst,
-    StateAndSecond,
+    // StateAndSecond,
     StateOrFirst,
-    StateOrSecond,
+    // StateOrSecond, 
     /* Numbers */
     StateWholeNbr,
     StateZero,
-    StateCompleteBaseNbr, // Feature
+    // StateCompleteBaseNbr, // Feature
     StateIncompletedecimalNbr,
     StateCompleteDecimalNbr,
     StateUnsignedExpoNbr,
     StateCompleteUnsignedExpoNbr,
     StateSemiCompleteExpoNbr,
-    StateCompleteExpoNbr,
-    StateUnderline
+    StateCompleteExpoNbr
 } ScannerState;
 
-int getCharCheck(char *value);
-int unGetCharCheck(char *value);
-int getToken(Token*);
+int getCharCheck(int *value);
+int unGetCharCheck(int value);
+int getToken(Token* token);
 _TokenType processIdentifier(); // Compare strings and return tokens
 

@@ -1,4 +1,3 @@
-#include <str.h>
 #include <stdint.h>
 
 typedef enum  {
@@ -40,13 +39,11 @@ typedef enum  {
     TokenFor,
     TokenReturn,
     TokenElse,
-    // TokenFloat64,
     TokenFunc,
     TokenIf,
-    // TokenInt,
-    // TokenString,
     TokenPackage,
-    TokenDataType
+    TokenDataType, // Float64, String, Int
+    TokenUndefined
 } _TokenType;
 
 typedef enum {

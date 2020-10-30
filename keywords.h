@@ -13,36 +13,37 @@
  |                                       __/ |                       |
  |                                      |___/                        |
  *-------------------------------------------------------------------*/
-
-#include <token.h>
+#include "token.h"
 
 typedef struct {
-    const char* key;
+    const string key;
     const Token value;
 } keywordEntry;
 
-
 const keywordEntry keywords[] = {
     {
-    "else", {TokenElse}
+    "else", TokenElse
     },
     {
     "float64", {TokenDataType, {.t = TypeFloat64}}
     },
     {
-    "for", {TokenFor}
+    "for", TokenFor
     },
     {
-    "func", {TokenFunc}
+    "func", TokenFunc
     },
     {
-    "if", {TokenIf}
+    "if", TokenIf
     },
     {
     "int", {TokenDataType, {.t = TypeInt}}
     },
     {
-    "package", {TokenPackage}
+    "package", TokenPackage
+    },  
+    {
+    "return", TokenReturn
     },
     {
     "string", {TokenDataType, {.t = TypeString}}
