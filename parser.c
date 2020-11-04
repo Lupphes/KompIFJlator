@@ -26,7 +26,7 @@
 #define NTERM(nt) if (!(returnCode = (nt()))) return returnCode
 
 //Short hand. Tries to accept the specied token type. If the current token isn't of the specied type, returns from the current function with SYNTAX_ERROR.
-#define assert(term) if(!accept(TokenFunc)) return SYNTAX_ERROR;
+#define assert(term) if(!accept(term)) return SYNTAX_ERROR;
 
 Token curTok = {TokenEOF}; //We initialise the current token so that the function nextToken works properly.
 
