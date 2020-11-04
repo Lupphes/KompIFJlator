@@ -6,7 +6,7 @@
 typedef enum  {
     /* Definition of Tokens */
     /* Strings */
-    TokenEndOfString,
+    TokenStringLiteral,
     /* Conditions */
     TokenFeatureExclamationMark,
     TokenNotEqual,
