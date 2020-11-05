@@ -23,26 +23,21 @@
 #include "keywords.h"
 #include "str.h"
 
-#define EOL '\0'
+#define EOL '\n'
 
 int getCharCheck(int *value) {
     *value = getchar();
-    if (*value == EOF) {
-        if (!feof(stdin)) {
-            return UNEXPECTED_EOF_ERROR;
-        }
-        else if (ferror(stdin)) {
-            return INPUT_ERROR;
-        }
+    if (feof(stdin) || *value == EOF) {
+        *value = EOF;
+    }
+    else if (ferror(stdin)) {
+        return INPUT_ERROR;
     }
     return SUCCESS;
 }
 
 int unGetCharCheck(int value) {
     value = ungetc(value, stdin);
-    if (value == EOF) {
-        return UNEXPECTED_EOF_ERROR;
-    }
     return SUCCESS;
 }
 
@@ -101,8 +96,7 @@ int getToken(Token* token) {
                 if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
                     return UNEXPECTED_EOF_ERROR;
                 }
-                token->type = TokenWhiteSpace;
-                return SUCCESS;
+                state = StateStart;
                 break;
             case EOL :
                 do {
@@ -113,8 +107,7 @@ int getToken(Token* token) {
                 if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
                     return UNEXPECTED_EOF_ERROR;
                 }
-                token->type = TokenEOL;
-                return SUCCESS;
+                state = StateStart;
                 break;
             case EOF :
                 token->type = TokenEOF;
@@ -175,9 +168,13 @@ int getToken(Token* token) {
                     if (getCharCheck(&currChar) != 0) {
                         return INPUT_ERROR;
                     }
-                } while (currChar != EOL);
-                break;
+                } while (currChar != EOL && currChar != EOF);
+                if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
+                    strFree(&stringIdentifier);
+                    return UNEXPECTED_EOF_ERROR;
+                }
                 state = StateStart;
+                break;
             case '*':
                 if (getCharCheck(&currChar) != 0) {
                     return INPUT_ERROR;
@@ -186,16 +183,20 @@ int getToken(Token* token) {
                 if (getCharCheck(&nextChar) != 0) {
                     return INPUT_ERROR;
                 }
-                while (currChar != '*' && nextChar != '/') {
+                while (!(currChar == '*' && nextChar == '/')) {
                     currChar = nextChar;
                     if (getCharCheck(&nextChar) != 0) {
                         return INPUT_ERROR;
+                    }
+                    if (nextChar == EOF) {
+                        return LEXICAL_ERROR;
                     }
                 }
                 state = StateStart;
                 break;
             default:
-                return LEXICAL_ERROR;
+                token->type = TokenDivide;
+                return SUCCESS;
                 break;
             }
             break;
@@ -300,7 +301,8 @@ int getToken(Token* token) {
                 return SUCCESS;
                 break;
             default:
-                return LEXICAL_ERROR;
+                token->type = TokenEquals;
+                return SUCCESS;
                 break;
             }
         case StateExclamationMark:
@@ -392,7 +394,7 @@ int getToken(Token* token) {
 
 
             } while ((currChar >= 'A' && currChar <= 'Z') || (currChar >= 'a' && currChar <= 'z') || currChar == '_' || (currChar >= '0' && currChar <= '9'));
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < 8; i++)
             {
                 if(strCmpConstStr(&stringIdentifier, keywords[i].key) == 0) {
                     token->type = keywords[i].value.type;

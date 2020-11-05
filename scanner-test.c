@@ -1,9 +1,13 @@
-#include <stdio.h>
 #include "scanner.h"
+#include "scanner-test.h"
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]) {
     Token token;
-    getToken(&token);
-    return 0;
+    int result;
+    result = getToken(&token);
+    printf("%s", enumTokenTranslate[token.type]);
+    return result;
 }
+
+
+
