@@ -20,6 +20,7 @@ typedef enum  {
     TokenAdd,
     TokenSubtract,
     TokenMultiply,
+    TokenDivide,
     /* Feature or/and */
     TokenAndSecond,
     TokenOrSecond,
@@ -38,6 +39,7 @@ typedef enum  {
     TokenIdentifier,
     TokenEOL,
     TokenEOF,
+    TokenEquals,
     /* Key words */ 
     TokenFor,
     TokenReturn,
