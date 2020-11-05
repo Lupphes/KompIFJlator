@@ -54,3 +54,4 @@ dkms.conf
 # VSCODE
 .vscode
 *.out
+test.txt
