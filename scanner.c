@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <ctype.h>
 
 #include "scanner.h"
 #include "keywords.h"
@@ -116,6 +117,9 @@ int getToken(Token* token) {
             case '=':
                 state = StateEquals;
                 break;
+            case ':':
+                state = StateColon;
+                break;
             case '!':
                 state = StateExclamationMark;
                 break;
@@ -213,6 +217,10 @@ int getToken(Token* token) {
             }
             while(currChar != '"') {
                 if (currChar == '\\') {
+                    if (getCharCheck(&currChar) != 0) {
+                        strFree(&stringIdentifier);
+                        return INPUT_ERROR;
+                    }
                     switch (currChar) {
                     case '"':
                         if (strAddChar(&stringLiteral, currChar) == STR_ERROR) {
@@ -247,10 +255,15 @@ int getToken(Token* token) {
                             strFree(&stringIdentifier);
                             return INPUT_ERROR;
                         }
+                        if (!(isxdigit(currChar) && isxdigit(previousChar))){
+                            strFree(&stringLiteral);
+                            return LEXICAL_ERROR;
+                            break;
+                        }
                         hexadecimalValue[0] = currChar;
                         hexadecimalValue[1] = previousChar;
                         errno = 0;
-                        int number = (int)strtol(hexadecimalValue, NULL, 16);
+                        long number = strtol(hexadecimalValue, NULL, 16);
                         if ((number == LONG_MAX || number == LONG_MIN) && errno == ERANGE)
                         {
                             strFree(&stringLiteral);
@@ -265,6 +278,10 @@ int getToken(Token* token) {
                         strFree(&stringLiteral);
                         return LEXICAL_ERROR;
                         break;
+                    }
+                    if (getCharCheck(&currChar) != 0) {
+                        strFree(&stringIdentifier);
+                        return INPUT_ERROR;
                     }
                 }
                 else if (currChar > '"' || currChar == '!' || currChar == ' ') {
@@ -298,10 +315,6 @@ int getToken(Token* token) {
             break;
         case StateEquals:
             switch (currChar) {
-            case ':':
-                token->type = TokenVarDefine;
-                return SUCCESS;
-                break;
             case '=':
                 token->type = TokenIsEqual;
                 return SUCCESS;
@@ -309,6 +322,15 @@ int getToken(Token* token) {
             default:
                 token->type = TokenEquals;
                 return SUCCESS;
+                break;
+            }
+        case StateColon:
+            switch (currChar) {
+            case '=':
+                token->type = TokenVarDefine;
+                return SUCCESS;
+            default:
+                return LEXICAL_ERROR;
                 break;
             }
         case StateExclamationMark:
@@ -324,7 +346,8 @@ int getToken(Token* token) {
                 return SUCCESS;
                 break;
             default:
-                return LEXICAL_ERROR;
+                token->type = TokenEquals;
+                return SUCCESS;
                 break;
             }
         case StateIsGreaterThan:
@@ -334,7 +357,8 @@ int getToken(Token* token) {
                 return SUCCESS;
                 break;
             default:
-                return LEXICAL_ERROR;
+                token->type = TokenIsGreaterThan;
+                return SUCCESS;
                 break;
             }
         case StateIsLessThan:
@@ -344,7 +368,8 @@ int getToken(Token* token) {
                 return SUCCESS;
                 break;
             default:
-                return LEXICAL_ERROR;
+                token->type = TokenIsLessThan;
+                return SUCCESS;
                 break;
             }
         case StateAndFirst:
@@ -377,27 +402,20 @@ int getToken(Token* token) {
                 strFree(&stringIdentifier);
                 return MEMORY_ERROR;
             }
-            if (strAddChar(&stringIdentifier, currChar) == STR_ERROR) {
-                strFree(&stringIdentifier);
-                return MEMORY_ERROR;
-            }
-            do {
+            while ((currChar >= 'A' && currChar <= 'Z') || (currChar >= 'a' && currChar <= 'z') || currChar == '_' || (currChar >= '0' && currChar <= '9')) {
+                if (strAddChar(&stringIdentifier, currChar) == STR_ERROR) {
+                    strFree(&stringIdentifier);
+                    return MEMORY_ERROR;
+                }
                 if (getCharCheck(&currChar) != 0) {
                     strFree(&stringIdentifier);
                     return INPUT_ERROR;
                 }
-                if (!((currChar >= 'A' && currChar <= 'Z') || (currChar >= 'a' && currChar <= 'z') || currChar == '_' || (currChar >= '0' && currChar <= '9'))) {
-                    if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
-                        strFree(&stringIdentifier);
-                        return UNEXPECTED_EOF_ERROR;
-                    }
-                } else {
-                    if (strAddChar(&stringIdentifier, currChar) == STR_ERROR) {
-                        strFree(&stringIdentifier);
-                        return MEMORY_ERROR;
-                    }
-                }
-            } while ((currChar >= 'A' && currChar <= 'Z') || (currChar >= 'a' && currChar <= 'z') || currChar == '_' || (currChar >= '0' && currChar <= '9'));
+            } 
+            if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
+                strFree(&stringIdentifier);
+                return UNEXPECTED_EOF_ERROR;
+            }
             for (int i = 0; i < sizeof(keywords)/sizeof(keywordEntry); i++)
             {
                 if(strCmpConstStr(&stringIdentifier, keywords[i].key) == 0) {
@@ -445,9 +463,7 @@ int getToken(Token* token) {
                 if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
                     return UNEXPECTED_EOF_ERROR;
                 }
-                char* convertedCharNumber = strGetStr(&number);
-                sscanf(convertedCharNumber, "%ld", &token->atribute.i);
-                token->atribute.t = TypeInt;
+                sscanf(strGetStr(&number), "%ld", &token->atribute.i);
                 token->type = TokenWholeNbr;
                 strFree(&number);
                 return SUCCESS;
@@ -490,9 +506,7 @@ int getToken(Token* token) {
                     break;
                 } else {
                     // process whole number 0.0004854
-                    char* convertedCharNumber = strGetStr(&number);
-                    sscanf(convertedCharNumber, "%lf", &token->atribute.d);
-                    token->atribute.t = TypeFloat64;
+                    sscanf(strGetStr(&number), "%lf", &token->atribute.d);
                     token->type = TokenDecimalNbr;
                     strFree(&number);
                     return SUCCESS;
@@ -542,9 +556,7 @@ int getToken(Token* token) {
                 }
             } else {
                 // process whole number 0.000E4854
-                char* convertedCharNumber = strGetStr(&number);
-                sscanf(convertedCharNumber, "%lf", &token->atribute.d);
-                token->atribute.t = TypeFloat64;
+                sscanf(strGetStr(&number), "%lf", &token->atribute.d);
                 token->type = TokenDecimalNbr;
                 strFree(&number);
                 return SUCCESS;
@@ -579,9 +591,7 @@ int getToken(Token* token) {
                 }
             } else {
                 // process whole number 0.000E+4854
-                char* convertedCharNumber = strGetStr(&number);
-                sscanf(convertedCharNumber, "%lf", &token->atribute.d);
-                token->atribute.t = TypeFloat64;
+                sscanf(strGetStr(&number), "%lf", &token->atribute.d);
                 token->type = TokenDecimalNbr;
                 strFree(&number);
                 return SUCCESS;
