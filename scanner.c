@@ -291,7 +291,7 @@ int getToken(Token* token) {
             if(strInit(&token->atribute.s) == STR_ERROR) {
                 return MEMORY_ERROR;
             }
-            if (strCopyString(&stringLiteral, &token->atribute.s) == STR_ERROR) {
+            if (strCopyString(&token->atribute.s, &stringLiteral) == STR_ERROR) {
                 return MEMORY_ERROR;
             }
             return SUCCESS;
@@ -398,21 +398,19 @@ int getToken(Token* token) {
                     }
                 }
             } while ((currChar >= 'A' && currChar <= 'Z') || (currChar >= 'a' && currChar <= 'z') || currChar == '_' || (currChar >= '0' && currChar <= '9'));
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < sizeof(keywords)/sizeof(keywordEntry); i++)
             {
                 if(strCmpConstStr(&stringIdentifier, keywords[i].key) == 0) {
-                    token->type = keywords[i].value.type;
-                    token->atribute.t = keywords[i].value.atribute.t;
+                    *token = keywords[i].value;
+                    return SUCCESS;
                     break;
-                } else {
-                    token->type = TokenIdentifier;
                 }
             }
-
+            token->type = TokenIdentifier;
             if(strInit(&token->atribute.s) == STR_ERROR) {
                 return MEMORY_ERROR;
             }
-            if (strCopyString(&stringLiteral, &token->atribute.s) == STR_ERROR) {
+            if (strCopyString(&token->atribute.s, &stringIdentifier) == STR_ERROR) {
                 return MEMORY_ERROR;
             }
             return SUCCESS;
