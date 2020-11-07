@@ -7,9 +7,9 @@ int main(int argc, char const *argv[]) {
     while (token.type != TokenEOF)
     {
         if((result = getToken(&token)) == 0) {
-            printf("%s", token);
+            printf("%s\n", enumTokenTranslate[token.type]);
         } else {
-            printf("%d", result);
+            printf("%d\n", result);
             return result;
         }
     }

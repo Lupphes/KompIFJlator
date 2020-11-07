@@ -35,6 +35,7 @@ typedef enum {
     StateStartOfString,
     /* Comments */
     StateSlash,
+    StateColon,
     /* White spaces */
     /* Identifier */
     StateIdentifier,

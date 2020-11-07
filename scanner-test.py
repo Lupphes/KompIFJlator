@@ -1,7 +1,7 @@
 import os
 import subprocess
 import random
-
+from decimal import Decimal
 
 _FILENAME = "./test.txt"
 _ERROR = False
@@ -47,7 +47,7 @@ doubleChars = [
     ['==', "TokenIsEqual"],
     ['<=', "TokenIsGreaterEqual"],
     ['>=', "TokenIsLessEqual"],
-    ['=:', "TokenVarDefine"]
+    [':=', "TokenVarDefine"]
 ]
 
 identifiers = [
@@ -93,7 +93,6 @@ errorLiterals = [
     ['"[];,./;`-*/+    ><?!@#$%^&*()__+=', "TokenUndefined"]
 ]
 
-
 numbers = [
     ['0', "TokenWholeNbr"],
     ['1', "TokenWholeNbr"],
@@ -102,14 +101,32 @@ numbers = [
     ['0.0', "TokenDecimalNbr"],
     ['123.0', "TokenDecimalNbr"],
     ['123456789.123456789', "TokenDecimalNbr"],
-    ['123456789.123456789', "TokenDecimalNbr"],
-    ['0.000E4854', "TokenDecimalNbr"],
-    ['0.000E+4854', "TokenDecimalNbr"],
-    ['0.000E-4854', "TokenDecimalNbr"],
-    ['5E-4854', "TokenDecimalNbr"],
-    ['5E4854', "TokenDecimalNbr"]
+    ['0.123456789', "TokenDecimalNbr"],
+    ['0.123456789', "TokenDecimalNbr"],
+    ['5E4', "TokenDecimalNbr"],
+    ['5E+4', "TokenDecimalNbr"],
+    ['5E-4', "TokenDecimalNbr"],
+    ['0.5E4', "TokenDecimalNbr"],
+    ['0.5E-4', "TokenDecimalNbr"],
+    ['0.5E+4', "TokenDecimalNbr"]
 ]
 
+numbersReturn = [
+    ['0', "0"],
+    ['1', "1"],
+    ['15', "15"],
+    ['123456789', "123456789"],
+    ['0.0', "0.0"],
+    ['123.0', "123.0"],
+    ['123456789.123456789', "123456789.123456791"],
+    ['0.123456789', "0.123456789"],
+    ['5E4', "50000.000000000"],
+    ['5E+4', "50000.000000000"],
+    ['5E-4', "0.000500000"],
+    ['0.5E4', "5000"],
+    ['0.5E-4', "0.00005"],
+    ['0.5E+4', "5000"]
+]
 
 numbersErrors = [
     ['0..45', "TokenUndefined"],
@@ -121,6 +138,37 @@ numbersErrors = [
     ['4.', "TokenUndefined"]
 ]
 
+literalValues = [
+    ['""', ""],
+    ['"Henlo"', "Henlo"],
+    ['"Im here"', "Im here"],
+    ['"Hello World1234567892345678901"', "Hello World1234567892345678901"],
+    ['"\\\\"', "\\"],
+    ['"\\t"', "\t"],
+    ['"\\""', "\""],
+    ['"\\x36"', "6"],
+    ['"\\x6F"', "o"],
+    ['"\\x6f"', "o"],
+    ['"\\\\\\\\"', "\\\\"],
+    ['"\\t\\t"', "\t\t"],
+    ['"\\"\\""', "\"\""],
+    ['"\\x36\\x36"', "66"],
+    ['"\\x40\\x40"', "@@"],
+]
+
+errorLiteralsValues = [
+    ['"\\f"', "TokenUndefined"],
+    ['"\\45"', "TokenUndefined"],
+    ['"\\fefefe"', "TokenUndefined"],
+    ['"\\x5"', "TokenUndefined"],
+    ['"\\x4\\"', "TokenUndefined"]
+]
+
+dataTypeValues = [
+    ['float64', "TypeFloat64"],
+    ['string', "TypeString"],
+    ['int', "TypeInt"]
+]
 
 def createWriteFile(i, array):
     f = open(_FILENAME,"w+")
@@ -453,7 +501,7 @@ def numberTests():
                 print(f"Test {i} didn't pass. Expected {numbers[i][1]} got {result.stdout} with '{numbers[i][0]}'")
         if result.returncode != 0:
             _ERROR = True
-            print(f"Test returned zero code (incorrect)!")
+            print(f"Test {i} returned non-zero code!")
     if not _ERROR:
         print("All 'Number tests' passed!")
     else:
@@ -483,6 +531,112 @@ def numberErrorTests():
     _ERROR = False
     return
 
+def numberReturnTests():
+    global _ERROR
+    for i in range(len(numbersReturn)): 
+        createWriteFile(i, numbersReturn)
+        f = open(_FILENAME, "r")
+        result = subprocess.run(["./scanner-test3.out"], stdin=f, capture_output=True, text=True)  
+        f.close()
+        if Decimal(result.stdout) != Decimal(numbersReturn[i][1]):
+                _ERROR = True
+                print(f"Test {i} didn't pass. Expected value {Decimal(numbersReturn[i][1])} got {Decimal(result.stdout)} with inserted value '{Decimal(numbersReturn[i][0])}'")
+        if result.returncode != 0:
+            _ERROR = True
+            print(f"Test {i} returned non-zero code!")
+    if not _ERROR:
+        print("All 'Number Return tests' passed!")
+    else:
+        print("Tests didn't pass!")
+    print("-------------------------------------------------------------------")
+    _ERROR = False
+    return
+
+def stringLiteralTests():
+    global _ERROR
+    for i in range(len(literalValues)): 
+        createWriteFile(i, literalValues)
+        f = open(_FILENAME, "r")
+        result = subprocess.run(["./scanner-test3.out"], stdin=f, capture_output=True, text=True)  
+        f.close()
+        if result.stdout != literalValues[i][1]:
+                _ERROR = True
+                print(f"Test {i} didn't pass. Expected value {literalValues[i][1]} got {result.stdout} with inserted value '{literalValues[i][0]}'")
+        if result.returncode != 0:
+            _ERROR = True
+            print(f"Test {i} returned non-zero code!")
+    if not _ERROR:
+        print("All 'StringLiteral Return tests' passed!")
+    else:
+        print("Tests didn't pass!")
+    print("-------------------------------------------------------------------")
+    _ERROR = False
+    return
+
+
+def literalsValueErrorTest():
+    global _ERROR
+    for i in range(len(errorLiteralsValues)): 
+        createWriteFile(i, errorLiteralsValues)
+        f = open(_FILENAME, "r")
+        result = subprocess.run(["./scanner-test3.out"], stdin=f, capture_output=True, text=True)  
+        f.close()
+        if result.stdout != errorLiteralsValues[i][1]:
+                _ERROR = True
+                print(f"Test {i} didn't pass. Expected {errorLiteralsValues[i][1]} got {result.stdout} with '{errorLiteralsValues[i][0]}'")
+        if result.returncode == 0:
+            _ERROR = True
+            print(f"Test returned zero code (incorrect)!")
+    if not _ERROR:
+        print("All 'Literal error tests' passed!")
+    else:
+        print("Tests didn't pass!")
+    print("-------------------------------------------------------------------")
+    _ERROR = False
+    return
+
+def identifierValueTests():
+    global _ERROR
+    for i in range(len(identifiers)): 
+        createWriteFile(i, identifiers)
+        f = open(_FILENAME, "r")
+        result = subprocess.run(["./scanner-test3.out"], stdin=f, capture_output=True, text=True)  
+        f.close()
+        if result.stdout != identifiers[i][0]:
+                _ERROR = True
+                print(f"Test {i} didn't pass. Expected value {identifiers[i][0]} got {result.stdout} with inserted value '{identifiers[i][0]}'")
+        if result.returncode != 0:
+            _ERROR = True
+            print(f"Test {i} returned non-zero code!")
+    if not _ERROR:
+        print("All 'Identifier value tests' passed!")
+    else:
+        print("Tests didn't pass!")
+    print("-------------------------------------------------------------------")
+    _ERROR = False
+    return
+
+
+def dataTypeValueTests():
+    global _ERROR
+    for i in range(len(dataTypeValues)): 
+        createWriteFile(i, dataTypeValues)
+        f = open(_FILENAME, "r")
+        result = subprocess.run(["./scanner-test3.out"], stdin=f, capture_output=True, text=True)  
+        f.close()
+        if result.stdout != dataTypeValues[i][1]:
+                _ERROR = True
+                print(f"Test {i} didn't pass. Expected value {dataTypeValues[i][1]} got {result.stdout} with inserted value '{dataTypeValues[i][0]}'")
+        if result.returncode != 0:
+            _ERROR = True
+            print(f"Test {i} returned non-zero code!")
+    if not _ERROR:
+        print("All 'Data Type value tests' passed!")
+    else:
+        print("Tests didn't pass!")
+    print("-------------------------------------------------------------------")
+    _ERROR = False
+    return
 
 def main():
     simpleTest()
@@ -499,6 +653,11 @@ def main():
     literalsErrorTest()
     numberTests()
     numberErrorTests()
+    numberReturnTests()
+    stringLiteralTests()
+    literalsValueErrorTest()
+    identifierValueTests()
+    dataTypeValueTests()
     return
 
 

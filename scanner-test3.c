@@ -2,7 +2,7 @@
 #include "scanner-test.h"
 
 static const char* enumDataTypeTranslate[] = {
-  "TypeInt,"
+  "TypeInt",
   "TypeFloat64",
   "TypeString"
 };
@@ -12,11 +12,10 @@ int main(int argc, char const *argv[]) {
     int result;
     result = getToken(&token);
     if (token.type == TokenWholeNbr) {
-        printf("%ld", token.atribute.i);
+        printf("%.9ld", token.atribute.i);
     } else if (token.type == TokenDecimalNbr) {
-        printf("%lf", token.atribute.d);
+        printf("%.9lf", token.atribute.d);
     } else if (token.type == TokenStringLiteral) {
-
         printf("%s", strGetStr(&token.atribute.s));
     } else if (token.type == TokenIdentifier) {
         printf("%s", strGetStr(&token.atribute.s));
