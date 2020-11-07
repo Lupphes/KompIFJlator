@@ -34,13 +34,12 @@ basicChars = [
     ['+', "TokenAdd"],
     ['*', "TokenMultiply"],
     ['-', "TokenSubtract"],
-    ['=', "TokenEquals"],
-    ['_', "TokenIdentifier"]
+    ['=', "TokenEquals"]
 ]
 
 nullChars = [
     ['\n', "TokenEOF"],
-    ['', "TokenEOF"],
+    ['', "TokenEOF"]
 ]
 
 doubleChars = [
@@ -50,6 +49,78 @@ doubleChars = [
     ['>=', "TokenIsLessEqual"],
     ['=:', "TokenVarDefine"]
 ]
+
+identifiers = [
+    ['a', "TokenIdentifier"],
+    ['Z', "TokenIdentifier"],
+    ['_', "TokenIdentifier"],
+    ['_A', "TokenIdentifier"],
+    ['AZ', "TokenIdentifier"],
+    ['A4', "TokenIdentifier"],
+    ['az', "TokenIdentifier"],
+    ['_5', "TokenIdentifier"],
+    ['a45dfwe45fe', "TokenIdentifier"],
+    ['_a45dfwe45fe', "TokenIdentifier"],
+    ['oprtijdfn', "TokenIdentifier"],
+    ['_4545', "TokenIdentifier"]
+]
+
+commands = [
+    ['else', "TokenElse"],
+    ['float64', "TokenDataType"],
+    ['for', "TokenFor"],
+    ['func', "TokenFunc"],
+    ['if', "TokenIf"],
+    ['int', "TokenDataType"],  
+    ['package', "TokenPackage"],
+    ['return', "TokenReturn"],
+    ['string', "TokenDataType"]
+]
+
+literals = [
+    ['""', "TokenStringLiteral"],
+    ['"Henlo"', "TokenStringLiteral"],
+    ['"Im here"', "TokenStringLiteral"],
+    ['"Hello World1234567892345678901"', "TokenStringLiteral"],
+    ['"[];,./;`-*/+    ><?!@#$%^&*()__+="', "TokenStringLiteral"]
+]
+
+errorLiterals = [
+    ['"', "TokenUndefined"],
+    ['"Henlo', "TokenUndefined"],
+    ['"Im here', "TokenUndefined"],
+    ['"Hello World1234567892345678901', "TokenUndefined"],
+    ['"[];,./;`-*/+    ><?!@#$%^&*()__+=', "TokenUndefined"]
+]
+
+
+numbers = [
+    ['0', "TokenWholeNbr"],
+    ['1', "TokenWholeNbr"],
+    ['15', "TokenWholeNbr"],
+    ['123456789', "TokenWholeNbr"],
+    ['0.0', "TokenDecimalNbr"],
+    ['123.0', "TokenDecimalNbr"],
+    ['123456789.123456789', "TokenDecimalNbr"],
+    ['123456789.123456789', "TokenDecimalNbr"],
+    ['0.000E4854', "TokenDecimalNbr"],
+    ['0.000E+4854', "TokenDecimalNbr"],
+    ['0.000E-4854', "TokenDecimalNbr"],
+    ['5E-4854', "TokenDecimalNbr"],
+    ['5E4854', "TokenDecimalNbr"]
+]
+
+
+numbersErrors = [
+    ['0..45', "TokenUndefined"],
+    ['0.4E.5', "TokenUndefined"],
+    ['0.4E-.5', "TokenUndefined"],
+    ['0.4E+.5', "TokenUndefined"],
+    ['45E+.5', "TokenUndefined"],
+    ['45..E+..5', "TokenUndefined"],
+    ['4.', "TokenUndefined"]
+]
+
 
 def createWriteFile(i, array):
     f = open(_FILENAME,"w+")
@@ -286,17 +357,132 @@ def commentsBlockTest():
 
 def identifierTests():
     global _ERROR
-    f = open(_FILENAME,"w+")
-    f.write("_")
-    
-    # randomNbr = random.randint(1,25)
-    # j = 0
-    # while j != randomNbr:
-    #     f.write(chr(random.randint(32,127)))
-    #     f.write("\n")
-    #     j += 1
-    # f.close()
-    # return
+    for i in range(len(identifiers)): 
+        createWriteFile(i, identifiers)
+        f = open(_FILENAME, "r")
+        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        f.close()
+        if result.stdout != identifiers[i][1]:
+                _ERROR = True
+                print(f"Test {i} didn't pass. Expected {identifiers[i][1]} got {result.stdout} with '{identifiers[i][0]}'")
+        if result.returncode != 0:
+            _ERROR = True
+            print(f"Test {i} returned non-zero code!")
+    if not _ERROR:
+        print("All 'Identifiers tests' passed!")
+    else:
+        print("Tests didn't pass!")
+    print("-------------------------------------------------------------------")
+    _ERROR = False
+    return
+
+def commandsTests():
+    global _ERROR
+    for i in range(len(commands)): 
+        createWriteFile(i, commands)
+        f = open(_FILENAME, "r")
+        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        f.close()
+        if result.stdout != commands[i][1]:
+                _ERROR = True
+                print(f"Test {i} didn't pass. Expected {commands[i][1]} got {result.stdout} with '{commands[i][0]}'")
+        if result.returncode != 0:
+            _ERROR = True
+            print(f"Test {i} returned non-zero code!")
+    if not _ERROR:
+        print("All 'Commands tests' passed!")
+    else:
+        print("Tests didn't pass!")
+    print("-------------------------------------------------------------------")
+    _ERROR = False
+    return
+
+def literalsTest():
+    global _ERROR
+    for i in range(len(literals)): 
+        createWriteFile(i, literals)
+        f = open(_FILENAME, "r")
+        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        f.close()
+        if result.stdout != literals[i][1]:
+                _ERROR = True
+                print(f"Test {i} didn't pass. Expected {literals[i][1]} got {result.stdout} with '{literals[i][0]}'")
+        if result.returncode != 0:
+            _ERROR = True
+            print(f"Test {i} returned non-zero code!")
+    if not _ERROR:
+        print("All 'Literal tests' passed!")
+    else:
+        print("Tests didn't pass!")
+    print("-------------------------------------------------------------------")
+    _ERROR = False
+    return
+
+
+def literalsErrorTest():
+    global _ERROR
+    for i in range(len(errorLiterals)): 
+        createWriteFile(i, errorLiterals)
+        f = open(_FILENAME, "r")
+        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        f.close()
+        if result.stdout != errorLiterals[i][1]:
+                _ERROR = True
+                print(f"Test {i} didn't pass. Expected {errorLiterals[i][1]} got {result.stdout} with '{errorLiterals[i][0]}'")
+        if result.returncode == 0:
+            _ERROR = True
+            print(f"Test returned zero code (incorrect)!")
+    if not _ERROR:
+        print("All 'Literal error tests' passed!")
+    else:
+        print("Tests didn't pass!")
+    print("-------------------------------------------------------------------")
+    _ERROR = False
+    return
+
+
+def numberTests():
+    global _ERROR
+    for i in range(len(numbers)): 
+        createWriteFile(i, numbers)
+        f = open(_FILENAME, "r")
+        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        f.close()
+        if result.stdout != numbers[i][1]:
+                _ERROR = True
+                print(f"Test {i} didn't pass. Expected {numbers[i][1]} got {result.stdout} with '{numbers[i][0]}'")
+        if result.returncode != 0:
+            _ERROR = True
+            print(f"Test returned zero code (incorrect)!")
+    if not _ERROR:
+        print("All 'Number tests' passed!")
+    else:
+        print("Tests didn't pass!")
+    print("-------------------------------------------------------------------")
+    _ERROR = False
+    return
+
+def numberErrorTests():
+    global _ERROR
+    for i in range(len(numbersErrors)): 
+        createWriteFile(i, numbersErrors)
+        f = open(_FILENAME, "r")
+        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        f.close()
+        if result.stdout != numbersErrors[i][1]:
+                _ERROR = True
+                print(f"Test {i} didn't pass. Expected {numbersErrors[i][1]} got {result.stdout} with '{numbersErrors[i][0]}'")
+        if result.returncode == 0:
+            _ERROR = True
+            print(f"Test returned zero code (incorrect)!")
+    if not _ERROR:
+        print("All 'Number error tests' passed!")
+    else:
+        print("Tests didn't pass!")
+    print("-------------------------------------------------------------------")
+    _ERROR = False
+    return
+
 
 def main():
     simpleTest()
@@ -307,6 +493,12 @@ def main():
     skippingTest()
     commentLineTest()
     commentsBlockTest()
+    identifierTests()
+    commandsTests()
+    literalsTest()
+    literalsErrorTest()
+    numberTests()
+    numberErrorTests()
     return
 
 

@@ -1,20 +1,9 @@
+#ifndef SCANNER_TEST_H
+#define SCANNER_TEST_H
 #include <stdio.h>
-#define FILE_LENGHT 2
-#define FILE_NAME "test.txt"
-
-#define EOL '\0'
-
-FILE * fPtr;
-
-
-typedef enum {
-    GENERAL_ERROR = 1,
-    FILE_ERROR
-} _TestError;
-
 
 static const char* enumTokenTranslate[] = {
-    "TokenEndOfString", 
+    "TokenStringLiteral", 
 
     "TokenFeatureExclamationMark", 
     "TokenNotEqual", 
@@ -56,7 +45,7 @@ static const char* enumTokenTranslate[] = {
     "TokenIf", 
     "TokenPackage", 
     "TokenDataType", 
-    "TokenUndefined",   
+    "TokenUndefined"
 };
 
-
+#endif /* SCANNER_TEST_H */
