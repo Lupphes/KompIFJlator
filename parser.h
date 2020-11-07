@@ -14,4 +14,23 @@
  *-------------------------------------------------------------------*/
 #ifndef PARSER_H
 #define PARSER_H
+#include <stdbool.h>
+#include "token.h"
+
+bool accept(_TokenType type);
+bool peek(_TokenType type);
+int nextToken();
+
+int beginParsing();
+int Start();
+int Prolog();
+int Chief();
+int FunctionDefinition();
+int FunctionDefinitionParameters_Start();
+int FunctionDefinitionParameters_Next();
+int FunctionReturnValues();
+int FunctionReturnValues_First();
+int FunctionReturnValues_Next();
+int Block();
+
 #endif

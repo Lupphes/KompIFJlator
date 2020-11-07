@@ -23,10 +23,13 @@
 #define acceptAny() nextToken()
 
 //Short hand. Processes the function of the specified nonterminal and returns its failure code if it finds issues; otherwise the control flow will resume.
-#define NTERM(nt) if (!(returnCode = (nt()))) return returnCode
+#define NTERM(nt) if ((returnCode = (nt()))) return returnCode;
 
 //Short hand. Tries to accept the specied token type. If the current token isn't of the specied type, returns from the current function with SYNTAX_ERROR.
 #define assert(term) if(!accept(term)) return SYNTAX_ERROR;
+
+//Short hand. Tries to accept the specied token type. If the current token isn't of the specied type, returns from the current function with SUCCESS, i.e. it instead applies the epsilon rule.
+#define assertOrEpsilon(token) if(!accept(token)) return SUCCESS;
 
 Token curTok = {TokenEOF}; //We initialise the current token so that the function nextToken works properly.
 
@@ -51,7 +54,7 @@ bool accept(_TokenType type){
  * @param type The type of the token to expect.
  */
 bool peek(_TokenType type){
-    return curTok.type != type;
+    return curTok.type == type;
 }
 
 int nextToken(){
@@ -65,7 +68,8 @@ int nextToken(){
  * 
  * @return int An error code (or SUCCESS) to be returned by main to the operating system.
  */
-int startParsing(){
+int beginParsing(){
+    nextToken(); //First read of the token.
     return Start();
 }
 
@@ -82,7 +86,7 @@ int Prolog(){
     assert(TokenPackage);
 
     if(peek(TokenIdentifier)){
-        if (strCmpConstStr(&curTok.atribute.s,"main")){
+        if (!strCmpConstStr(&curTok.atribute.s,"main")){
             acceptAny();
             return SUCCESS;
         }
@@ -101,13 +105,13 @@ int Chief(){
     if (accept(TokenEOF))
         return SUCCESS;
     
-    NTERM(Function);
+    NTERM(FunctionDefinition);
     NTERM(Chief);
     
     return SUCCESS;
 }
 
-int Function(){
+int FunctionDefinition(){
     int returnCode;
     
     assert(TokenFunc);
@@ -119,25 +123,68 @@ int Function(){
     else return SYNTAX_ERROR;
 
     assert(TokenLeftBracket);
-
-    NTERM(FunctionDefinitionParameters); //Todo: yes.
-
+    NTERM(FunctionDefinitionParameters_Start); //Todo: yes.
     assert(TokenRightBracket);
-
     NTERM(FunctionReturnValues); //Todo: yes.
-
     NTERM(Block);
-    
+    return SUCCESS;
 }
 
-int FunctionDefinitionParameters(){
+int FunctionDefinitionParameters_Start(){
+    int returnCode;
+    
+    assertOrEpsilon(TokenIdentifier);
+    assert(TokenDataType);
+    NTERM(FunctionDefinitionParameters_Next);
+    return SUCCESS;
+}
+
+int FunctionDefinitionParameters_Next(){
+    int returnCode;
+    
+    assertOrEpsilon(TokenComma);
+    assert(TokenIdentifier);
+    assert(TokenDataType);
+    NTERM(FunctionDefinitionParameters_Next);
     return SUCCESS;
 }
 
 int FunctionReturnValues(){
+    int returnCode;
+
+    assertOrEpsilon(TokenLeftBracket);
+    NTERM(FunctionReturnValues_First);
+    assert(TokenRightBracket);
+    return SUCCESS;
+}
+
+int FunctionReturnValues_First(){
+    int returnCode;
+
+    assertOrEpsilon(TokenDataType);
+    NTERM(FunctionReturnValues_Next);
+    return SUCCESS;
+}
+
+int FunctionReturnValues_Next(){
+    int returnCode;
+    
+    assertOrEpsilon(TokenComma);
+    assert(TokenDataType);
+    NTERM(FunctionReturnValues_Next);
     return SUCCESS;
 }
 
 int Block(){
+    int returnCode;
+    
+    //PLACEHOLDER!!!
+    assert(TokenLeftCurlyBracket);
+    while(!(peek(TokenLeftCurlyBracket) || peek(TokenRightCurlyBracket))) acceptAny();
+    if (peek(TokenLeftCurlyBracket)){
+        NTERM(Block);
+    }
+    
+    assert(TokenRightCurlyBracket);
     return SUCCESS;
 }
