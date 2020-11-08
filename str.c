@@ -81,6 +81,19 @@ int strCopyString(string *s1, const string *s2)
    return STR_SUCCESS;
 }
 
+//Copies a C string into a smart string structure
+int strCopyConstString(string *s1, const char* s2){
+   int newLength = strlen(s2);
+   if (newLength >= s1->allocSize){
+      if ((s1->str = (char*) realloc(s1->str, newLength + 1)) == NULL)
+         return STR_ERROR;
+      s1->allocSize = newLength + 1;
+   }
+   strcpy(s1->str,s2);
+   s1->length = newLength;
+   return STR_SUCCESS;
+}
+
 int strCmpString(const string *s1, const string *s2)
 // porovna oba retezce a vrati vysledek
 {
