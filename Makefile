@@ -1,21 +1,27 @@
+#Directory level
+PROJDIR := $(realpath $(CURDIR))
+LIBDIR := $(PROJDIR)/lib
+BUILDDIR := $(PROJDIR)/build
 
-PRJ=scanner
-#
-PROGS=$(PRJ)-test $(PRJ)-test2 $(PRJ)-test3
 CC=gcc
 CFLAGS=-g -Wall -Werror -pedantic -std=c11
+VERBOSE = TRUE
 
-all: $(PROGS)
+#Scanner Tests
+PRJ=scanner
+SCANNEROBJ=$(PRJ)-test $(PRJ)-test2 $(PRJ)-test3
 
-$(PRJ)-test: *.c *.h
-	$(CC) $(CFLAGS) -o $@.out $(PRJ)-test.c $(PRJ).c str.c
+all: $(SCANNEROBJ)
 
-$(PRJ)-test2: *.c *.h
-	$(CC) $(CFLAGS) -o $@.out $(PRJ)-test2.c $(PRJ).c str.c
+$(PRJ)-test: $(LIBDIR)/*.h $(LIBDIR)/scanner/scanner.h $(LIBDIR)/scanner/tests/*.h $(LIBDIR)/*.c  $(LIBDIR)/scanner/scanner.c $(LIBDIR)/scanner/tests/*.c 
+	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@.out $(LIBDIR)/scanner/tests/$(PRJ)-test.c $(LIBDIR)/scanner/$(PRJ).c $(LIBDIR)/str.c
 
-$(PRJ)-test3: *.c *.h
-	$(CC) $(CFLAGS) -o $@.out $(PRJ)-test3.c $(PRJ).c str.c
+$(PRJ)-test2: $(LIBDIR)/*.h $(LIBDIR)/scanner/scanner.h $(LIBDIR)/scanner/tests/*.h $(LIBDIR)/*.c  $(LIBDIR)/scanner/scanner.c $(LIBDIR)/scanner/tests/*.c 
+	$(CC) $(CFLAGS) -o  $(BUILDDIR)/$@.out $(LIBDIR)/scanner/tests/$(PRJ)-test2.c $(LIBDIR)/scanner/$(PRJ).c $(LIBDIR)/str.c
+
+$(PRJ)-test3: $(LIBDIR)/*.h $(LIBDIR)/scanner/scanner.h $(LIBDIR)/scanner/tests/*.h $(LIBDIR)/*.c  $(LIBDIR)/scanner/scanner.c $(LIBDIR)/scanner/tests/*.c 
+	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@.out $(LIBDIR)/scanner/tests/$(PRJ)-test3.c $(LIBDIR)/scanner/$(PRJ).c $(LIBDIR)/str.c
 
 clean:
-	rm -f *.o *.out $(PROGS)
+	rm -f *.o $(BUILDDIR) $(SCANNEROBJ)
 #

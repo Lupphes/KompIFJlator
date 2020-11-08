@@ -3,7 +3,7 @@ import subprocess
 import random
 from decimal import Decimal
 
-_FILENAME = "./test.txt"
+_FILENAME = "./tests/test.txt"
 _ERROR = False
 
 
