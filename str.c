@@ -1,3 +1,20 @@
+/*File name: str.c -----------------------------------------------------------------*
+ |Project:    Implementace překladače imperativního jazyka IFJ20                    |
+ |Team:       124, varianta II                                                      |
+ |Authors:    PŘEVZATO ZE SOUBORU "jednoduchy_interpret.zip" ZE STRÁNEK             |
+ |            http://www.fit.vutbr.cz/study/courses/IFJ/public/project/             |
+ |            Viktor Rucký (xrucky01) (úpravy)                                      |
+ |                                                                                  |
+ |  _      _     _   __                   __  _        _                            |
+ | | |    (_)   | | /_/                  /_/ | |      | |                           |
+ | | |     _  __| | ___   _   _  __   ___   _| |_ __ _| |__  _   _                  |
+ | | |    | |/ _` |/ _ \ | | | | \ \ / / | | | __/ _` | '_ \| | | |                 |
+ | | |____| | (_| |  __/ | |_| |  \ V /| |_| | || (_| | | | | |_| |                 |
+ | |______|_|\__,_|\___|  \__,_|   \_/  \__, |\__\__,_|_| |_|\__,_|                 |
+ |                                       __/ |                                      |
+ |                                      |___/                                       |
+ *----------------------------------------------------------------------------------*/
+
 //jednoducha knihovna pro praci s nekonecne dlouhymi retezci
 #include <string.h>
 #include <malloc.h>
@@ -48,7 +65,7 @@ int strAddChar(string *s1, char c)
    return STR_SUCCESS;
 }
 
-int strCopyString(string *s1, string *s2)
+int strCopyString(string *s1, const string *s2)
 // prekopiruje retezec s2 do s1
 {
    int newLength = s2->length;
@@ -64,13 +81,26 @@ int strCopyString(string *s1, string *s2)
    return STR_SUCCESS;
 }
 
-int strCmpString(string *s1, string *s2)
+//Copies a C string into a smart string structure
+int strCopyConstString(string *s1, const char* s2){
+   int newLength = strlen(s2);
+   if (newLength >= s1->allocSize){
+      if ((s1->str = (char*) realloc(s1->str, newLength + 1)) == NULL)
+         return STR_ERROR;
+      s1->allocSize = newLength + 1;
+   }
+   strcpy(s1->str,s2);
+   s1->length = newLength;
+   return STR_SUCCESS;
+}
+
+int strCmpString(const string *s1, const string *s2)
 // porovna oba retezce a vrati vysledek
 {
    return strcmp(s1->str, s2->str);
 }
 
-int strCmpConstStr(string *s1, const char* s2)
+int strCmpConstStr(const string *s1, const char* s2)
 // porovna nas retezec s konstantnim retezcem
 {
    return strcmp(s1->str, s2);
@@ -82,7 +112,7 @@ char *strGetStr(string *s)
    return s->str;
 }
 
-int strGetLength(string *s)
+int strGetLength(const string *s)
 // vrati delku daneho retezce
 {
    return s->length;
