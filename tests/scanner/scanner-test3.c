@@ -1,4 +1,4 @@
-#include "./../scanner.h"
+#include "./../../src/scanner.h"
 #include "scanner-test.h"
 
 static const char* enumDataTypeTranslate[] = {

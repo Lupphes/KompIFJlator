@@ -16,8 +16,8 @@
 #ifndef SCANNER_H
 #define SCANNER_H
 #include <stdint.h>
-#include "./../str.h"
-#include "./../token.h"
+#include "str.h"
+#include "token.h"
 
 
 typedef enum {

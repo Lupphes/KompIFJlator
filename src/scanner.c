@@ -21,8 +21,8 @@
 #include <ctype.h>
 
 #include "scanner.h"
-#include "./../keywords.h"
-#include "./../str.h"
+#include "keywords.h"
+#include "str.h"
 
 #define EOL '\n'
 

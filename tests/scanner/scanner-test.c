@@ -1,4 +1,4 @@
-#include "./../scanner.h"
+#include "./../../src/scanner.h"
 #include "scanner-test.h"
 
 int main(int argc, char const *argv[]) {
