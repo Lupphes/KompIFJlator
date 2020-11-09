@@ -3,7 +3,10 @@ import subprocess
 import random
 from decimal import Decimal
 
-_FILENAME = "./tests/test.txt"
+_FILENAME = "test.txt"
+_TESTEDFILE1 = "build/scanner-test.out"
+_TESTEDFILE2 = "build/scanner-test2.out"
+_TESTEDFILE3 = "build/scanner-test3.out"
 _ERROR = False
 
 
@@ -181,7 +184,7 @@ def simpleTest():
     for i in range(len(basicChars)): 
         createWriteFile(i, basicChars)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
         f.close()
         if result.stdout != basicChars[i][1]:
             _ERROR = True
@@ -206,7 +209,7 @@ def simpleTestInline():
     for j in range(len(basicChars)): 
         f = open(_FILENAME, "r")
         f.seek(j)
-        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
         f.close()
         if result.stdout != basicChars[j][1]:
             _ERROR = True
@@ -227,7 +230,7 @@ def simpleTestNullChars():
     for i in range(len(nullChars)): 
         createWriteFile(i, nullChars)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
         f.close()
         if result.stdout != nullChars[i][1]:
             _ERROR = True
@@ -248,7 +251,7 @@ def errorChecks():
     for i in range(len(falseChars)): 
         createWriteFile(i, falseChars)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
         f.close()
     if result.stdout != falseChars[i][1]:
             _ERROR = True
@@ -269,7 +272,7 @@ def doubleCharsTest():
     for i in range(len(doubleChars)): 
         createWriteFile(i, doubleChars)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
         f.close()
     if result.stdout != doubleChars[i][1]:
             _ERROR = True
@@ -297,7 +300,7 @@ def skippingTest():
             j += 1
         f.close() 
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
         f.close()
     if result.stdout != blankChars[i][1]:
             _ERROR = True
@@ -326,7 +329,7 @@ def commentLineTest():
         j += 1
     f.close() 
     f = open(_FILENAME, "r")
-    result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+    result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
     f.close()
     if result.stdout != commentChars[0][1]:
             _ERROR = True
@@ -343,7 +346,7 @@ def commentLineTest():
     f.write("\n")
     f.close() 
     f = open(_FILENAME, "r")
-    result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+    result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
     f.close()
     if result.stdout != "TokenEOF":
             _ERROR = True
@@ -372,7 +375,7 @@ def commentsBlockTest():
         j += 1
     f.close()
     f = open(_FILENAME, "r")
-    result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+    result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
     f.close()
     if result.returncode == 0:
         _ERROR = True
@@ -387,7 +390,7 @@ def commentsBlockTest():
     f.write("*/")
     f.close()
     f = open(_FILENAME, "r")
-    result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+    result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
     f.close()
     if result.stdout != "TokenEOF":
             _ERROR = True
@@ -408,7 +411,7 @@ def identifierTests():
     for i in range(len(identifiers)): 
         createWriteFile(i, identifiers)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
         f.close()
         if result.stdout != identifiers[i][1]:
                 _ERROR = True
@@ -429,7 +432,7 @@ def commandsTests():
     for i in range(len(commands)): 
         createWriteFile(i, commands)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
         f.close()
         if result.stdout != commands[i][1]:
                 _ERROR = True
@@ -450,7 +453,7 @@ def literalsTest():
     for i in range(len(literals)): 
         createWriteFile(i, literals)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
         f.close()
         if result.stdout != literals[i][1]:
                 _ERROR = True
@@ -472,7 +475,7 @@ def literalsErrorTest():
     for i in range(len(errorLiterals)): 
         createWriteFile(i, errorLiterals)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
         f.close()
         if result.stdout != errorLiterals[i][1]:
                 _ERROR = True
@@ -494,7 +497,7 @@ def numberTests():
     for i in range(len(numbers)): 
         createWriteFile(i, numbers)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
         f.close()
         if result.stdout != numbers[i][1]:
                 _ERROR = True
@@ -515,7 +518,7 @@ def numberErrorTests():
     for i in range(len(numbersErrors)): 
         createWriteFile(i, numbersErrors)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
         f.close()
         if result.stdout != numbersErrors[i][1]:
                 _ERROR = True
@@ -536,7 +539,7 @@ def numberReturnTests():
     for i in range(len(numbersReturn)): 
         createWriteFile(i, numbersReturn)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test3.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE3], stdin=f, capture_output=True, text=True)  
         f.close()
         if Decimal(result.stdout) != Decimal(numbersReturn[i][1]):
                 _ERROR = True
@@ -557,7 +560,7 @@ def stringLiteralTests():
     for i in range(len(literalValues)): 
         createWriteFile(i, literalValues)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test3.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE3], stdin=f, capture_output=True, text=True)  
         f.close()
         if result.stdout != literalValues[i][1]:
                 _ERROR = True
@@ -579,7 +582,7 @@ def literalsValueErrorTest():
     for i in range(len(errorLiteralsValues)): 
         createWriteFile(i, errorLiteralsValues)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test3.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE3], stdin=f, capture_output=True, text=True)  
         f.close()
         if result.stdout != errorLiteralsValues[i][1]:
                 _ERROR = True
@@ -600,7 +603,7 @@ def identifierValueTests():
     for i in range(len(identifiers)): 
         createWriteFile(i, identifiers)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test3.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE3], stdin=f, capture_output=True, text=True)  
         f.close()
         if result.stdout != identifiers[i][0]:
                 _ERROR = True
@@ -622,7 +625,7 @@ def dataTypeValueTests():
     for i in range(len(dataTypeValues)): 
         createWriteFile(i, dataTypeValues)
         f = open(_FILENAME, "r")
-        result = subprocess.run(["./scanner-test3.out"], stdin=f, capture_output=True, text=True)  
+        result = subprocess.run([_TESTEDFILE3], stdin=f, capture_output=True, text=True)  
         f.close()
         if result.stdout != dataTypeValues[i][1]:
                 _ERROR = True
