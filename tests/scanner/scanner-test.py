@@ -3,7 +3,7 @@ import subprocess
 import random
 from decimal import Decimal
 
-_FILENAME = "test.txt"
+_FILENAME = "tests/test.txt"
 _TESTEDFILE1 = "build/scanner-test.out"
 _TESTEDFILE2 = "build/scanner-test2.out"
 _TESTEDFILE3 = "build/scanner-test3.out"

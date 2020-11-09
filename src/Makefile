@@ -1,4 +1,4 @@
-#Directory level
+# Directory level
 PROJDIR := $(realpath $(CURDIR)/../)
 LIBDIR := $(PROJDIR)/src
 BUILDDIR := $(PROJDIR)/build
@@ -10,7 +10,7 @@ CC=gcc
 CFLAGS=-g -Wall -Werror -pedantic -std=c11
 VERBOSE = TRUE
 
-#Scanner Tests
+# Scanner Tests
 PRJ=scanner
 SCANNEROBJ=$(PRJ)-test $(PRJ)-test2 $(PRJ)-test3
 

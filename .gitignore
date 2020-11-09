@@ -56,4 +56,4 @@ dkms.conf
 
 #Build folder
 build
-./tests/test.txt
+tests/test.txt
