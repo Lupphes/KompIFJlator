@@ -17,6 +17,7 @@
 #include "token.h"
 #include "scanner.h"
 #include "error.h"
+#include "dummyExpressionParser.h"
 #include <stdbool.h>
 
 //Alias for semantic purposes. The function nextToken can be used to advance to the next token regardless of what the current token is; in other words, it accepts any token.
