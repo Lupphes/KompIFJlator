@@ -641,7 +641,15 @@ def dataTypeValueTests():
     _ERROR = False
     return
 
+def makefileRun():
+    clean = subprocess.Popen("make clean -C ./src/", shell = True, stderr=subprocess.STDOUT)
+    clean.wait()
+    result = subprocess.Popen("make -C ./src/", shell = True, stderr=subprocess.STDOUT)
+    result.wait()
+    return
+
 def main():
+    makefileRun()
     simpleTest()
     simpleTestInline()
     simpleTestNullChars()

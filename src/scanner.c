@@ -19,16 +19,22 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <ctype.h>
+#include <inttypes.h>
 
 #include "scanner.h"
 #include "keywords.h"
 #include "str.h"
+#define charMacro(func, char) if ((macroError = func(char)) != 0) { \
+                                       if (&bufferString != NULL) { \
+                                           strFree(&bufferString); \
+                                       } \
+                                       return macroError; }
 
 #define EOL '\n'
 
 int getCharCheck(int *value) {
     *value = getchar();
-    if (feof(stdin) || *value == EOF) {
+    if (feof(stdin)) {
         *value = EOF;
     }
     else if (ferror(stdin)) {
@@ -44,16 +50,13 @@ int unGetCharCheck(int value) {
 
 int getToken(Token* token) {
     ScannerState state = StateStart;
-    string stringLiteral;
-    string stringIdentifier;
-    string number;
+    int macroError;
+    string bufferString;
     int currChar, previousChar;
     char hexadecimalValue[3];
     token->type = TokenUndefined;
     while (token->type == TokenUndefined) {
-        if (getCharCheck(&currChar) == INPUT_ERROR) {
-            return INPUT_ERROR;
-        }
+        charMacro(getCharCheck, &currChar);
         switch (state) {
         case StateStart:
             switch (currChar) {
@@ -90,24 +93,16 @@ int getToken(Token* token) {
             case ' ' :
             case '\t' :
                 do {
-                    if (getCharCheck(&currChar) == INPUT_ERROR) {
-                        return INPUT_ERROR;
-                    }
+                    charMacro(getCharCheck, &currChar);
                 } while (currChar == ' ' || currChar == '\t');
-                if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
-                    return UNEXPECTED_EOF_ERROR;
-                }
+                    charMacro(unGetCharCheck, currChar);
                 state = StateStart;
                 break;
             case EOL :
                 do {
-                    if (getCharCheck(&currChar) == INPUT_ERROR) {
-                        return INPUT_ERROR;
-                    }
+                    charMacro(getCharCheck, &currChar);
                 } while (currChar == EOL);
-                if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
-                    return UNEXPECTED_EOF_ERROR;
-                }
+                    charMacro(unGetCharCheck, currChar);
                 state = StateStart;
                 break;
             case EOF :
@@ -141,12 +136,6 @@ int getToken(Token* token) {
                 token->type = TokenSubtract;
                 return SUCCESS;
                 break;
-            case '|': // Feature
-                state = StateOrFirst;
-                break;
-            case '&': // Feature
-                state = StateAndFirst;
-                break;
             case '0':
                 previousChar = currChar;
                 state = StateZero;
@@ -155,11 +144,11 @@ int getToken(Token* token) {
                 if (currChar >= '1' && currChar <= '9') {
                     previousChar = currChar;
                     state = StateWholeNbr;
-                    if(strInit(&number) == STR_ERROR) {
+                    if(strInit(&bufferString) == STR_ERROR) {
                         return MEMORY_ERROR;
                     }
-                    if (strAddChar(&number, previousChar) == STR_ERROR) {
-                        strFree(&number);
+                    if (strAddChar(&bufferString, previousChar) == STR_ERROR) {
+                        strFree(&bufferString);
                         return MEMORY_ERROR;
                     }
                 } else if ((currChar >= 'A' && currChar <= 'Z') || (currChar >= 'a' && currChar <= 'z') || currChar == '_') {
@@ -176,29 +165,18 @@ int getToken(Token* token) {
             case '/':
                 state = StateSlash;
                 do {
-                    if (getCharCheck(&currChar) != 0) {
-                        return INPUT_ERROR;
-                    }
+                    charMacro(getCharCheck, &currChar);
                 } while (currChar != EOL && currChar != EOF);
-                if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
-                    strFree(&stringIdentifier);
-                    return UNEXPECTED_EOF_ERROR;
-                }
+                charMacro(unGetCharCheck, currChar);
                 state = StateStart;
                 break;
             case '*':
-                if (getCharCheck(&currChar) != 0) {
-                    return INPUT_ERROR;
-                }
+                charMacro(getCharCheck, &currChar);
                 int nextChar;
-                if (getCharCheck(&nextChar) != 0) {
-                    return INPUT_ERROR;
-                }
+                charMacro(getCharCheck, &nextChar);
                 while (!(currChar == '*' && nextChar == '/')) {
                     currChar = nextChar;
-                    if (getCharCheck(&nextChar) != 0) {
-                        return INPUT_ERROR;
-                    }
+                    charMacro(getCharCheck, &nextChar);
                     if (nextChar == EOF) {
                         return LEXICAL_ERROR;
                     }
@@ -212,51 +190,42 @@ int getToken(Token* token) {
             }
             break;
         case StateStartOfString:
-            if(strInit(&stringLiteral) == STR_ERROR) {
+            if(strInit(&bufferString) == STR_ERROR) {
                 return MEMORY_ERROR;
             }
             while(currChar != '"') {
                 if (currChar == '\\') {
-                    if (getCharCheck(&currChar) != 0) {
-                        strFree(&stringIdentifier);
-                        return INPUT_ERROR;
-                    }
+                    charMacro(getCharCheck, &currChar);
                     switch (currChar) {
                     case '"':
-                        if (strAddChar(&stringLiteral, currChar) == STR_ERROR) {
-                            strFree(&stringLiteral);
+                        if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                            strFree(&bufferString);
                             return MEMORY_ERROR;
                         }
                         break;
                     case 't':
-                        if (strAddChar(&stringLiteral, '\t') == STR_ERROR) {
-                            strFree(&stringLiteral);
+                        if (strAddChar(&bufferString, '\t') == STR_ERROR) {
+                            strFree(&bufferString);
                             return MEMORY_ERROR;
                         }
                         break;
                     case 'n':
-                        if (strAddChar(&stringLiteral, '\0') == STR_ERROR) {
-                            strFree(&stringLiteral);
+                        if (strAddChar(&bufferString, '\0') == STR_ERROR) {
+                            strFree(&bufferString);
                             return MEMORY_ERROR;
                         }
                         break;
                     case '\\':
-                        if (strAddChar(&stringLiteral, '\\') == STR_ERROR) {
-                            strFree(&stringLiteral);
+                        if (strAddChar(&bufferString, '\\') == STR_ERROR) {
+                            strFree(&bufferString);
                             return MEMORY_ERROR;
                         }
                         break;
                     case 'x':
-                        if (getCharCheck(&currChar) != 0) {
-                            strFree(&stringIdentifier);
-                            return INPUT_ERROR;
-                        }
-                        if (getCharCheck(&previousChar) != 0) {
-                            strFree(&stringIdentifier);
-                            return INPUT_ERROR;
-                        }
+                        charMacro(getCharCheck, &currChar);
+                        charMacro(getCharCheck, &previousChar);
                         if (!(isxdigit(currChar) && isxdigit(previousChar))){
-                            strFree(&stringLiteral);
+                            strFree(&bufferString);
                             return LEXICAL_ERROR;
                             break;
                         }
@@ -266,40 +235,34 @@ int getToken(Token* token) {
                         long number = strtol(hexadecimalValue, NULL, 16);
                         if ((number == LONG_MAX || number == LONG_MIN) && errno == ERANGE)
                         {
-                            strFree(&stringLiteral);
+                            strFree(&bufferString);
                             return LEXICAL_ERROR;
                         }
-                        if (strAddChar(&stringLiteral, (char)number) == STR_ERROR) {
-                            strFree(&stringLiteral);
+                        if (strAddChar(&bufferString, (char)number) == STR_ERROR) {
+                            strFree(&bufferString);
                             return MEMORY_ERROR;
                         }
                         break;
                     default:
-                        strFree(&stringLiteral);
+                        strFree(&bufferString);
                         return LEXICAL_ERROR;
                         break;
                     }
-                    if (getCharCheck(&currChar) != 0) {
-                        strFree(&stringIdentifier);
-                        return INPUT_ERROR;
-                    }
+                    charMacro(getCharCheck, &currChar);
                 }
                 else if (currChar > '"' || currChar == '!' || currChar == ' ') {
-                    if (strAddChar(&stringLiteral, currChar) == STR_ERROR) {
-                        strFree(&stringLiteral);
+                    if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                        strFree(&bufferString);
                         return MEMORY_ERROR;
                     }
-                    if (getCharCheck(&currChar) != 0) {
-                        strFree(&stringLiteral);
-                        return INPUT_ERROR;
-                    }
+                    charMacro(getCharCheck, &currChar);
                     continue;
                 } else if (currChar == EOL || currChar == EOF) {
-                    strFree(&stringLiteral);
+                    strFree(&bufferString);
                     return LEXICAL_ERROR;
                 } 
                 // else {
-                //     strFree(&stringLiteral);
+                //     strFree(&bufferString);
                 //     return LEXICAL_ERROR;    
                 // }
             };
@@ -308,7 +271,7 @@ int getToken(Token* token) {
             if(strInit(&token->atribute.s) == STR_ERROR) {
                 return MEMORY_ERROR;
             }
-            if (strCopyString(&token->atribute.s, &stringLiteral) == STR_ERROR) {
+            if (strCopyString(&token->atribute.s, &bufferString) == STR_ERROR) {
                 return MEMORY_ERROR;
             }
             return SUCCESS;
@@ -335,12 +298,6 @@ int getToken(Token* token) {
             }
         case StateExclamationMark:
             switch (currChar) {
-            // case ' ':
-            // case '(':
-            // case '  ':
-            //     // feature
-            //     return LEXICAL_ERROR;
-            //     break;
             case '=':
                 token->type = TokenIsEqual;
                 return SUCCESS;
@@ -372,53 +329,25 @@ int getToken(Token* token) {
                 return SUCCESS;
                 break;
             }
-        case StateAndFirst:
-            switch (currChar) {
-            case '&':
-                // Feature
-                return LEXICAL_ERROR;
-                break;
-
-            default:
-                return LEXICAL_ERROR;
-                break;
-            }
-        case StateOrFirst:
-            switch (currChar) {
-            case '|':
-                // Feature
-                return LEXICAL_ERROR;
-                break;
-            default:
-                return LEXICAL_ERROR;
-                break;
-            }
         case StateIdentifier:
             state = StateIdentifier;
-            if(strInit(&stringIdentifier) == STR_ERROR) {
+            if(strInit(&bufferString) == STR_ERROR) {
                 return MEMORY_ERROR;
             }
-            if (strAddChar(&stringIdentifier, previousChar) == STR_ERROR) {
-                strFree(&stringIdentifier);
+            if (strAddChar(&bufferString, previousChar) == STR_ERROR) {
+                strFree(&bufferString);
                 return MEMORY_ERROR;
             }
             while ((currChar >= 'A' && currChar <= 'Z') || (currChar >= 'a' && currChar <= 'z') || currChar == '_' || (currChar >= '0' && currChar <= '9')) {
-                if (strAddChar(&stringIdentifier, currChar) == STR_ERROR) {
-                    strFree(&stringIdentifier);
+                if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                    strFree(&bufferString);
                     return MEMORY_ERROR;
                 }
-                if (getCharCheck(&currChar) != 0) {
-                    strFree(&stringIdentifier);
-                    return INPUT_ERROR;
-                }
+                charMacro(getCharCheck, &currChar);       
             } 
-            if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
-                strFree(&stringIdentifier);
-                return UNEXPECTED_EOF_ERROR;
-            }
-            for (int i = 0; i < sizeof(keywords)/sizeof(keywordEntry); i++)
-            {
-                if(strCmpConstStr(&stringIdentifier, keywords[i].key) == 0) {
+            charMacro(unGetCharCheck, currChar);
+            for (int i = 0; i < sizeof(keywords)/sizeof(keywordEntry); i++) {
+                if(strCmpConstStr(&bufferString, keywords[i].key) == 0) {
                     *token = keywords[i].value;
                     return SUCCESS;
                     break;
@@ -428,59 +357,56 @@ int getToken(Token* token) {
             if(strInit(&token->atribute.s) == STR_ERROR) {
                 return MEMORY_ERROR;
             }
-            if (strCopyString(&token->atribute.s, &stringIdentifier) == STR_ERROR) {
+            if (strCopyString(&token->atribute.s, &bufferString) == STR_ERROR) {
                 return MEMORY_ERROR;
             }
             return SUCCESS;
             break;
         case StateZero:
 
-            if(strInit(&number) == STR_ERROR) {
+            if(strInit(&bufferString) == STR_ERROR) {
                 return MEMORY_ERROR;
             }
-            if (strAddChar(&number, previousChar) == STR_ERROR) {
-                strFree(&number);
+            if (strAddChar(&bufferString, previousChar) == STR_ERROR) {
+                strFree(&bufferString);
                 return MEMORY_ERROR;
             }
             switch (currChar) {
             case '.':
-                if (strAddChar(&number, currChar) == STR_ERROR) {
-                    strFree(&number);
+                if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                    strFree(&bufferString);
                     return MEMORY_ERROR;
                 }
                 state = StateIncompletedecimalNbr;
                 break;
             case 'e':
             case 'E':
-                if (strAddChar(&number, currChar) == STR_ERROR) {
-                    strFree(&number);
+                if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                    strFree(&bufferString);
                     return MEMORY_ERROR;
                 }
                 state = StateUnsignedExpoNbr;
                 break;
             default:
-                // process whole number 0
-                if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
-                    return UNEXPECTED_EOF_ERROR;
-                }
-                sscanf(strGetStr(&number), "%ld", &token->atribute.i);
+                charMacro(unGetCharCheck, currChar);
+                sscanf(strGetStr(&bufferString),"%"SCNd64,&token->atribute.i);
                 token->type = TokenWholeNbr;
-                strFree(&number);
+                strFree(&bufferString);
                 return SUCCESS;
             }
             break;
         case StateIncompletedecimalNbr:
             state = StateCompleteDecimalNbr;
             if (currChar >= '0' && currChar <= '9') {
-                if (strAddChar(&number, currChar) == STR_ERROR) {
-                    strFree(&number);
+                if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                    strFree(&bufferString);
                     return MEMORY_ERROR;
                 }
                 state = StateCompleteDecimalNbr;
                 break;
             } else
             {
-                strFree(&number);
+                strFree(&bufferString);
                 return LEXICAL_ERROR;
                 break;
             }
@@ -490,8 +416,8 @@ int getToken(Token* token) {
             switch (currChar) {
             case 'e':
             case 'E':
-                if (strAddChar(&number, currChar) == STR_ERROR) {
-                    strFree(&number);
+                if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                    strFree(&bufferString);
                     return MEMORY_ERROR;
                 }
                 state = StateUnsignedExpoNbr;
@@ -499,16 +425,15 @@ int getToken(Token* token) {
 
             default:
                 if (currChar >= '0' && currChar <= '9') {
-                    if (strAddChar(&number, currChar) == STR_ERROR) {
-                        strFree(&number);
+                    if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                        strFree(&bufferString);
                         return MEMORY_ERROR;
                     }
                     break;
                 } else {
-                    // process whole number 0.0004854
-                    sscanf(strGetStr(&number), "%lf", &token->atribute.d);
+                    sscanf(strGetStr(&bufferString), "%lf", &token->atribute.d);
                     token->type = TokenDecimalNbr;
-                    strFree(&number);
+                    strFree(&bufferString);
                     return SUCCESS;
                     break;
                 }
@@ -519,22 +444,22 @@ int getToken(Token* token) {
             {
             case '+':
             case '-':
-                if (strAddChar(&number, currChar) == STR_ERROR) {
-                    strFree(&number);
+                if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                    strFree(&bufferString);
                     return MEMORY_ERROR;
                 }
                 state = StateSemiCompleteExpoNbr;
                 break;
             default:
                 if (currChar >= '0' && currChar <= '9') {
-                    if (strAddChar(&number, currChar) == STR_ERROR) {
-                        strFree(&number);
+                    if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                        strFree(&bufferString);
                         return MEMORY_ERROR;
                     }
                     state = StateCompleteUnsignedExpoNbr;
                     break;
                 } else {
-                    strFree(&number);
+                    strFree(&bufferString);
                     return LEXICAL_ERROR;
                 }
                 break;
@@ -543,57 +468,47 @@ int getToken(Token* token) {
         case StateCompleteUnsignedExpoNbr:
             if (currChar >= '0' && currChar <= '9') {
                 do {
-                    if (strAddChar(&number, currChar) == STR_ERROR) {
-                        strFree(&number);
+                    if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                        strFree(&bufferString);
                         return MEMORY_ERROR;
                     }
-                    if (getCharCheck(&currChar) == INPUT_ERROR) {
-                        return INPUT_ERROR;
-                    }
+                    charMacro(getCharCheck, &currChar);
                 } while (currChar >= '0' && currChar <= '9');
-                if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
-                    return UNEXPECTED_EOF_ERROR;
-                }
+                    charMacro(unGetCharCheck, currChar);
             } else {
-                // process whole number 0.000E4854
-                sscanf(strGetStr(&number), "%lf", &token->atribute.d);
+                sscanf(strGetStr(&bufferString), "%lf", &token->atribute.d);
                 token->type = TokenDecimalNbr;
-                strFree(&number);
+                strFree(&bufferString);
                 return SUCCESS;
             }
             break;
         case StateSemiCompleteExpoNbr:
             if (currChar >= '0' && currChar <= '9') {
-                if (strAddChar(&number, currChar) == STR_ERROR) {
-                    strFree(&number);
+                if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                    strFree(&bufferString);
                     return MEMORY_ERROR;
                 }
                 state = StateCompleteExpoNbr;
                 break;
             } else {
-                strFree(&number);
+                strFree(&bufferString);
                 return LEXICAL_ERROR;
             }
             break;
         case StateCompleteExpoNbr:
             if (currChar >= '0' && currChar <= '9') {
                 do {
-                    if (strAddChar(&number, currChar) == STR_ERROR) {
-                        strFree(&number);
+                    if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                        strFree(&bufferString);
                         return MEMORY_ERROR;
                     }
-                    if (getCharCheck(&currChar) == INPUT_ERROR) {
-                        return INPUT_ERROR;
-                    }
+                    charMacro(getCharCheck, &currChar);
                 } while (currChar >= '0' && currChar <= '9');
-                if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
-                    return UNEXPECTED_EOF_ERROR;
-                }
+            charMacro(unGetCharCheck, currChar);
             } else {
-                // process whole number 0.000E+4854
-                sscanf(strGetStr(&number), "%lf", &token->atribute.d);
+                sscanf(strGetStr(&bufferString), "%lf", &token->atribute.d);
                 token->type = TokenDecimalNbr;
-                strFree(&number);
+                strFree(&bufferString);
                 return SUCCESS;
             }
             break;
@@ -601,44 +516,42 @@ int getToken(Token* token) {
             state = StateWholeNbr;
             switch (currChar) {
             case '.':
-                if (strAddChar(&number, currChar) == STR_ERROR) {
-                    strFree(&number);
+                if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                    strFree(&bufferString);
                     return MEMORY_ERROR;
                 }
                 state = StateIncompletedecimalNbr;
                 break;
             case 'e':
             case 'E':
-                if (strAddChar(&number, currChar) == STR_ERROR) {
-                    strFree(&number);
+                if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                    strFree(&bufferString);
                     return MEMORY_ERROR;
                 }
                 state = StateUnsignedExpoNbr;
                 break;
             default:
                 if (currChar >= '0' && currChar <= '9') {
-                    if (strAddChar(&number, currChar) == STR_ERROR) {
-                        strFree(&number);
+                    if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                        strFree(&bufferString);
                         return MEMORY_ERROR;
                     }
                     state = StateWholeNbr;
                     break;
                 } else {
-                    if (unGetCharCheck(currChar) == UNEXPECTED_EOF_ERROR) {
-                        return UNEXPECTED_EOF_ERROR;
-                    }
-                    // process whole number 154
-                    sscanf(strGetStr(&number), "%ld", &token->atribute.i);
+                    charMacro(unGetCharCheck, currChar);
+                    sscanf(strGetStr(&bufferString),"%"SCNd64,&token->atribute.i);
                     token->type = TokenWholeNbr;
-                    strFree(&number);
+                    strFree(&bufferString);
                     return SUCCESS;
                 }
-                strFree(&number);
+                strFree(&bufferString);
                 return SUCCESS;
             }
             break;
+        default:
+        return LEXICAL_ERROR;
         }
     }
     return LEXICAL_ERROR;
 }
-
