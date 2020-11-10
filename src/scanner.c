@@ -160,7 +160,6 @@ int getToken(Token* token) {
         case StateSlash:
             switch (currChar) {
             case '/':
-                state = StateSlash;
                 do {
                     charMacro(getCharCheck, &currChar);
                 } while (currChar != EOL && currChar != EOF);
@@ -290,7 +289,7 @@ int getToken(Token* token) {
         case StateExclamationMark:
             switch (currChar) {
             case '=':
-                token->type = TokenIsEqual;
+                token->type = TokenNotEqual;
                 return SUCCESS;
                 break;
             default:
@@ -301,7 +300,7 @@ int getToken(Token* token) {
         case StateIsGreaterThan:
             switch (currChar) {
             case '=':
-                token->type = TokenIsGreaterEqual;
+                token->type = TokenIsLessEqual;
                 return SUCCESS;
                 break;
             default:
@@ -312,7 +311,7 @@ int getToken(Token* token) {
         case StateIsLessThan:
             switch (currChar) {
             case '=':
-                token->type = TokenIsLessEqual;
+                token->type = TokenIsGreaterEqual;
                 return SUCCESS;
                 break;
             default:
@@ -321,7 +320,6 @@ int getToken(Token* token) {
                 break;
             }
         case StateIdentifier:
-            state = StateIdentifier;
             if(strInit(&bufferString) == STR_ERROR)
                 return MEMORY_ERROR;
             if (strAddChar(&bufferString, previousChar) == STR_ERROR) {
@@ -411,7 +409,6 @@ int getToken(Token* token) {
                 }
                 state = StateUnsignedExpoNbr;
                 break;
-
             default:
                 if (isdigit(currChar)) {
                     if (strAddChar(&bufferString, currChar) == STR_ERROR) {

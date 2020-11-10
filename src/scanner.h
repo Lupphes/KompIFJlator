@@ -42,14 +42,9 @@ typedef enum {
     StateIdentifier,
     /* Conditions */
     StateEquals,
-    StateExclamationMark, // Feature
+    StateExclamationMark,
     StateIsGreaterThan,
     StateIsLessThan,
-    /* Conditional operators -- feature */
-    StateAndFirst,
-    // StateAndSecond,
-    StateOrFirst,
-    // StateOrSecond, 
     /* Numbers */
     StateWholeNbr,
     StateZero,

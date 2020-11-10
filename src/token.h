@@ -8,28 +8,23 @@ typedef enum  {
     /* Strings */
     TokenStringLiteral,
     /* Conditions */
-    TokenFeatureExclamationMark,
     TokenNotEqual,
     TokenIsEqual,
     TokenIsGreaterThan,
     TokenIsGreaterEqual,
     TokenIsLessThan,
     TokenIsLessEqual,
-    TokenVarDefine, // prase
     /* Operation */
+    TokenEquals,
+    TokenVarDefine,
     TokenAdd,
     TokenSubtract,
     TokenMultiply,
     TokenDivide,
-    /* Feature or/and */
-    TokenAndSecond,
-    TokenOrSecond,
     /* Numbers */
     TokenWholeNbr,
     TokenDecimalNbr,
-    /* Else */   
-    TokenBrackets,
-    TokenWhiteSpace,
+    /* Symbols */   
     TokenLeftCurlyBracket,
     TokenRightCurlyBracket,
     TokenRightBracket,
@@ -37,9 +32,8 @@ typedef enum  {
     TokenComma,
     TokenSemicolon,
     TokenIdentifier,
-    TokenEOL,
+    TokenEOL, // Needs to be discussed
     TokenEOF,
-    TokenEquals,
     /* Key words */ 
     TokenFor,
     TokenReturn,

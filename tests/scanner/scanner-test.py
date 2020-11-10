@@ -253,9 +253,9 @@ def errorChecks():
         f = open(_FILENAME, "r")
         result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
         f.close()
-    if result.stdout != falseChars[i][1]:
-            _ERROR = True
-            print(f"Test {i} didn't pass. Expected {falseChars[i][1]} got {result.stdout} with '{falseChars[i][0]}'")
+        if result.stdout != falseChars[i][1]:
+                _ERROR = True
+                print(f"Test {i} didn't pass. Expected {falseChars[i][1]} got {result.stdout} with '{falseChars[i][0]}'")
     if result.returncode == 0:
         _ERROR = True
         print(f"Test {i} returned zero code (incorrect)!")
@@ -274,9 +274,9 @@ def doubleCharsTest():
         f = open(_FILENAME, "r")
         result = subprocess.run([_TESTEDFILE1], stdin=f, capture_output=True, text=True)  
         f.close()
-    if result.stdout != doubleChars[i][1]:
-            _ERROR = True
-            print(f"Test {i} didn't pass. Expected {doubleChars[i][1]} got {result.stdout} with '{doubleChars[i][0]}'")
+        if result.stdout != doubleChars[i][1]:
+                _ERROR = True
+                print(f"Test {i} didn't pass. Expected {doubleChars[i][1]} got {result.stdout} with '{doubleChars[i][0]}'")
     if result.returncode != 0:
         _ERROR = True
         print(f"Test {i} returned non-zero code!")
@@ -670,6 +670,5 @@ def main():
     identifierValueTests()
     dataTypeValueTests()
     return
-
 
 main()

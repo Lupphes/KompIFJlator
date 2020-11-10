@@ -3,30 +3,27 @@
 #include <stdio.h>
 
 static const char* enumTokenTranslate[] = {
+    /* Definition of Tokens */
+    /* Strings */
     "TokenStringLiteral", 
-
-    "TokenFeatureExclamationMark", 
+    /* Conditions */
     "TokenNotEqual", 
     "TokenIsEqual", 
     "TokenIsGreaterThan",
     "TokenIsGreaterEqual", 
     "TokenIsLessThan", 
     "TokenIsLessEqual", 
+    /* Operation */
+    "TokenEquals",
     "TokenVarDefine", 
-
     "TokenAdd",
     "TokenSubtract", 
     "TokenMultiply", 
     "TokenDivide", 
-
-    "TokenAndSecond", 
-    "TokenOrSecond", 
-
+    /* Numbers */
     "TokenWholeNbr",
     "TokenDecimalNbr", 
-
-    "TokenBrackets", 
-    "TokenWhiteSpace", 
+    /* Symbols */
     "TokenLeftCurlyBracket", 
     "TokenRightCurlyBracket",
     "TokenRightBracket", 
@@ -36,15 +33,14 @@ static const char* enumTokenTranslate[] = {
     "TokenIdentifier",
     "TokenEOL", 
     "TokenEOF", 
-    "TokenEquals",
-
+    /* Key words */ 
     "TokenFor", 
     "TokenReturn", 
     "TokenElse",
     "TokenFunc", 
     "TokenIf", 
     "TokenPackage", 
-    "TokenDataType", 
+    "TokenDataType",  // Float64, String, Int
     "TokenUndefined"
 };
 
