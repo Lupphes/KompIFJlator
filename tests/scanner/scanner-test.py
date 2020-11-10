@@ -3,10 +3,13 @@ import subprocess
 import random
 from decimal import Decimal
 
-_FILENAME = "tests/test.txt"
-_TESTEDFILE1 = "build/scanner-test.out"
-_TESTEDFILE2 = "build/scanner-test2.out"
-_TESTEDFILE3 = "build/scanner-test3.out"
+_REALPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_FILENAME = _REALPATH + "/test.txt"
+
+_TESTEDFILE1 = _REALPATH + "/../build/scanner-test.out"
+_TESTEDFILE2 = _REALPATH + "/../build/scanner-test2.out"
+_TESTEDFILE3 = _REALPATH + "/../build/scanner-test3.out"
+_MAKEFILE = _REALPATH + "/../src/"
 _ERROR = False
 
 
@@ -642,10 +645,16 @@ def dataTypeValueTests():
     return
 
 def makefileRun():
-    clean = subprocess.Popen("make clean -C ./src/", shell = True, stderr=subprocess.STDOUT)
+    clean = subprocess.Popen("make clean -C " + _MAKEFILE, shell = True, stderr=subprocess.PIPE)
     clean.wait()
-    result = subprocess.Popen("make -C ./src/", shell = True, stderr=subprocess.STDOUT)
+    if clean.returncode != 0:
+        print("Makefile clean error")
+        exit(1)
+    result = subprocess.Popen("make -C " + _MAKEFILE, shell = True, stderr=subprocess.PIPE)
     result.wait()
+    if result.returncode != 0:
+        print("Makefile make error")
+        exit(1)
     return
 
 def main():
