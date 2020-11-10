@@ -25,6 +25,7 @@ typedef enum {
     LEXICAL_ERROR,
     INPUT_ERROR,
     UNEXPECTED_EOF_ERROR,
+    CONVERSION_ERROR,
     MEMORY_ERROR = 99
 } ErrorGetToken;
 
