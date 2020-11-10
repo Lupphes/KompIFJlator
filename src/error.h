@@ -1,6 +1,7 @@
 #ifndef ERROR_H
 #define ERROR_H
 
+#define SUCCESS 0
 #define LEXICAL_ERROR 1
 #define SYNTAX_ERROR 2
 #define SEMANTIC_ERROR_DEFINITION 3
