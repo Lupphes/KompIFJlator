@@ -300,7 +300,7 @@ int getToken(Token* token) {
         case StateIsGreaterThan:
             switch (currChar) {
             case '=':
-                token->type = TokenIsLessEqual;
+                token->type = TokenIsGreaterEqual;
                 return SUCCESS;
                 break;
             default:
@@ -311,7 +311,7 @@ int getToken(Token* token) {
         case StateIsLessThan:
             switch (currChar) {
             case '=':
-                token->type = TokenIsGreaterEqual;
+                token->type = TokenIsLessEqual;
                 return SUCCESS;
                 break;
             default:
@@ -429,8 +429,7 @@ int getToken(Token* token) {
             }
             break;
         case StateUnsignedExpoNbr:
-            switch (currChar)
-            {
+            switch (currChar) {
             case '+':
             case '-':
                 if (strAddChar(&bufferString, currChar) == STR_ERROR) {

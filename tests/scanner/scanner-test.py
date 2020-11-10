@@ -48,8 +48,8 @@ nullChars = [
 doubleChars = [
     ['!=', "TokenNotEqual"],  
     ['==', "TokenIsEqual"],
-    ['<=', "TokenIsGreaterEqual"],
-    ['>=', "TokenIsLessEqual"],
+    ['>=', "TokenIsGreaterEqual"],
+    ['<=', "TokenIsLessEqual"],
     [':=', "TokenVarDefine"]
 ]
 
