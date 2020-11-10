@@ -179,13 +179,208 @@ int FunctionReturnValues_Next(){
 int Block(){
     int returnCode;
     
-    //PLACEHOLDER!!!
     assert(TokenLeftCurlyBracket);
-    while(!(peek(TokenLeftCurlyBracket) || peek(TokenRightCurlyBracket))) acceptAny();
-    if (peek(TokenLeftCurlyBracket)){
-        NTERM(Block);
-    }
-    
+    NTERM(Statement);
     assert(TokenRightCurlyBracket);
+
+    return SUCCESS;
+}
+
+int Statement(){
+    int returnCode;
+
+    switch(curTok.type){
+        case TokenIf:
+            NTERM(If)
+            break;
+        case TokenReturn:
+            NTERM(Return);
+            break;
+        case TokenFor:
+            NTERM(For);
+            break;
+        case TokenIdentifier:
+            NTERM(StatementStartingWithIdentifier);
+            break;
+    }
+
+    return SUCCESS;
+}
+
+int StatementStartingWithIdentifier(){
+    int returnCode;
+    
+    assert(TokenIdentifier); //TODO: DEFINITELY TODO. THIS WILL BE ANNOYING AF.
+
+    switch(curTok.type){
+        case TokenLeftBracket:
+            NTERM(FunctionCall);
+            return SUCCESS;
+        case TokenVarDefine:
+            NTERM(VariableDefinition);
+            return SUCCESS;
+        case TokenAssignment:
+        case TokenComma:
+            NTERM(Assignment);
+            return SUCCESS;
+        default:
+            return SYNTAX_ERROR;
+    }
+}
+
+int Assignment(){
+    int returnCode;
+
+    NTERM(IDList_Next);
+    assert(TokenAssignment);
+
+    if (peek(TokenIdentifier)){
+        acceptAny();
+        if(peek(TokenLeftBracket)){
+            //Some unget token shit here probably, or update to a LL(2) grammar. TODO. :RikoCreepy:
+            NTERM(FunctionCall);
+        }
+        else{
+            //Some unget token shit here too probably, or update to a LL(2) grammar. TODO. :RikoCreepy:
+            NTERM(ExpressionList_Start);
+        }
+    }
+    else{
+        NTERM(ExpressionList_Start);
+    }
+
+    return SUCCESS;
+}
+
+int ExpressionList_Start(){
+    int returnCode;
+
+    if(!parseExpression())
+        return SUCCESS; //Epsilon rule; might change. xD TODO
+    NTERM(ExpressionList_Next);
+
+    return SUCCESS;
+}
+
+int ExpressionList_Next(){
+    int returnCode;
+
+    assertOrEpsilon(TokenComma);
+    NTERM(parseExpression);
+    NTERM(ExpressionList_Next);
+
+    return SUCCESS;
+}
+
+int IDList_Next(){
+    int returnCode;
+    
+    assertOrEpsilon(TokenComma);
+    assert(TokenIdentifier);
+    NTERM(IDList_Next);
+    
+    return SUCCESS;
+}
+
+int VariableDefinition(){
+    int returnCode;
+    
+    assert(TokenVarDefine);
+    NTERM(parseExpression);
+    return SUCCESS;
+}
+
+int FunctionCall(){
+    int returnCode;
+    
+    assert(TokenLeftBracket);
+    NTERM(TermList);
+    assert(TokenRightBracket);
+    
+    return SUCCESS;
+}
+
+int TermList(){
+    int returnCode;
+    if(Term()){
+        NTERM(TermListNext);
+        return SUCCESS;
+    }
+    return SUCCESS;
+}
+
+int TermListNext(){
+    int returnCode;
+
+    assertOrEpsilon(TokenComma); 
+    NTERM(Term); //Handling for allowed extraneous comma here in the future maybe.
+    NTERM(TermListNext);
+
+    return SUCCESS;
+}
+
+int Term(){
+    switch(curTok.type){
+        case TokenWholeNbr:
+        case TokenDecimalNbr:
+        case TokenStringLiteral:
+        case TokenIdentifier:
+        acceptAny();
+        return SUCCESS;
+    }
+    return SYNTAX_ERROR;
+}
+
+int If(){
+    int returnCode;
+    
+    assert(TokenIf);
+    NTERM(parseExpression);
+    NTERM(Block);
+    assert(TokenElse);
+    NTERM(Block);
+
+    return SUCCESS;
+}
+
+int Return(){
+    int returnCode;
+
+    assert(TokenReturn);
+    NTERM(ExpressionList_Start);
+
+    return SUCCESS;
+}
+
+int For(){
+    int returnCode;
+    
+    assert(TokenFor);
+    NTERM(For_Definition);
+    assert(TokenSemicolon);
+    NTERM(parseExpression);
+    assert(TokenSemicolon);
+    NTERM(For_Assignment);
+    NTERM(Block);
+
+    return SUCCESS;
+
+}
+
+int For_Definition(){
+    int returnCode;
+    
+    assertOrEpsilon(TokenIdentifier);
+    NTERM(VariableDefinition);
+
+    return SUCCESS;
+}
+
+int For_Assignment(){
+    int returnCode;
+    
+    assertOrEpsilon(TokenIdentifier);
+    NTERM(Assignment);
+
     return SUCCESS;
 }
