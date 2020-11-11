@@ -24,6 +24,7 @@
 #include "scanner.h"
 #include "keywords.h"
 #include "str.h"
+#include "error.h"
 #define charMacro(func, char) if ((macroError = func(char)) != 0) { \
                                        if (&bufferString != NULL) { \
                                            strFree(&bufferString); \
@@ -38,7 +39,7 @@ int getCharCheck(int *value) {
         *value = EOF;
     }
     else if (ferror(stdin)) {
-        return INPUT_ERROR;
+        return INTERNAL_ERROR;
     }
     return SUCCESS;
 }
@@ -142,10 +143,10 @@ int getToken(Token* token) {
                     previousChar = currChar;
                     state = StateWholeNbr;
                     if(strInit(&bufferString) == STR_ERROR)
-                        return MEMORY_ERROR;
+                        return INTERNAL_ERROR;
                     if (strAddChar(&bufferString, previousChar) == STR_ERROR) {
                         strFree(&bufferString);
-                        return MEMORY_ERROR;
+                        return INTERNAL_ERROR;
                     }
                 } else if (isalnum(currChar) || currChar == '_') {
                     previousChar = currChar;
@@ -186,7 +187,7 @@ int getToken(Token* token) {
             break;
         case StateStartOfString:
             if(strInit(&bufferString) == STR_ERROR)
-                return MEMORY_ERROR;
+                return INTERNAL_ERROR;
             while(currChar != '"') {
                 if (currChar == '\\') {
                     charMacro(getCharCheck, &currChar);
@@ -194,25 +195,25 @@ int getToken(Token* token) {
                     case '"':
                         if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                             strFree(&bufferString);
-                            return MEMORY_ERROR;
+                            return INTERNAL_ERROR;
                         }
                         break;
                     case 't':
                         if (strAddChar(&bufferString, '\t') == STR_ERROR) {
                             strFree(&bufferString);
-                            return MEMORY_ERROR;
+                            return INTERNAL_ERROR;
                         }
                         break;
                     case 'n':
                         if (strAddChar(&bufferString, '\0') == STR_ERROR) {
                             strFree(&bufferString);
-                            return MEMORY_ERROR;
+                            return INTERNAL_ERROR;
                         }
                         break;
                     case '\\':
                         if (strAddChar(&bufferString, '\\') == STR_ERROR) {
                             strFree(&bufferString);
-                            return MEMORY_ERROR;
+                            return INTERNAL_ERROR;
                         }
                         break;
                     case 'x':
@@ -232,7 +233,7 @@ int getToken(Token* token) {
                         }
                         if (strAddChar(&bufferString, (char)number) == STR_ERROR) {
                             strFree(&bufferString);
-                            return MEMORY_ERROR;
+                            return INTERNAL_ERROR;
                         }
                         break;
                     default:
@@ -245,7 +246,7 @@ int getToken(Token* token) {
                 else if (currChar > '"' || currChar == '!' || currChar == ' ') {
                     if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                         strFree(&bufferString);
-                        return MEMORY_ERROR;
+                        return INTERNAL_ERROR;
                     }
                     charMacro(getCharCheck, &currChar);
                     continue;
@@ -261,9 +262,9 @@ int getToken(Token* token) {
             token->type = TokenStringLiteral;
             token->atribute.t = TokenStringLiteral;
             if(strInit(&token->atribute.s) == STR_ERROR)
-                return MEMORY_ERROR;
+                return INTERNAL_ERROR;
             if (strCopyString(&token->atribute.s, &bufferString) == STR_ERROR)
-                return MEMORY_ERROR;
+                return INTERNAL_ERROR;
             return SUCCESS;
             break;
         case StateEquals:
@@ -321,15 +322,15 @@ int getToken(Token* token) {
             }
         case StateIdentifier:
             if(strInit(&bufferString) == STR_ERROR)
-                return MEMORY_ERROR;
+                return INTERNAL_ERROR;
             if (strAddChar(&bufferString, previousChar) == STR_ERROR) {
                 strFree(&bufferString);
-                return MEMORY_ERROR;
+                return INTERNAL_ERROR;
             }
             while (isalnum(currChar) || currChar == '_') {
                 if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                     strFree(&bufferString);
-                    return MEMORY_ERROR;
+                    return INTERNAL_ERROR;
                 }
                 charMacro(getCharCheck, &currChar);       
             } 
@@ -344,23 +345,23 @@ int getToken(Token* token) {
             }
             token->type = TokenIdentifier;
             if(strInit(&token->atribute.s) == STR_ERROR)
-                return MEMORY_ERROR;
+                return INTERNAL_ERROR;
             if (strCopyString(&token->atribute.s, &bufferString) == STR_ERROR)
-                return MEMORY_ERROR;
+                return INTERNAL_ERROR;
             return SUCCESS;
             break;
         case StateZero:
             if(strInit(&bufferString) == STR_ERROR)
-                return MEMORY_ERROR;
+                return INTERNAL_ERROR;
             if (strAddChar(&bufferString, previousChar) == STR_ERROR) {
                 strFree(&bufferString);
-                return MEMORY_ERROR;
+                return INTERNAL_ERROR;
             }
             switch (currChar) {
             case '.':
                 if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                     strFree(&bufferString);
-                    return MEMORY_ERROR;
+                    return INTERNAL_ERROR;
                 }
                 state = StateIncompletedecimalNbr;
                 break;
@@ -368,7 +369,7 @@ int getToken(Token* token) {
             case 'E':
                 if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                     strFree(&bufferString);
-                    return MEMORY_ERROR;
+                    return INTERNAL_ERROR;
                 }
                 state = StateUnsignedExpoNbr;
                 break;
@@ -376,7 +377,7 @@ int getToken(Token* token) {
                 charMacro(unGetCharCheck, currChar);
                 if (sscanf(strGetStr(&bufferString),"%"SCNd64,&token->atribute.i) == EOF) {
                     strFree(&bufferString);
-                    return CONVERSION_ERROR;
+                    return INTERNAL_ERROR;
                 }
                 token->type = TokenWholeNbr;
                 strFree(&bufferString);
@@ -388,7 +389,7 @@ int getToken(Token* token) {
             if (isdigit(currChar)) {
                 if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                     strFree(&bufferString);
-                    return MEMORY_ERROR;
+                    return INTERNAL_ERROR;
                 }
                 state = StateCompleteDecimalNbr;
                 break;
@@ -405,7 +406,7 @@ int getToken(Token* token) {
             case 'E':
                 if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                     strFree(&bufferString);
-                    return MEMORY_ERROR;
+                    return INTERNAL_ERROR;
                 }
                 state = StateUnsignedExpoNbr;
                 break;
@@ -413,13 +414,13 @@ int getToken(Token* token) {
                 if (isdigit(currChar)) {
                     if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                         strFree(&bufferString);
-                        return MEMORY_ERROR;
+                        return INTERNAL_ERROR;
                     }
                     break;
                 } else {
                     if (sscanf(strGetStr(&bufferString),"%lf", &token->atribute.d) == EOF) {
                         strFree(&bufferString);
-                        return CONVERSION_ERROR;
+                        return INTERNAL_ERROR;
                     }
                     token->type = TokenDecimalNbr;
                     strFree(&bufferString);
@@ -434,7 +435,7 @@ int getToken(Token* token) {
             case '-':
                 if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                     strFree(&bufferString);
-                    return MEMORY_ERROR;
+                    return INTERNAL_ERROR;
                 }
                 state = StateSemiCompleteExpoNbr;
                 break;
@@ -442,7 +443,7 @@ int getToken(Token* token) {
                 if (isdigit(currChar)) {
                     if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                         strFree(&bufferString);
-                        return MEMORY_ERROR;
+                        return INTERNAL_ERROR;
                     }
                     state = StateCompleteUnsignedExpoNbr;
                     break;
@@ -458,7 +459,7 @@ int getToken(Token* token) {
                 do {
                     if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                         strFree(&bufferString);
-                        return MEMORY_ERROR;
+                        return INTERNAL_ERROR;
                     }
                     charMacro(getCharCheck, &currChar);
                 } while (isdigit(currChar));
@@ -466,7 +467,7 @@ int getToken(Token* token) {
             } else {
                 if (sscanf(strGetStr(&bufferString),"%lf", &token->atribute.d) == EOF) {
                     strFree(&bufferString);
-                    return CONVERSION_ERROR;
+                    return INTERNAL_ERROR;
                 }
                 token->type = TokenDecimalNbr;
                 strFree(&bufferString);
@@ -477,7 +478,7 @@ int getToken(Token* token) {
             if (isdigit(currChar)) {
                 if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                     strFree(&bufferString);
-                    return MEMORY_ERROR;
+                    return INTERNAL_ERROR;
                 }
                 state = StateCompleteExpoNbr;
                 break;
@@ -491,7 +492,7 @@ int getToken(Token* token) {
                 do {
                     if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                         strFree(&bufferString);
-                        return MEMORY_ERROR;
+                        return INTERNAL_ERROR;
                     }
                     charMacro(getCharCheck, &currChar);
                 } while (isdigit(currChar));
@@ -499,7 +500,7 @@ int getToken(Token* token) {
             } else {
                 if (sscanf(strGetStr(&bufferString),"%lf", &token->atribute.d) == EOF) {
                     strFree(&bufferString);
-                    return CONVERSION_ERROR;
+                    return INTERNAL_ERROR;
                 }
                 token->type = TokenDecimalNbr;
                 strFree(&bufferString);
@@ -512,7 +513,7 @@ int getToken(Token* token) {
             case '.':
                 if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                     strFree(&bufferString);
-                    return MEMORY_ERROR;
+                    return INTERNAL_ERROR;
                 }
                 state = StateIncompletedecimalNbr;
                 break;
@@ -520,7 +521,7 @@ int getToken(Token* token) {
             case 'E':
                 if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                     strFree(&bufferString);
-                    return MEMORY_ERROR;
+                    return INTERNAL_ERROR;
                 }
                 state = StateUnsignedExpoNbr;
                 break;
@@ -528,7 +529,7 @@ int getToken(Token* token) {
                 if (isdigit(currChar)) {
                     if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                         strFree(&bufferString);
-                        return MEMORY_ERROR;
+                        return INTERNAL_ERROR;
                     }
                     state = StateWholeNbr;
                     break;
@@ -536,7 +537,7 @@ int getToken(Token* token) {
                     charMacro(unGetCharCheck, currChar);
                     if (sscanf(strGetStr(&bufferString),"%"SCNd64,&token->atribute.i) == EOF) {
                         strFree(&bufferString);
-                        return CONVERSION_ERROR;
+                        return INTERNAL_ERROR;
                     }
                     token->type = TokenWholeNbr;
                     strFree(&bufferString);

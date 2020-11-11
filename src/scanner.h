@@ -19,16 +19,6 @@
 #include "str.h"
 #include "token.h"
 
-
-typedef enum {
-    SUCCESS = 0,
-    LEXICAL_ERROR,
-    INPUT_ERROR,
-    UNEXPECTED_EOF_ERROR,
-    CONVERSION_ERROR,
-    MEMORY_ERROR = 99
-} ErrorGetToken;
-
 typedef enum {
     /* Start */
     StateStart,
