@@ -24,7 +24,7 @@ blankChars = [
 
 commentChars = [
     ['//', "TokenEOF"],
-    ['/*', "TokenEOF"]
+    ['/*', "TokenEOL"]
 ]
 
 basicChars = [
@@ -42,7 +42,7 @@ basicChars = [
 ]
 
 nullChars = [
-    ['\n', "TokenEOF"],
+    ['\n', "TokenEOL"],
     ['', "TokenEOF"]
 ]
 
@@ -287,8 +287,8 @@ def commentLineTest():
         file.write("\n")
     with open(_FILENAME, 'r') as file:
         result = subprocess.run([_TESTEDFILE1], stdin=file, capture_output=True, text=True)  
-    if result.stdout != "TokenEOF":
-        print(f"Test {0} didn't pass. Expected TokenEOF got {result.stdout} with '{commentChars[0][0]}'")
+    if result.stdout != "TokenEOL":
+        print(f"Test {0} didn't pass. Expected TokenEOL got {result.stdout} with '{commentChars[0][0]}'")
     if result.returncode != 0:
         print(f"Test {0} returned non-zero code!")
     print("-------------------------------------------------------------------")

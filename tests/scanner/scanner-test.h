@@ -26,8 +26,8 @@ static const char* enumTokenTranslate[] = {
     /* Symbols */
     "TokenLeftCurlyBracket", 
     "TokenRightCurlyBracket",
-    "TokenRightBracket", 
     "TokenLeftBracket", 
+    "TokenRightBracket", 
     "TokenComma", 
     "TokenSemicolon", 
     "TokenIdentifier",

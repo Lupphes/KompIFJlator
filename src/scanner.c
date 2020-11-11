@@ -98,10 +98,9 @@ int getToken(Token* token) {
                 state = StateStart;
                 break;
             case EOL :
-                while (currChar == EOL)
-                    charMacro(getCharCheck, &currChar)
-                charMacro(unGetCharCheck, currChar);
-                state = StateStart;
+                token->type = TokenEOL;
+                return SUCCESS;
+                break;
                 break;
             case EOF :
                 token->type = TokenEOF;

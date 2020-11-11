@@ -28,12 +28,12 @@ typedef enum  {
     /* Symbols */   
     TokenLeftCurlyBracket,
     TokenRightCurlyBracket,
-    TokenRightBracket,
     TokenLeftBracket,
+    TokenRightBracket,
     TokenComma,
     TokenSemicolon,
     TokenIdentifier,
-    TokenEOL, // Needs to be discussed
+    TokenEOL,
     TokenEOF,
     /* Key words */ 
     TokenFor,
