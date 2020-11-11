@@ -25,12 +25,12 @@
 #include "keywords.h"
 #include "str.h"
 #include "error.h"
+
 #define charMacro(func, char) if ((macroError = func(char)) != 0) { \
                                        if (&bufferString != NULL) { \
                                            strFree(&bufferString); \
                                        } \
                                        return macroError; }
-
 #define EOL '\n'
 
 int getCharCheck(int *value) {
@@ -180,6 +180,7 @@ int getToken(Token* token) {
                 state = StateStart;
                 break;
             default:
+                charMacro(unGetCharCheck, currChar);
                 token->type = TokenDivide;
                 return SUCCESS;
                 break;
@@ -274,7 +275,8 @@ int getToken(Token* token) {
                 return SUCCESS;
                 break;
             default:
-                token->type = TokenEquals;
+                charMacro(unGetCharCheck, currChar);
+                token->type = TokenAssignment;
                 return SUCCESS;
                 break;
             }
@@ -294,7 +296,8 @@ int getToken(Token* token) {
                 return SUCCESS;
                 break;
             default:
-                token->type = TokenEquals;
+                charMacro(unGetCharCheck, currChar);
+                token->type = TokenAssignment;
                 return SUCCESS;
                 break;
             }
@@ -305,6 +308,7 @@ int getToken(Token* token) {
                 return SUCCESS;
                 break;
             default:
+                charMacro(unGetCharCheck, currChar);
                 token->type = TokenIsGreaterThan;
                 return SUCCESS;
                 break;
@@ -316,6 +320,7 @@ int getToken(Token* token) {
                 return SUCCESS;
                 break;
             default:
+                charMacro(unGetCharCheck, currChar);
                 token->type = TokenIsLessThan;
                 return SUCCESS;
                 break;

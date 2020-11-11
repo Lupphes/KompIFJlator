@@ -15,7 +15,7 @@ typedef enum  {
     TokenIsLessThan,
     TokenIsLessEqual,
     /* Operation */
-    TokenEquals,
+    TokenAssignment,
     TokenVarDefine,
     TokenAdd,
     TokenSubtract,
