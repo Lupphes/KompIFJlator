@@ -32,5 +32,21 @@ int FunctionReturnValues();
 int FunctionReturnValues_First();
 int FunctionReturnValues_Next();
 int Block();
+int Statement();
+int StatementStartingWithIdentifier();
+int Assignment();
+int ExpressionList_Start();
+int ExpressionList_Next();
+int IDList_Next();
+int VariableDefinition();
+int FunctionCall();
+int TermList();
+int TermListNext();
+int Term();
+int If();
+int Return();
+int For();
+int For_Definition();
+int For_Assignment();
 
 #endif
