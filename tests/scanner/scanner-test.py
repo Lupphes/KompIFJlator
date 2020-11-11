@@ -38,7 +38,7 @@ basicChars = [
     ['+', "TokenAdd"],
     ['*', "TokenMultiply"],
     ['-', "TokenSubtract"],
-    ['=', "TokenEquals"]
+    ['=', "TokenAssignment"]
 ]
 
 nullChars = [
