@@ -444,7 +444,7 @@ def literalsValueErrorTest():
     return
 
 def identifierValueTests():
-    print("'Identifier values' tests")
+    print("'Identifier values' tests!")
     for i in range(len(identifiers)): 
         createWriteFile(i, identifiers)
         with open(_FILENAME, 'r') as file:
@@ -485,6 +485,7 @@ def makefileRun():
 
 def main():
     makefileRun()
+    print("-------------------------------------------------------------------")
     simpleTest()
     simpleTestInline()
     simpleTestNullChars()
