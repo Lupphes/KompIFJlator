@@ -14,7 +14,7 @@ static const char* enumTokenTranslate[] = {
     "TokenIsLessThan", 
     "TokenIsLessEqual", 
     /* Operation */
-    "TokenEquals",
+    "TokenAssignment",
     "TokenVarDefine", 
     "TokenAdd",
     "TokenSubtract", 
