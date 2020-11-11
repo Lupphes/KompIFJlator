@@ -2,6 +2,7 @@
 #define TOKEN_H
 #include <stdint.h>
 #include "str.h"
+#include "data_type.h"
 
 typedef enum  {
     /* Definition of Tokens */
@@ -44,12 +45,6 @@ typedef enum  {
     TokenDataType, // Float64, String, Int
     TokenUndefined
 } _TokenType;
-
-typedef enum {
-  TypeInt,
-  TypeFloat64,
-  TypeString
-} DataType;
 
 typedef union {
   int64_t i;
