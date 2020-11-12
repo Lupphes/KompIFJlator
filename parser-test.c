@@ -24,11 +24,13 @@ Token* dummyTokens = NULL;
 Token TestInputSane[] = {
     {TokenPackage},
     {TokenIdentifier}, //[1]
+    {TokenEOL},
     {TokenFunc},
-    {TokenIdentifier}, //[3]
+    {TokenIdentifier}, //[4]
     {TokenLeftBracket},
     {TokenRightBracket},
     {TokenLeftCurlyBracket},
+    {TokenEOL},
     {TokenRightCurlyBracket},
     {TokenEOF}
 };
@@ -36,11 +38,13 @@ Token TestInputSane[] = {
 Token TestInputWrongPackageName[] = {
     {TokenPackage},
     {TokenIdentifier}, //[1]
+    {TokenEOL},
     {TokenFunc},
-    {TokenIdentifier}, //[3]
+    {TokenIdentifier}, //[4]
     {TokenLeftBracket},
     {TokenRightBracket},
     {TokenLeftCurlyBracket},
+    {TokenEOL},
     {TokenRightCurlyBracket},
     {TokenEOF}
 };
@@ -53,29 +57,32 @@ Token TestNoPackage[] = {
 Token TestInputBigFunction[] = {
     {TokenPackage},
     {TokenIdentifier}, //[1]
-    
+    {TokenEOL},
+
     //main function here
     {TokenFunc},
-    {TokenIdentifier}, //[3]
+    {TokenIdentifier}, //[4]
     {TokenLeftBracket},
     {TokenRightBracket},
     {TokenLeftCurlyBracket},
+    {TokenEOL},
     {TokenRightCurlyBracket},
-    
+    {TokenEOL},
+
     //Some fancy function with many return values and many parameters:
     // func fancy (x int, y float64, z string) (int, int, string, float64) {
     //      return 1, 2, "potato", 12.5
     //  } 
     {TokenFunc},
-    {TokenIdentifier}, //[9]
+    {TokenIdentifier}, //[12]
     {TokenLeftBracket},
-    {TokenIdentifier}, //[11]
+    {TokenIdentifier}, //[14]
     {TokenDataType, {.t = TypeInt}},
     {TokenComma},
-    {TokenIdentifier}, //[14]
+    {TokenIdentifier}, //[17]
     {TokenDataType, {.t=TypeFloat64}},
     {TokenComma},
-    {TokenIdentifier}, //[17]
+    {TokenIdentifier}, //[20]
     {TokenDataType, {.t=TypeString}},
     {TokenRightBracket},
     {TokenLeftBracket},
@@ -88,13 +95,15 @@ Token TestInputBigFunction[] = {
     {TokenDataType, {.t=TypeFloat64}},
     {TokenRightBracket},
     {TokenLeftCurlyBracket},
+    {TokenEOL},
     {TokenReturn},
     {TokenWholeNbr, {.i = 1}},
     {TokenComma},
     {TokenWholeNbr, {.i = 2}},
-    {TokenStringLiteral}, //[34]
+    {TokenStringLiteral}, //[38]
     {TokenComma},
     {TokenDecimalNbr, {.d=12.5}},
+    {TokenEOL},
     {TokenRightCurlyBracket},
     {TokenEOF}
 };
@@ -102,28 +111,31 @@ Token TestInputBigFunction[] = {
 Token TestInputBigFunction_Error_NoCommaParam[] = {
     {TokenPackage},
     {TokenIdentifier}, //[1]
-    
+    {TokenEOL},
+
     //main function here
     {TokenFunc},
-    {TokenIdentifier}, //[3]
+    {TokenIdentifier}, //[4]
     {TokenLeftBracket},
     {TokenRightBracket},
     {TokenLeftCurlyBracket},
+    {TokenEOL},
     {TokenRightCurlyBracket},
+    {TokenEOL},
     
     //Some fancy function with many return values and many parameters:
     // func fancy (x int, y float64, z string) (int, int, string, float64) {
     //      return 1, 2, "potato", 12.5
     //  } 
     {TokenFunc},
-    {TokenIdentifier}, //[9]
+    {TokenIdentifier}, //[12]
     {TokenLeftBracket},
-    {TokenIdentifier}, //[11]
+    {TokenIdentifier}, //[14]
     {TokenDataType, {.t = TypeInt}},
     {TokenComma},
-    {TokenIdentifier}, //[14]
+    {TokenIdentifier}, //[17]
     {TokenDataType, {.t=TypeFloat64}},
-    {TokenIdentifier}, //[16]
+    {TokenIdentifier}, //[19]
     {TokenDataType, {.t=TypeString}},
     {TokenRightBracket},
     {TokenLeftBracket},
@@ -136,13 +148,15 @@ Token TestInputBigFunction_Error_NoCommaParam[] = {
     {TokenDataType, {.t=TypeFloat64}},
     {TokenRightBracket},
     {TokenLeftCurlyBracket},
+    {TokenEOL},
     {TokenReturn},
     {TokenWholeNbr, {.i = 1}},
     {TokenComma},
     {TokenWholeNbr, {.i = 2}},
-    {TokenStringLiteral}, //[33]
+    {TokenStringLiteral}, //[37]
     {TokenComma},
     {TokenDecimalNbr, {.d=12.5}},
+    {TokenEOL},
     {TokenRightCurlyBracket},
     {TokenEOF}
 };
@@ -150,29 +164,32 @@ Token TestInputBigFunction_Error_NoCommaParam[] = {
 Token TestInputBigFunction_Error_NoCommaReturn[] = {
     {TokenPackage},
     {TokenIdentifier}, //[1]
-    
+    {TokenEOL},
+
     //main function here
     {TokenFunc},
-    {TokenIdentifier}, //[3]
+    {TokenIdentifier}, //[4]
     {TokenLeftBracket},
     {TokenRightBracket},
     {TokenLeftCurlyBracket},
+    {TokenEOL},
     {TokenRightCurlyBracket},
+    {TokenEOL},
     
     //Some fancy function with many return values and many parameters:
     // func fancy (x int, y float64, z string) (int, int, string, float64) {
     //      return 1, 2, "potato", 12.5
     //  } 
     {TokenFunc},
-    {TokenIdentifier}, //[9]
+    {TokenIdentifier}, //[12]
     {TokenLeftBracket},
-    {TokenIdentifier}, //[11]
+    {TokenIdentifier}, //[14]
     {TokenDataType, {.t = TypeInt}},
     {TokenComma},
-    {TokenIdentifier}, //[14]
+    {TokenIdentifier}, //[17]
     {TokenDataType, {.t=TypeFloat64}},
     {TokenComma},
-    {TokenIdentifier}, //[17]
+    {TokenIdentifier}, //[20]
     {TokenDataType, {.t=TypeString}},
     {TokenRightBracket},
     {TokenLeftBracket},
@@ -184,49 +201,51 @@ Token TestInputBigFunction_Error_NoCommaReturn[] = {
     {TokenDataType, {.t=TypeFloat64}},
     {TokenRightBracket},
     {TokenLeftCurlyBracket},
+    {TokenEOL},
     {TokenReturn},
     {TokenWholeNbr, {.i = 1}},
     {TokenComma},
     {TokenWholeNbr, {.i = 2}},
-    {TokenStringLiteral}, //[33]
+    {TokenStringLiteral}, //[37]
     {TokenComma},
     {TokenDecimalNbr, {.d =12.5}},
+    {TokenEOL},
     {TokenRightCurlyBracket},
     {TokenEOF}
 };
 
 void prepAttributes(){
     INIT_STRING(TestInputSane,1,"main");
-    INIT_STRING(TestInputSane,3,"main");
+    INIT_STRING(TestInputSane,4,"main");
 
     INIT_STRING(TestInputWrongPackageName,1,"msin");
-    INIT_STRING(TestInputWrongPackageName,3,"main");
+    INIT_STRING(TestInputWrongPackageName,4,"main");
 
     INIT_STRING(TestNoPackage,0,"main");
 
     INIT_STRING(TestInputBigFunction,1,"main");
-    INIT_STRING(TestInputBigFunction,3,"main");
-    INIT_STRING(TestInputBigFunction,9,"fancy");
-    INIT_STRING(TestInputBigFunction,11,"x");
-    INIT_STRING(TestInputBigFunction,14,"y");
-    INIT_STRING(TestInputBigFunction,17,"z");
-    INIT_STRING(TestInputBigFunction,34,"potato");
+    INIT_STRING(TestInputBigFunction,4,"main");
+    INIT_STRING(TestInputBigFunction,12,"fancy");
+    INIT_STRING(TestInputBigFunction,14,"x");
+    INIT_STRING(TestInputBigFunction,17,"y");
+    INIT_STRING(TestInputBigFunction,20,"z");
+    INIT_STRING(TestInputBigFunction,38,"potato");
 
     INIT_STRING(TestInputBigFunction_Error_NoCommaParam,1,"main");
-    INIT_STRING(TestInputBigFunction_Error_NoCommaParam,3,"main");
-    INIT_STRING(TestInputBigFunction_Error_NoCommaParam,9,"fancy");
-    INIT_STRING(TestInputBigFunction_Error_NoCommaParam,11,"x");
-    INIT_STRING(TestInputBigFunction_Error_NoCommaParam,14,"y");
-    INIT_STRING(TestInputBigFunction_Error_NoCommaParam,16,"z");
-    INIT_STRING(TestInputBigFunction_Error_NoCommaParam,33,"potato");
+    INIT_STRING(TestInputBigFunction_Error_NoCommaParam,4,"main");
+    INIT_STRING(TestInputBigFunction_Error_NoCommaParam,12,"fancy");
+    INIT_STRING(TestInputBigFunction_Error_NoCommaParam,14,"x");
+    INIT_STRING(TestInputBigFunction_Error_NoCommaParam,17,"y");
+    INIT_STRING(TestInputBigFunction_Error_NoCommaParam,19,"z");
+    INIT_STRING(TestInputBigFunction_Error_NoCommaParam,37,"potato");
 
     INIT_STRING(TestInputBigFunction_Error_NoCommaReturn,1,"main");
-    INIT_STRING(TestInputBigFunction_Error_NoCommaReturn,3,"main");
-    INIT_STRING(TestInputBigFunction_Error_NoCommaReturn,9,"fancy");
-    INIT_STRING(TestInputBigFunction_Error_NoCommaReturn,11,"x");
-    INIT_STRING(TestInputBigFunction_Error_NoCommaReturn,14,"y");
-    INIT_STRING(TestInputBigFunction_Error_NoCommaReturn,17,"z");
-    INIT_STRING(TestInputBigFunction_Error_NoCommaReturn,33,"potato")
+    INIT_STRING(TestInputBigFunction_Error_NoCommaReturn,4,"main");
+    INIT_STRING(TestInputBigFunction_Error_NoCommaReturn,12,"fancy");
+    INIT_STRING(TestInputBigFunction_Error_NoCommaReturn,14,"x");
+    INIT_STRING(TestInputBigFunction_Error_NoCommaReturn,17,"y");
+    INIT_STRING(TestInputBigFunction_Error_NoCommaReturn,20,"z");
+    INIT_STRING(TestInputBigFunction_Error_NoCommaReturn,37,"potato")
 
 
 }
