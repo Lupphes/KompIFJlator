@@ -11,8 +11,8 @@ func main() {
   s1, _ = substr(s2, s1len, 4)
   s1len = s1len + 1
   print("4 znaky od", s1len, ". znaku v \"", s2, "\":", s1, "\n")
-  print("Zadejte serazenou posloupnost vsech malych pismen a-h,")
-  print("pricemz se pismena nesmeji v posloupnosti opakovat:") 
+  print("Zadejte serazenou posloupnost vsech malych pismen a-h, ")
+  print("pricemz se pismena nesmeji v posloupnosti opakovat: ") 
   err := 0 
   s1, err = inputs()
   if err != 1 {
@@ -20,6 +20,6 @@ func main() {
       print("\n", "Spatne zadana posloupnost, zkuste znovu: ")
       s1, _ = inputs()
     }
+  } else {
   }
-  else {}
 }
