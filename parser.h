@@ -20,6 +20,7 @@
 int accept(_TokenType type);
 bool peek(_TokenType type);
 int nextToken();
+int parseExpression_Dummy(){
 
 int beginParsing();
 int Start();

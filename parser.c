@@ -17,7 +17,6 @@
 #include "token.h"
 #include "scanner.h"
 #include "error.h"
-#include "dummyExpressionParser.h"
 #include <stdbool.h>
 
 //Shorthand. Advances to the next token without any checks of the current token. If there are issues raised by the nextToken function, returns from the function with the return code returned by nextToken.
@@ -33,6 +32,37 @@
 #define assertOrEpsilon(token) if((returnCode = accept(token)) == SYNTAX_ERROR) return SUCCESS; else if (returnCode != SUCCESS) return returnCode;
 
 Token curTok = {TokenEOF}; //We initialise the current token so that the function nextToken works properly.
+
+
+int parseExpression_Dummy(){
+    int returnCode;
+
+    while(true){
+        switch (curTok.type){
+            case TokenIdentifier:
+            case TokenIsEqual:
+            case TokenIsGreaterEqual:
+            case TokenIsLessEqual:
+            case TokenIsLessThan:
+            case TokenWholeNbr:
+            case TokenDecimalNbr:
+            case TokenStringLiteral:
+            case TokenNotEqual:
+            case TokenAdd:
+            case TokenSubtract:
+            case TokenMultiply:
+            case TokenDivide:
+            case TokenLeftBracket:
+            case TokenRightBracket:
+                acceptAny();
+                continue;
+            default:
+                break;
+        }
+        break;
+    }
+    return SUCCESS;
+}
 
 /**
  * @brief Checks whether the currently read token is of the specified type, and if it is, advances to the next token.
@@ -267,7 +297,7 @@ int Assignment(){
 int ExpressionList_Start(){
     int returnCode;
 
-    if(!parseExpression())
+    if(!parseExpression_Dummy())
         return SUCCESS; //Epsilon rule; might change. xD TODO
     NTERM(ExpressionList_Next);
 
@@ -278,7 +308,7 @@ int ExpressionList_Next(){
     int returnCode;
 
     assertOrEpsilon(TokenComma);
-    NTERM(parseExpression);
+    NTERM(parseExpression_Dummy);
     NTERM(ExpressionList_Next);
 
     return SUCCESS;
@@ -298,7 +328,7 @@ int VariableDefinition(){
     int returnCode;
     
     assert(TokenVarDefine);
-    NTERM(parseExpression);
+    NTERM(parseExpression_Dummy);
     return SUCCESS;
 }
 
@@ -351,7 +381,7 @@ int If(){
     int returnCode;
     
     assert(TokenIf);
-    NTERM(parseExpression);
+    NTERM(parseExpression_Dummy);
     NTERM(Block);
     assert(TokenElse);
     NTERM(Block);
@@ -374,7 +404,7 @@ int For(){
     assert(TokenFor);
     NTERM(For_Definition);
     assert(TokenSemicolon);
-    NTERM(parseExpression);
+    NTERM(parseExpression_Dummy);
     assert(TokenSemicolon);
     NTERM(For_Assignment);
     NTERM(Block);

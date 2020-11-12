@@ -20,6 +20,7 @@ typedef enum  {
     TokenAdd,
     TokenSubtract,
     TokenMultiply,
+    TokenDivide,
     /* Feature or/and */
     TokenAndSecond,
     TokenOrSecond,
