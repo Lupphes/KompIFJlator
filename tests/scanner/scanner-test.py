@@ -14,7 +14,7 @@ _MAKEFILE = _REALPATH + "/../src/"
 falseChars = [
     ['`', "TokenUndefined"],
     ['%', "TokenUndefined"],
-    ['@', "TokenUndefined"],
+    ['@', "TokenUndefined"]
 ]
 
 blankChars = [
@@ -106,7 +106,6 @@ numbers = [
     ['123.0', "TokenDecimalNbr"],
     ['123456789.123456789', "TokenDecimalNbr"],
     ['0.123456789', "TokenDecimalNbr"],
-    ['0.123456789', "TokenDecimalNbr"],
     ['5E4', "TokenDecimalNbr"],
     ['5E+4', "TokenDecimalNbr"],
     ['5E-4', "TokenDecimalNbr"],
@@ -197,14 +196,14 @@ def simpleTestInline():
     with open(_FILENAME, 'w+') as file:
         for i in range(len(basicChars)): 
             file.write(basicChars[i][0])
+    with open(_FILENAME, 'r') as file:
+        result = subprocess.run([_TESTEDFILE2], stdin=file, capture_output=True, text=True)
+    outputlist = result.stdout.split("\n")
     for j in range(len(basicChars)): 
-        with open(_FILENAME, 'r') as file:
-            file.seek(j)
-            result = subprocess.run([_TESTEDFILE1], stdin=file, capture_output=True, text=True)
-        if result.stdout != basicChars[j][1]:
-            print(f"Test {j} didn't pass. Expected {basicChars[j][1]} got {result.stdout} with '{basicChars[j][0]}'")
+        if outputlist[j] != basicChars[j][1]:
+            print(f"Test {j} didn't pass. Expected {basicChars[j][1]} got {outputlist[j]} with '{basicChars[j][0]}'")
         if result.returncode != 0:
-            print(f"Test {i} returned non-zero code!")
+            print(f"Test {j} returned non-zero code!")
     print("-------------------------------------------------------------------")
     return
 
@@ -229,8 +228,8 @@ def errorChecks():
             result = subprocess.run([_TESTEDFILE1], stdin=file, capture_output=True, text=True)
         if result.stdout != falseChars[i][1]:
             print(f"Test {i} didn't pass. Expected {falseChars[i][1]} got {result.stdout} with '{falseChars[i][0]}'")
-    if result.returncode == 0:
-        print(f"Test {i} returned zero code (incorrect)!")       
+        if result.returncode == 0:
+            print(f"Test {i} returned zero code (incorrect)!")       
     print("-------------------------------------------------------------------")
     return
 
@@ -242,8 +241,8 @@ def doubleCharsTest():
             result = subprocess.run([_TESTEDFILE1], stdin=file, capture_output=True, text=True)
         if result.stdout != doubleChars[i][1]:
             print(f"Test {i} didn't pass. Expected {doubleChars[i][1]} got {result.stdout} with '{doubleChars[i][0]}'")
-    if result.returncode != 0:
-        print(f"Test {i} returned non-zero code!")
+        if result.returncode != 0:
+            print(f"Test {i} returned non-zero code!")
     print("-------------------------------------------------------------------")
     return
 
@@ -259,10 +258,10 @@ def skippingTest():
                 j += 1
         with open(_FILENAME, 'r') as file:
             result = subprocess.run([_TESTEDFILE1], stdin=file, capture_output=True, text=True)
-    if result.stdout != blankChars[i][1]:
-            print(f"Test {i} didn't pass. Expected {blankChars[i][1]} got {result.stdout} with '{blankChars[i][0]}'")
-    if result.returncode != 0:
-        print(f"Test {i} returned non-zero code!")
+        if result.stdout != blankChars[i][1]:
+                print(f"Test {i} didn't pass. Expected {blankChars[i][1]} got {result.stdout} with '{blankChars[i][0]}'")
+        if result.returncode != 0:
+            print(f"Test {i} returned non-zero code!")
     print("-------------------------------------------------------------------")
     return
 
@@ -295,7 +294,7 @@ def commentLineTest():
     return
 
 
-def commentsBlockTest():
+def commentsBlockTest(): # maybe EOL?
     print("'CommentBlock Error' test!")
     with open(_FILENAME, 'w+') as file:
         file.write("/*/*")
@@ -303,21 +302,38 @@ def commentsBlockTest():
         j = 0
         while j != randomNbr:
             file.write(chr(random.randint(32,127)))
-            file.write("\n")
             j += 1
     with open(_FILENAME, 'r') as file:
         result = subprocess.run([_TESTEDFILE1], stdin=file, capture_output=True, text=True)
-    if result.returncode == 0:
-        print(f"Test returned zero code (incorrect)!")
+    if result.returncode != 1:
+        print(f"Test did not return 1 as exit code")
     print("-------------------------------------------------------------------")
 
-    print("'CommentBlock' test!")
+    print("'CommentBlock Line' test!")
     with open(_FILENAME, 'a') as file:
         file.write("*/")
     with open(_FILENAME, 'r') as file:
         result = subprocess.run([_TESTEDFILE1], stdin=file, capture_output=True, text=True)
     if result.stdout != "TokenEOF":
         print(f"Test {0} didn't pass. Expected TokenEOF got {result.stdout}'")
+    if result.returncode != 0:
+        print(f"Test {0} returned non-zero code!")
+    print("-------------------------------------------------------------------")
+
+    print("'CommentBlock EOL' test!")
+    with open(_FILENAME, 'w+') as file:
+        file.write("/*/*")
+        randomNbr = random.randint(1,25)
+        j = 0
+        while j != randomNbr:
+            file.write(chr(random.randint(32,127)))
+            j += 1
+            file.write("\n")
+        file.write("*/")
+    with open(_FILENAME, 'r') as file:
+        result = subprocess.run([_TESTEDFILE1], stdin=file, capture_output=True, text=True)
+    if result.stdout != "TokenEOL":
+        print(f"Test {0} didn't pass. Expected TokenEOL got {result.stdout}'")
     if result.returncode != 0:
         print(f"Test {0} returned non-zero code!")
     print("-------------------------------------------------------------------")
@@ -371,8 +387,8 @@ def literalsErrorTest():
             result = subprocess.run([_TESTEDFILE1], stdin=file, capture_output=True, text=True)
         if result.stdout != errorLiterals[i][1]:
             print(f"Test {i} didn't pass. Expected {errorLiterals[i][1]} got {result.stdout} with '{errorLiterals[i][0]}'")
-        if result.returncode == 0:
-            print(f"Test returned zero code (incorrect)!")
+        if result.returncode != 1:
+            print(f"Test did not return 1 as exit code")
     print("-------------------------------------------------------------------")
     return
 
@@ -398,8 +414,8 @@ def numberErrorTests():
             result = subprocess.run([_TESTEDFILE1], stdin=file, capture_output=True, text=True)
         if result.stdout != numbersErrors[i][1]:
             print(f"Test {i} didn't pass. Expected {numbersErrors[i][1]} got {result.stdout} with '{numbersErrors[i][0]}'")
-        if result.returncode == 0:
-            print(f"Test returned zero code (incorrect)!")
+        if result.returncode != 1:
+            print(f"Test did not return 1 as exit code")
     print("-------------------------------------------------------------------")
     return
 

@@ -41,9 +41,8 @@ typedef enum {
     // StateCompleteBaseNbr, // Feature
     StateIncompletedecimalNbr,
     StateCompleteDecimalNbr,
-    StateUnsignedExpoNbr,
-    StateCompleteUnsignedExpoNbr,
-    StateSemiCompleteExpoNbr,
+    StateIncompleteUnsignedExpoNbr,
+    StateIncompleteSignedExpoNbr,
     StateCompleteExpoNbr
 } ScannerState;
 
