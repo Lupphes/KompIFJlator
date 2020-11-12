@@ -381,6 +381,10 @@ int getToken(Token* token) {
                 state = StateIncompleteUnsignedExpoNbr;
                 break;
             default:
+                if (isdigit(currChar)) { // Removed condition if handled by parser
+                    strFree(&bufferString);
+                    return LEXICAL_ERROR;
+                }
                 charMacro(unGetCharCheck, currChar);
                 if (sscanf(strGetStr(&bufferString),"%"SCNd64,&token->atribute.i) == EOF) {
                     strFree(&bufferString);

@@ -138,7 +138,10 @@ numbersErrors = [
     ['0.4E+.5', "TokenUndefined"],
     ['45E+.5', "TokenUndefined"],
     ['45..E+..5', "TokenUndefined"],
-    ['4.', "TokenUndefined"]
+    ['4.', "TokenUndefined"],
+    ['00', "TokenUndefined"],
+    ['000010', "TokenUndefined"],
+    ['010010', "TokenUndefined"]
 ]
 
 literalValues = [
@@ -149,11 +152,13 @@ literalValues = [
     ['"\\\\"', "\\"],
     ['"\\t"', "\t"],
     ['"\\""', "\""],
+    ['"\\n"', "\n"],
     ['"\\x36"', "6"],
     ['"\\x6F"', "o"],
     ['"\\x6f"', "o"],
     ['"\\\\\\\\"', "\\\\"],
     ['"\\t\\t"', "\t\t"],
+    ['"\\n\\n"', "\n\n"],
     ['"\\"\\""', "\"\""],
     ['"\\x36\\x36"', "66"],
     ['"\\x40\\x40"', "@@"],
