@@ -1,1 +1,4 @@
 # KompIFJlator
+
+Scanner
+Done
