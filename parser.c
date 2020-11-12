@@ -31,6 +31,10 @@
 //Short hand. Tries to accept the specied token type. If the current token isn't of the specied type, returns from the current function with SUCCESS, i.e. it instead applies the epsilon rule. If there is a failure with nextToken, reuturs the returned error code.
 #define assertOrEpsilon(token) if((returnCode = accept(token)) == SYNTAX_ERROR) return SUCCESS; else if (returnCode != SUCCESS) return returnCode;
 
+#define EOL_Mandatory assert(TokenEOL); while(peek(TokenEOL)) { acceptAny(); }
+
+#define EOL_Optional while(peek(TokenEOL)) { acceptAny(); }
+
 Token curTok = {TokenEOF}; //We initialise the current token so that the function nextToken works properly.
 
 
