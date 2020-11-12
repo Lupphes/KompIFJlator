@@ -20,17 +20,17 @@
 #include "dummyExpressionParser.h"
 #include <stdbool.h>
 
-//Alias for semantic purposes. The function nextToken can be used to advance to the next token regardless of what the current token is; in other words, it accepts any token.
-#define acceptAny() nextToken()
+//Shorthand. Advances to the next token without any checks of the current token. If there are issues raised by the nextToken function, returns from the function with the return code returned by nextToken.
+#define acceptAny() if ((returnCode = nextToken()) != SUCCESS) return returnCode;
 
 //Short hand. Processes the function of the specified nonterminal and returns its failure code if it finds issues; otherwise the control flow will resume.
 #define NTERM(nt) if ((returnCode = (nt()))) return returnCode;
 
-//Short hand. Tries to accept the specied token type. If the current token isn't of the specied type, returns from the current function with SYNTAX_ERROR.
-#define assert(term) if(!accept(term)) return SYNTAX_ERROR;
+//Short hand. Tries to accept the specied token type. If the current token isn't of the specied type, returns from the current function with SYNTAX_ERROR. If the acceptance of the next token fails, returns the error value returned by nextToken.
+#define assert(term) if((returnCode =  accept(term)) != SUCCESS) return returnCode;
 
-//Short hand. Tries to accept the specied token type. If the current token isn't of the specied type, returns from the current function with SUCCESS, i.e. it instead applies the epsilon rule.
-#define assertOrEpsilon(token) if(!accept(token)) return SUCCESS;
+//Short hand. Tries to accept the specied token type. If the current token isn't of the specied type, returns from the current function with SUCCESS, i.e. it instead applies the epsilon rule. If there is a failure with nextToken, reuturs the returned error code.
+#define assertOrEpsilon(token) if((returnCode = accept(token)) == SYNTAX_ERROR) return SUCCESS; else if (returnCode != SUCCESS) return returnCode;
 
 Token curTok = {TokenEOF}; //We initialise the current token so that the function nextToken works properly.
 
@@ -38,15 +38,15 @@ Token curTok = {TokenEOF}; //We initialise the current token so that the functio
  * @brief Checks whether the currently read token is of the specified type, and if it is, advances to the next token.
  * 
  * @param type The type of the token to accept.
- * @return true The accepted token was the current token.
- * @return false The accepted token isn't the current token.
+ * @return int 0 (SUCCESS)  Returned if the token is accepted and nextToken did not fail
+ * @return int SYNTAX_ERROR Returned if the token is not acccepted.
+ * @return int other values If nextToken fails, the error code returned by nextToken is returned.
  */
-bool accept(_TokenType type){
+int accept(_TokenType type){
     if (curTok.type == type){
-        nextToken();
-        return true;
+        return nextToken();
     }
-    return false;
+    return SYNTAX_ERROR;
 }
 
 /**
@@ -70,7 +70,9 @@ int nextToken(){
  * @return int An error code (or SUCCESS) to be returned by main to the operating system.
  */
 int beginParsing(){
-    nextToken(); //First read of the token.
+    int returnCode;
+    if ((returnCode = nextToken()) != SUCCESS) //First read of the token.
+        return returnCode;
     return Start();
 }
 
@@ -84,6 +86,8 @@ int Start(){
 }
 
 int Prolog(){
+    int returnCode;
+    
     assert(TokenPackage);
 
     if(peek(TokenIdentifier)){
@@ -103,7 +107,7 @@ int Prolog(){
 int Chief(){
     int returnCode;
 
-    if (accept(TokenEOF))
+    if (accept(TokenEOF) == SUCCESS)
         return SUCCESS;
     
     NTERM(FunctionDefinition);
@@ -320,6 +324,8 @@ int TermListNext(){
 }
 
 int Term(){
+    int returnCode;
+    
     switch(curTok.type){
         case TokenWholeNbr:
         case TokenDecimalNbr:

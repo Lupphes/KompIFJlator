@@ -17,7 +17,7 @@
 #include <stdbool.h>
 #include "token.h"
 
-bool accept(_TokenType type);
+int accept(_TokenType type);
 bool peek(_TokenType type);
 int nextToken();
 
