@@ -247,10 +247,15 @@ int main(){
     prepAttributes();
     printf("=====TEST=====\n\n");
     TEST(1,simple main function, TestInputSane, 0);
+    result = result;
     TEST(2,package name not main,TestInputWrongPackageName,SEMANTIC_ERROR_OTHER);
+    result = result;
     TEST(3,no package token in prologue,TestNoPackage,SYNTAX_ERROR);
+    result = result;
     TEST(4,parsing a "big" function with many parameters and return values,TestInputBigFunction,0);
+    result = result;
     TEST(5,ditto but with a missing comma in the parameter list,TestInputBigFunction_Error_NoCommaParam,SYNTAX_ERROR);
+    result = result;
     TEST(6,ditto but with a missing comma in the return values list,TestInputBigFunction_Error_NoCommaReturn,SYNTAX_ERROR);
     
     return 0;
