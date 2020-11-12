@@ -58,6 +58,11 @@ bool peek(_TokenType type){
     return curTok.type == type;
 }
 
+/**
+ * @brief Asks the scanner for the next token and stores it in the curTok variable. The function FREES the string stored in curTok if it needs to.
+ * 
+ * @return int The return code of the getToken function.
+ */
 int nextToken(){
     if (curTok.type == TokenIdentifier || curTok.type == TokenStringLiteral) //Checks whether we need to free the smart string if the token used it.
         strFree(&curTok.atribute.s);
@@ -206,9 +211,12 @@ int Statement(){
         case TokenIdentifier:
             NTERM(StatementStartingWithIdentifier);
             break;
+        default:
+            return SUCCESS;
+            break;
     }
-
-    return SUCCESS;
+    
+    return SUCCESS; //The code will never get here, but the compiler complains about a missing return with a non-void function.
 }
 
 int StatementStartingWithIdentifier(){
@@ -331,10 +339,12 @@ int Term(){
         case TokenDecimalNbr:
         case TokenStringLiteral:
         case TokenIdentifier:
-        acceptAny();
-        return SUCCESS;
+            acceptAny();
+            return SUCCESS;
+            break;
+        default:
+            return SYNTAX_ERROR;
     }
-    return SYNTAX_ERROR;
 }
 
 int If(){
