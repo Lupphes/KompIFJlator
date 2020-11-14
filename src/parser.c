@@ -48,6 +48,7 @@ int parseExpression_Dummy(){
             case TokenIdentifier:
             case TokenIsEqual:
             case TokenIsGreaterEqual:
+            case TokenIsGreaterThan:
             case TokenIsLessEqual:
             case TokenIsLessThan:
             case TokenWholeNbr:
@@ -140,7 +141,7 @@ int Prolog(){
             return SUCCESS;
         }
         else{
-            return SEMANTIC_ERROR_OTHER; //The package isn't named "main".
+            return SYNTAX_ERROR; //The package isn't named "main".
         }
     }
     else{
@@ -361,7 +362,7 @@ int FunctionCall(){
 
 int TermList(){
     int returnCode;
-    if(Term()){
+    if(Term() == SUCCESS){
         NTERM(TermListNext);
         return SUCCESS;
     }
