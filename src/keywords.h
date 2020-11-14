@@ -47,6 +47,9 @@ const keywordEntry keywords[] = {
     "package", {TokenPackage}
     },
     {
+    "return", {TokenReturn}
+    },
+    {
     "string", {TokenDataType, {.t = TypeString}}
     }
 };

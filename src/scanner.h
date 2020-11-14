@@ -19,15 +19,6 @@
 #include "str.h"
 #include "token.h"
 
-
-typedef enum {
-    SUCCESS = 0,
-    LEXICAL_ERROR,
-    INPUT_ERROR,
-    UNEXPECTED_EOF_ERROR,
-    MEMORY_ERROR = 99
-} ErrorGetToken;
-
 typedef enum {
     /* Start */
     StateStart,
@@ -35,28 +26,23 @@ typedef enum {
     StateStartOfString,
     /* Comments */
     StateSlash,
+    StateColon,
     /* White spaces */
     /* Identifier */
     StateIdentifier,
     /* Conditions */
     StateEquals,
-    StateExclamationMark, // Feature
+    StateExclamationMark,
     StateIsGreaterThan,
     StateIsLessThan,
-    /* Conditional operators -- feature */
-    StateAndFirst,
-    // StateAndSecond,
-    StateOrFirst,
-    // StateOrSecond, 
     /* Numbers */
     StateWholeNbr,
     StateZero,
     // StateCompleteBaseNbr, // Feature
     StateIncompletedecimalNbr,
     StateCompleteDecimalNbr,
-    StateUnsignedExpoNbr,
-    StateCompleteUnsignedExpoNbr,
-    StateSemiCompleteExpoNbr,
+    StateIncompleteUnsignedExpoNbr,
+    StateIncompleteSignedExpoNbr,
     StateCompleteExpoNbr
 } ScannerState;
 

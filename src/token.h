@@ -2,38 +2,34 @@
 #define TOKEN_H
 #include <stdint.h>
 #include "str.h"
+#include "data_type.h"
 
 typedef enum  {
     /* Definition of Tokens */
     /* Strings */
     TokenStringLiteral,
     /* Conditions */
-    TokenFeatureExclamationMark,
     TokenNotEqual,
     TokenIsEqual,
     TokenIsGreaterThan,
     TokenIsGreaterEqual,
     TokenIsLessThan,
     TokenIsLessEqual,
-    TokenVarDefine, // prase
     /* Operation */
+    TokenAssignment,
+    TokenVarDefine,
     TokenAdd,
     TokenSubtract,
     TokenMultiply,
     TokenDivide,
-    /* Feature or/and */
-    TokenAndSecond,
-    TokenOrSecond,
     /* Numbers */
     TokenWholeNbr,
     TokenDecimalNbr,
-    /* Else */   
-    TokenBrackets,
-    TokenWhiteSpace,
+    /* Symbols */   
     TokenLeftCurlyBracket,
     TokenRightCurlyBracket,
-    TokenRightBracket,
     TokenLeftBracket,
+    TokenRightBracket,
     TokenComma,
     TokenSemicolon,
     TokenIdentifier,
@@ -50,12 +46,6 @@ typedef enum  {
     TokenDataType, // Float64, String, Int
     TokenUndefined
 } _TokenType;
-
-typedef enum {
-  TypeInt,
-  TypeFloat64,
-  TypeString
-} DataType;
 
 typedef union {
   int64_t i;
