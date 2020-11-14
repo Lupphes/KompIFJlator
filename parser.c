@@ -38,8 +38,10 @@
 Token curTok = {TokenEOF}; //We initialise the current token so that the function nextToken works properly.
 
 
+#define TEMP_NO_EXPRESSION -1
 int parseExpression_Dummy(){
     int returnCode;
+    int found = TEMP_NO_EXPRESSION;
 
     while(true){
         switch (curTok.type){
@@ -59,13 +61,14 @@ int parseExpression_Dummy(){
             case TokenLeftBracket:
             case TokenRightBracket:
                 acceptAny();
+                found = SUCCESS;
                 continue;
             default:
                 break;
         }
         break;
     }
-    return SUCCESS;
+    return found;
 }
 
 /**
@@ -118,7 +121,9 @@ int beginParsing(){
 int Start(){
     int returnCode;
 
+    EOL_Optional();
     NTERM(Prolog);
+    EOL_Mandatory();
     NTERM(Chief);
 
     return SUCCESS;
@@ -150,6 +155,7 @@ int Chief(){
         return SUCCESS;
     
     NTERM(FunctionDefinition);
+    EOL_Optional(); //TODO: Investigate
     NTERM(Chief);
     
     return SUCCESS;
@@ -223,7 +229,9 @@ int Block(){
     int returnCode;
     
     assert(TokenLeftCurlyBracket);
+    EOL_Mandatory();
     NTERM(Statement);
+    EOL_Optional(); //TODO: Investigate.
     assert(TokenRightCurlyBracket);
 
     return SUCCESS;
@@ -245,12 +253,14 @@ int Statement(){
         case TokenIdentifier:
             NTERM(StatementStartingWithIdentifier);
             break;
-        default:
+        default: //Epsilon case
             return SUCCESS;
-            break;
     }
+
+    EOL_Mandatory();
+    NTERM(Statement);
     
-    return SUCCESS; //The code will never get here, but the compiler complains about a missing return with a non-void function.
+    return SUCCESS;
 }
 
 int StatementStartingWithIdentifier(){
@@ -301,8 +311,11 @@ int Assignment(){
 int ExpressionList_Start(){
     int returnCode;
 
-    if(!parseExpression_Dummy())
-        return SUCCESS; //Epsilon rule; might change. xD TODO
+    if ((returnCode = parseExpression_Dummy()) != SUCCESS && returnCode != TEMP_NO_EXPRESSION) //TODO: Adjust once work on expression parser is begun.
+        return returnCode; //If there is an error while parsing the expression
+    else if (returnCode == TEMP_NO_EXPRESSION)
+        return SUCCESS; //Epsilon rule.
+        
     NTERM(ExpressionList_Next);
 
     return SUCCESS;
