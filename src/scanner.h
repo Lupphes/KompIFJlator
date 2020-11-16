@@ -35,6 +35,10 @@ typedef enum {
     StateExclamationMark,
     StateIsGreaterThan,
     StateIsLessThan,
+    /* Feature UNARY */
+    StateAddEqual,
+    StateSubtractEqual,
+    StateMultiplyEqual,
     /* Numbers */
     StateWholeNbr,
     StateZero,

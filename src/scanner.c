@@ -131,16 +131,13 @@ int getToken(Token* token) {
                 state = StateIsLessThan;
                 break;
             case '*':
-                token->type = TokenMultiply;
-                return SUCCESS;
+                state = StateMultiplyEqual;
                 break;
             case '+':
-                token->type = TokenAdd;
-                return SUCCESS;
+                state = StateAddEqual;
                 break;
             case '-':
-                token->type = TokenSubtract;
-                return SUCCESS;
+                state = StateSubtractEqual;
                 break;
             case '0':
                 savedChar = currChar;
@@ -164,6 +161,45 @@ int getToken(Token* token) {
                 break;
             }
             break;
+        case StateAddEqual:
+            switch (currChar) {
+            case '=':
+                token->type = TokenAddEqual;
+                return SUCCESS;
+                break;
+            default:
+                charMacro(unGetCharCheck, currChar);
+                token->type = TokenAdd;
+                return SUCCESS;
+                break;
+            }
+        break;
+        case StateSubtractEqual:
+            switch (currChar) {
+            case '=':
+                token->type = TokenSubtractEqual;
+                return SUCCESS;
+                break;
+            default:
+                charMacro(unGetCharCheck, currChar);
+                token->type = TokenSubtract;
+                return SUCCESS;
+                break;
+            }
+        break;
+        case StateMultiplyEqual:
+            switch (currChar) {
+            case '=':
+                token->type = TokenMultiplyEqual;
+                return SUCCESS;
+                break;
+            default:
+                charMacro(unGetCharCheck, currChar);
+                token->type = TokenMultiply;
+                return SUCCESS;
+                break;
+            }
+        break;
         case StateSlash:
             switch (currChar) {
             case '/':
@@ -190,6 +226,11 @@ int getToken(Token* token) {
                 else
                     state = StateStart;
                 break;
+            case '=':
+                token->type = TokenDivideEqual;
+                return SUCCESS;
+                break;
+            break;
             default:
                 charMacro(unGetCharCheck, currChar);
                 token->type = TokenDivide;

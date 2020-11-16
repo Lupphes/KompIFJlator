@@ -15,6 +15,11 @@ typedef enum  {
     TokenIsGreaterEqual,
     TokenIsLessThan,
     TokenIsLessEqual,
+    /* Feature UNARY */
+    TokenAddEqual,
+    TokenSubtractEqual,
+    TokenMultiplyEqual,
+    TokenDivideEqual,
     /* Operation */
     TokenAssignment,
     TokenVarDefine,

@@ -28,6 +28,7 @@ commentChars = [
 ]
 
 basicChars = [
+    ['=', "TokenAssignment"],
     [',', "TokenComma"],
     [';', "TokenSemicolon"],
     ['(', "TokenLeftBracket"],
@@ -37,8 +38,7 @@ basicChars = [
     ['/', "TokenDivide"],
     ['+', "TokenAdd"],
     ['*', "TokenMultiply"],
-    ['-', "TokenSubtract"],
-    ['=', "TokenAssignment"]
+    ['-', "TokenSubtract"]
 ]
 
 nullChars = [
@@ -51,7 +51,11 @@ doubleChars = [
     ['==', "TokenIsEqual"],
     ['>=', "TokenIsGreaterEqual"],
     ['<=', "TokenIsLessEqual"],
-    [':=', "TokenVarDefine"]
+    [':=', "TokenVarDefine"],
+    ['+=', "TokenAddEqual"],
+    ['-=', "TokenSubtractEqual"],
+    ['*=', "TokenMultiplyEqual"],
+    ['/=', "TokenDivideEqual"]
 ]
 
 identifiers = [
@@ -207,6 +211,22 @@ def simpleTestInline():
     for j in range(len(basicChars)): 
         if outputlist[j] != basicChars[j][1]:
             print(f"Test {j} didn't pass. Expected {basicChars[j][1]} got {outputlist[j]} with '{basicChars[j][0]}'")
+        if result.returncode != 0:
+            print(f"Test {j} returned non-zero code!")
+    print("-------------------------------------------------------------------")
+    return
+
+def doubleTestInline():
+    print("'DoubleInLine' tests!")
+    with open(_FILENAME, 'w+') as file:
+        for i in range(len(doubleChars)): 
+            file.write(doubleChars[i][0])
+    with open(_FILENAME, 'r') as file:
+        result = subprocess.run([_TESTEDFILE2], stdin=file, capture_output=True, text=True)
+    outputlist = result.stdout.split("\n")
+    for j in range(len(doubleChars)): 
+        if outputlist[j] != basicChars[j][1]:
+            print(f"Test {j} didn't pass. Expected {doubleChars[j][1]} got {outputlist[j]} with '{doubleChars[j][0]}'")
         if result.returncode != 0:
             print(f"Test {j} returned non-zero code!")
     print("-------------------------------------------------------------------")
