@@ -52,10 +52,10 @@ doubleChars = [
     ['>=', "TokenIsGreaterEqual"],
     ['<=', "TokenIsLessEqual"],
     [':=', "TokenVarDefine"],
-    ['+=', "TokenAddEqual"],
-    ['-=', "TokenSubtractEqual"],
-    ['*=', "TokenMultiplyEqual"],
-    ['/=', "TokenDivideEqual"]
+    ['+=', "TokenAddEqual"], # Feature
+    ['-=', "TokenSubtractEqual"], # Feature
+    ['*=', "TokenMultiplyEqual"], # Feature
+    ['/=', "TokenDivideEqual"] # Feature
 ]
 
 identifiers = [
@@ -115,7 +115,13 @@ numbers = [
     ['5E-4', "TokenDecimalNbr"],
     ['0.5E4', "TokenDecimalNbr"],
     ['0.5E-4', "TokenDecimalNbr"],
-    ['0.5E+4', "TokenDecimalNbr"]
+    ['0.5E+4', "TokenDecimalNbr"],
+    ['0x45', "TokenWholeNbr"],
+    ['0X45', "TokenWholeNbr"],
+    ['0o45', "TokenWholeNbr"],
+    ['0O45', "TokenWholeNbr"],
+    ['0b11', "TokenWholeNbr"],
+    ['0B11', "TokenWholeNbr"]
 ]
 
 numbersReturn = [
@@ -132,7 +138,16 @@ numbersReturn = [
     ['5E-4', "0.000500000"],
     ['0.5E4', "5000"],
     ['0.5E-4', "0.00005"],
-    ['0.5E+4', "5000"]
+    ['0.5E+4', "5000"],
+    ['0x45', "69"],
+    ['0X45', "69"],
+    ['0o45', "37"],
+    ['0O45', "37"],
+    ['0b11', "3"],
+    ['0B11', "3"],
+    ['0x_4_5', "69"],
+    ['0o_4_5', "37"],
+    ['0b_1_1', "3"]
 ]
 
 numbersErrors = [
@@ -145,7 +160,12 @@ numbersErrors = [
     ['4.', "TokenUndefined"],
     ['00', "TokenUndefined"],
     ['000010', "TokenUndefined"],
-    ['010010', "TokenUndefined"]
+    ['0xx_1_1', "TokenUndefined"],
+    ['0oo_1_1', "TokenUndefined"],
+    ['0bb_1_1', "TokenUndefined"],
+    ['0x__1_1', "TokenUndefined"],
+    ['0o__1_1', "TokenUndefined"],
+    ['0o_1__1', "TokenUndefined"]
 ]
 
 literalValues = [
@@ -319,7 +339,7 @@ def commentLineTest():
     return
 
 
-def commentsBlockTest(): # maybe EOL?
+def commentsBlockTest():
     print("'CommentBlock Error' test!")
     with open(_FILENAME, 'w+') as file:
         file.write("/*/*")

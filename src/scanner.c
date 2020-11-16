@@ -21,6 +21,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdbool.h> 
+#include <string.h>
 
 #include "scanner.h"
 #include "keywords.h"
@@ -421,6 +422,22 @@ int getToken(Token* token) {
                 }
                 state = StateIncompleteUnsignedExpoNbr;
                 break;
+            case 'x':
+            case 'X':
+                if (strAddChar(&bufferString, tolower(currChar)) == STR_ERROR) {
+                    strFree(&bufferString);
+                    return INTERNAL_ERROR;
+                }
+                state = StateIncompleteHexBaseNumber;
+                break;
+            case 'o':
+            case 'O':
+                state = StateIncompleteOctalBaseNumber;
+                break;
+            case 'b':
+            case 'B':
+                state = StateIncompleteBinaryBaseNumber;
+                break;
             default:
                 if (isdigit(currChar)) { // Removed condition if handled by parser
                     strFree(&bufferString);
@@ -575,6 +592,158 @@ int getToken(Token* token) {
                     return SUCCESS;
                 }
             break;
+            }
+        break;
+        case StateIncompleteHexBaseNumber:
+            switch (currChar) {
+                case '_':
+                    state = StateUnderlineHex;
+                    break;
+                default:
+                    if (isxdigit(currChar)) {
+                        if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                            strFree(&bufferString);
+                            return INTERNAL_ERROR;
+                        }
+                        state = StateCompleteHexBaseNumber;
+                    } else {
+                        strFree(&bufferString);
+                        return LEXICAL_ERROR;
+                    }
+                    break;
+            }
+        break;
+        case StateCompleteHexBaseNumber:
+            if (isxdigit(currChar)) {
+                if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                    strFree(&bufferString);
+                    return INTERNAL_ERROR;
+                }
+                state = StateCompleteHexBaseNumber;
+            } else if (currChar == '_') {
+                state = StateUnderlineHex;
+            } else {
+                charMacro(unGetCharCheck, currChar);
+                errno = 0;
+                token->atribute.i = strtoull(strGetStr(&bufferString), NULL, 16);
+                if (errno == ERANGE) {
+                    strFree(&bufferString);
+                    return INTERNAL_ERROR;
+                }
+                token->type = TokenWholeNbr;
+                strFree(&bufferString);
+                return SUCCESS;
+            }
+        break;
+        case StateIncompleteOctalBaseNumber:
+            switch (currChar) {
+                case '_':
+                    state = StateUnderlineOctal;
+                    break;
+                default:
+                    if (currChar >= '0' && currChar <= '7') {
+                        if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                            strFree(&bufferString);
+                            return INTERNAL_ERROR;
+                        }
+                        state = StateCompleteOctalBaseNumber;
+                    } else {
+                        strFree(&bufferString);
+                        return LEXICAL_ERROR;
+                    }
+                    break;
+            }
+        break;
+        case StateCompleteOctalBaseNumber:
+            if (currChar >= '0' && currChar <= '7') {
+                if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                    strFree(&bufferString);
+                    return INTERNAL_ERROR;
+                }
+                state = StateCompleteOctalBaseNumber;
+            } else if (currChar == '_') {
+                state = StateUnderlineOctal;
+            } else {
+                charMacro(unGetCharCheck, currChar);
+                errno = 0;
+                token->atribute.i = strtoull(strGetStr(&bufferString), NULL, 8);
+                if (errno == ERANGE) {
+                    strFree(&bufferString);
+                    return INTERNAL_ERROR;
+                }
+                token->type = TokenWholeNbr;
+                strFree(&bufferString);
+                return SUCCESS;
+                break;
+            }
+        break;
+        case StateIncompleteBinaryBaseNumber:
+        switch (currChar) {
+            case '_':
+                state = StateUnderlineBinary;
+                break;
+            default:
+                if (currChar >= '0' && currChar <= '7') {
+                    if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                        strFree(&bufferString);
+                        return INTERNAL_ERROR;
+                    }
+                    state = StateCompleteBinaryBaseNumber;
+                } else {
+                    strFree(&bufferString);
+                    return LEXICAL_ERROR;
+                }
+                break;
+        }
+        break;
+        case StateCompleteBinaryBaseNumber:
+        if (currChar == '1' || currChar == '0') {
+            if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                strFree(&bufferString);
+                return INTERNAL_ERROR;
+            }
+            state = StateCompleteBinaryBaseNumber;
+        } else if (currChar == '_') {
+            state = StateUnderlineBinary;
+            break;
+        } else {
+            charMacro(unGetCharCheck, currChar);
+            char* formatedString = strGetStr(&bufferString);
+            memmove(formatedString, formatedString + 1, strlen(formatedString));
+            token->atribute.i = strtoull(formatedString, NULL, 2);
+            token->type = TokenWholeNbr;
+            strFree(&bufferString);
+            return SUCCESS;
+        }
+        break;
+        case StateUnderlineHex:
+            if (isxdigit(currChar)) {
+                charMacro(unGetCharCheck, currChar);
+                state = StateCompleteHexBaseNumber;
+                break;
+            } else {
+                strFree(&bufferString);
+                return LEXICAL_ERROR;
+            }
+        break;
+        case StateUnderlineOctal:
+            if (currChar >= '0' && currChar <= '7') {
+                charMacro(unGetCharCheck, currChar);
+                state = StateIncompleteOctalBaseNumber;
+                break;
+            } else {
+                strFree(&bufferString);
+                return LEXICAL_ERROR;
+            }
+        break;
+        case StateUnderlineBinary:
+            if (currChar == '1' || currChar == '0') {
+                charMacro(unGetCharCheck, currChar);
+                state = StateIncompleteBinaryBaseNumber;
+                break;
+            } else {
+                strFree(&bufferString);
+                return LEXICAL_ERROR;
             }
         break;
         }

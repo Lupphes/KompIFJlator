@@ -39,6 +39,16 @@ typedef enum {
     StateAddEqual,
     StateSubtractEqual,
     StateMultiplyEqual,
+    /* Feature BASE */
+    StateCompleteHexBaseNumber,
+    StateCompleteOctalBaseNumber,
+    StateCompleteBinaryBaseNumber,
+    StateIncompleteHexBaseNumber,
+    StateIncompleteOctalBaseNumber,
+    StateIncompleteBinaryBaseNumber,
+    StateUnderlineHex,
+    StateUnderlineOctal,
+    StateUnderlineBinary,
     /* Numbers */
     StateWholeNbr,
     StateZero,
