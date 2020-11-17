@@ -49,6 +49,9 @@ typedef enum {
     StateUnderlineHex,
     StateUnderlineOctal,
     StateUnderlineBinary,
+    StateUnderlineDecimal,
+    StateUnderlineWhole,
+    StateUnderlineExpo,
     /* Numbers */
     StateWholeNbr,
     StateZero,

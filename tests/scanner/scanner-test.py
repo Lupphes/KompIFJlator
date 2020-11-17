@@ -147,7 +147,10 @@ numbersReturn = [
     ['0B11', "3"],
     ['0x_4_5', "69"],
     ['0o_4_5', "37"],
-    ['0b_1_1', "3"]
+    ['0b_1_1', "3"],
+    ['4_5_5', "455"],
+    ['4_5.5_5', "45.550000000"],
+    ['1_1E1_1', "1100000000000"]
 ]
 
 numbersErrors = [
@@ -157,6 +160,7 @@ numbersErrors = [
     ['0.4E+.5', "TokenUndefined"],
     ['45E+.5', "TokenUndefined"],
     ['45..E+..5', "TokenUndefined"],
+    ['45EE5', "TokenUndefined"],
     ['4.', "TokenUndefined"],
     ['00', "TokenUndefined"],
     ['000010', "TokenUndefined"],
@@ -165,7 +169,10 @@ numbersErrors = [
     ['0bb_1_1', "TokenUndefined"],
     ['0x__1_1', "TokenUndefined"],
     ['0o__1_1', "TokenUndefined"],
-    ['0o_1__1', "TokenUndefined"]
+    ['0o_1__1', "TokenUndefined"],
+    ['5__1515', "TokenUndefined"],
+    ['15.45__', "TokenUndefined"],
+    ['154E_5', "TokenUndefined"]
 ]
 
 literalValues = [

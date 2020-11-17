@@ -400,7 +400,7 @@ int getToken(Token* token) {
             strFree(&bufferString);
             return SUCCESS;
             break;
-        case StateZero:
+        case StateZero: //ds
             initStringMacro(&bufferString)
             if (strAddChar(&bufferString, savedChar) == STR_ERROR) {
                 strFree(&bufferString);
@@ -479,6 +479,9 @@ int getToken(Token* token) {
                 }
                 state = StateIncompleteUnsignedExpoNbr;
                 break;
+            case '_':
+                state = StateUnderlineDecimal;
+                break;
             default:
                 if (isdigit(currChar)) {
                     if (strAddChar(&bufferString, currChar) == STR_ERROR) {
@@ -537,25 +540,30 @@ int getToken(Token* token) {
             }
             break;
         case StateCompleteExpoNbr:
-            if (isdigit(currChar)) {
-                do {
+            switch (currChar) {
+            case '_':
+                state = StateUnderlineExpo;
+                break;
+            default:
+                if (isdigit(currChar)) {
                     if (strAddChar(&bufferString, currChar) == STR_ERROR) {
                         strFree(&bufferString);
                         return INTERNAL_ERROR;
                     }
-                    charMacro(getCharCheck, &currChar);
-                } while (isdigit(currChar));
-            charMacro(unGetCharCheck, currChar);
-            } else {
-                if (sscanf(strGetStr(&bufferString),"%lf", &token->atribute.d) == EOF) {
+                    break;
+                    state = StateCompleteExpoNbr;
+                } else {
+                    if (sscanf(strGetStr(&bufferString),"%lf", &token->atribute.d) == EOF) {
+                        strFree(&bufferString);
+                        return INTERNAL_ERROR;
+                    }
+                    token->type = TokenDecimalNbr;
                     strFree(&bufferString);
-                    return INTERNAL_ERROR;
+                    return SUCCESS;
                 }
-                token->type = TokenDecimalNbr;
-                strFree(&bufferString);
-                return SUCCESS;
+                break;
             }
-            break;
+        break;
         case StateWholeNbr:
             state = StateWholeNbr;
             switch (currChar) {
@@ -573,6 +581,9 @@ int getToken(Token* token) {
                     return INTERNAL_ERROR;
                 }
                 state = StateIncompleteUnsignedExpoNbr;
+                break;
+            case '_':
+                state = StateUnderlineWhole;
                 break;
             default:
                 if (isdigit(currChar)) {
@@ -610,7 +621,7 @@ int getToken(Token* token) {
                         strFree(&bufferString);
                         return LEXICAL_ERROR;
                     }
-                    break;
+                break;
             }
         break;
         case StateCompleteHexBaseNumber:
@@ -678,43 +689,43 @@ int getToken(Token* token) {
             }
         break;
         case StateIncompleteBinaryBaseNumber:
-        switch (currChar) {
-            case '_':
-                state = StateUnderlineBinary;
-                break;
-            default:
-                if (currChar >= '0' && currChar <= '7') {
-                    if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+            switch (currChar) {
+                case '_':
+                    state = StateUnderlineBinary;
+                    break;
+                default:
+                    if (currChar >= '0' && currChar <= '7') {
+                        if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                            strFree(&bufferString);
+                            return INTERNAL_ERROR;
+                        }
+                        state = StateCompleteBinaryBaseNumber;
+                    } else {
                         strFree(&bufferString);
-                        return INTERNAL_ERROR;
+                        return LEXICAL_ERROR;
                     }
-                    state = StateCompleteBinaryBaseNumber;
-                } else {
-                    strFree(&bufferString);
-                    return LEXICAL_ERROR;
-                }
-                break;
-        }
+                    break;
+            }
         break;
         case StateCompleteBinaryBaseNumber:
-        if (currChar == '1' || currChar == '0') {
-            if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+            if (currChar == '1' || currChar == '0') {
+                if (strAddChar(&bufferString, currChar) == STR_ERROR) {
+                    strFree(&bufferString);
+                    return INTERNAL_ERROR;
+                }
+                state = StateCompleteBinaryBaseNumber;
+            } else if (currChar == '_') {
+                state = StateUnderlineBinary;
+                break;
+            } else {
+                charMacro(unGetCharCheck, currChar);
+                char* formatedString = strGetStr(&bufferString);
+                memmove(formatedString, formatedString + 1, strlen(formatedString));
+                token->atribute.i = strtoull(formatedString, NULL, 2);
+                token->type = TokenWholeNbr;
                 strFree(&bufferString);
-                return INTERNAL_ERROR;
+                return SUCCESS;
             }
-            state = StateCompleteBinaryBaseNumber;
-        } else if (currChar == '_') {
-            state = StateUnderlineBinary;
-            break;
-        } else {
-            charMacro(unGetCharCheck, currChar);
-            char* formatedString = strGetStr(&bufferString);
-            memmove(formatedString, formatedString + 1, strlen(formatedString));
-            token->atribute.i = strtoull(formatedString, NULL, 2);
-            token->type = TokenWholeNbr;
-            strFree(&bufferString);
-            return SUCCESS;
-        }
         break;
         case StateUnderlineHex:
             if (isxdigit(currChar)) {
@@ -746,6 +757,36 @@ int getToken(Token* token) {
                 return LEXICAL_ERROR;
             }
         break;
+        case StateUnderlineWhole:
+            if (isdigit(currChar)) {
+                charMacro(unGetCharCheck, currChar);
+                state = StateWholeNbr;
+                break;
+            } else {
+                strFree(&bufferString);
+                return LEXICAL_ERROR;
+            }
+        break;
+        case StateUnderlineDecimal:
+            if (isdigit(currChar)) {
+                charMacro(unGetCharCheck, currChar);
+                state = StateCompleteDecimalNbr;
+                break;
+            } else {
+                strFree(&bufferString);
+                return LEXICAL_ERROR;
+            }
+        break;
+        case StateUnderlineExpo:
+            if (isdigit(currChar)) {
+                charMacro(unGetCharCheck, currChar);
+                state = StateCompleteExpoNbr;
+                break;
+            } else {
+                strFree(&bufferString);
+                return LEXICAL_ERROR;
+            }
+            break;
         }
     }
     return LEXICAL_ERROR; // This line will never execute. make_iso_compilers_happy
