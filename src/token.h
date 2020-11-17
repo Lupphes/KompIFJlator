@@ -60,7 +60,7 @@ typedef union {
 
 typedef struct {
     _TokenType type;
-    Atribute atribute;
+    Atribute attribute;
 } Token;
 
 #endif

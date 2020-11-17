@@ -14,7 +14,9 @@ int main(int argc, char const *argv[]) {
             printf("%d\n", result);
             return result;
         }
-        strFree(&token.atribute.s); // Laze free
+        if (token.type == 25 || token.type == 0) { // Laze free
+            strFree(&token.attribute.s); 
+        }
     }
     return EXIT_SUCCESS;
 }

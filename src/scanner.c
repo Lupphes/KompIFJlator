@@ -39,6 +39,18 @@
                         
 #define EOL '\n'
 
+/**
+ * @brief Checks if getchar() function was successfully called
+ * 
+ * @param[out] value The character (int) value to which the character will be returned
+ * @return int SUCCESS Returned if getchar() did not fail
+ * @return int INTERNAL_ERROR Returned if there was a getchar() error
+ * @warning This function returns EOF not as an error, but as a feature
+ * 
+ * @author Ondřej Sloup xsloup02
+ * @version 1.0
+ * @date 17.11.2020
+ */
 int getCharCheck(int *value) {
     *value = getchar();
     if (feof(stdin))
@@ -48,6 +60,18 @@ int getCharCheck(int *value) {
     return SUCCESS;
 }
 
+/**
+ * @brief Checks if ungetc() function was successfully called
+ * 
+ * @param[in] value The character (int) which should be returned to stdin
+ * @return int SUCCESS Returned if ungetc() did not fail
+ * @return int INTERNAL_ERROR Returned if there was an ungetc() error
+ * @warning Unlike ungetc(), unGetCharCheck() returns characters only to stdin
+ * 
+ * @author Ondřej Sloup xsloup02
+ * @version 1.0
+ * @date 17.11.2020
+ */
 int unGetCharCheck(int value) {
     if (value == EOF)
        return SUCCESS;
@@ -57,6 +81,28 @@ int unGetCharCheck(int value) {
     return SUCCESS;
 }
 
+/**
+ * @brief Returns a token from stdin when called
+ * @details The main function of the scanner, which analyzes the input from stdin
+ * and returns the corresponding token.
+ * 
+ * @pre Initialize token variable before calling this function
+ * @param[out] token.type Token type is returned here. Additional values
+ * are returned into attributes.
+ * @param[out] token->attribute.i A returned value of token if the token is 'TokenWholeNbr'
+ * @param[out] token->attribute.d A returned value of token if the token is 'TokenDecimalNbr'.
+ * @param[out] token->attribute.s A returned value of token if the token is 'TokenIdentifier',
+ * 'TokenStringLiteral'.
+ * @param[out] token->attribute.t A returned value of token if the token is 'TokenDataType',
+ * which identify the dataType. Possible values are 'TypeInt', 'TypeFloat64', 'TypeString'.
+ * @return int SUCCESS Returned if getToken() successfully returned the value
+ * @return int LEXICAL_ERROR Returned if getToken() found a lexical error
+ * @return int INTERNAL_ERROR Returned if getToken() ended unexpectedly
+ * 
+ * @author Ondřej Sloup xsloup02
+ * @version 1.0
+ * @date 17.11.2020
+ */
 int getToken(Token* token) {
     ScannerState state = StateStart;
     string bufferString;
@@ -307,8 +353,8 @@ int getToken(Token* token) {
                 }
             }
             token->type = TokenStringLiteral;
-            initStringMacro(&token->atribute.s)
-            if (strCopyString(&token->atribute.s, &bufferString) == STR_ERROR) {
+            initStringMacro(&token->attribute.s)
+            if (strCopyString(&token->attribute.s, &bufferString) == STR_ERROR) {
                 strFree(&bufferString);
                 return INTERNAL_ERROR;
             }
@@ -393,8 +439,8 @@ int getToken(Token* token) {
                 }
             }
             token->type = TokenIdentifier;
-            initStringMacro(&token->atribute.s)
-            if (strCopyString(&token->atribute.s, &bufferString) == STR_ERROR) {
+            initStringMacro(&token->attribute.s)
+            if (strCopyString(&token->attribute.s, &bufferString) == STR_ERROR) {
                 strFree(&bufferString);
                 return INTERNAL_ERROR;
                 
@@ -446,7 +492,7 @@ int getToken(Token* token) {
                     return LEXICAL_ERROR;
                 }
                 charMacro(unGetCharCheck, currChar);
-                if (sscanf(strGetStr(&bufferString),"%"SCNd64,&token->atribute.i) == EOF) {
+                if (sscanf(strGetStr(&bufferString),"%"SCNd64,&token->attribute.i) == EOF) {
                     strFree(&bufferString);
                     return INTERNAL_ERROR;
                 }
@@ -492,7 +538,7 @@ int getToken(Token* token) {
                     }
                     break;
                 } else {
-                    if (sscanf(strGetStr(&bufferString),"%lf", &token->atribute.d) == EOF) {
+                    if (sscanf(strGetStr(&bufferString),"%lf", &token->attribute.d) == EOF) {
                         strFree(&bufferString);
                         return INTERNAL_ERROR;
                     }
@@ -555,7 +601,7 @@ int getToken(Token* token) {
                     break;
                     state = StateCompleteExpoNbr;
                 } else {
-                    if (sscanf(strGetStr(&bufferString),"%lf", &token->atribute.d) == EOF) {
+                    if (sscanf(strGetStr(&bufferString),"%lf", &token->attribute.d) == EOF) {
                         strFree(&bufferString);
                         return INTERNAL_ERROR;
                     }
@@ -596,7 +642,7 @@ int getToken(Token* token) {
                     break;
                 } else {
                     charMacro(unGetCharCheck, currChar);
-                    if (sscanf(strGetStr(&bufferString),"%"SCNd64,&token->atribute.i) == EOF) {
+                    if (sscanf(strGetStr(&bufferString),"%"SCNd64,&token->attribute.i) == EOF) {
                         strFree(&bufferString);
                         return INTERNAL_ERROR;
                     }
@@ -638,7 +684,7 @@ int getToken(Token* token) {
             } else {
                 charMacro(unGetCharCheck, currChar);
                 errno = 0;
-                token->atribute.i = strtoull(strGetStr(&bufferString), NULL, 16);
+                token->attribute.i = strtoull(strGetStr(&bufferString), NULL, 16);
                 if (errno == ERANGE) {
                     strFree(&bufferString);
                     return INTERNAL_ERROR;
@@ -679,7 +725,7 @@ int getToken(Token* token) {
             } else {
                 charMacro(unGetCharCheck, currChar);
                 errno = 0;
-                token->atribute.i = strtoull(strGetStr(&bufferString), NULL, 8);
+                token->attribute.i = strtoull(strGetStr(&bufferString), NULL, 8);
                 if (errno == ERANGE) {
                     strFree(&bufferString);
                     return INTERNAL_ERROR;
@@ -723,7 +769,7 @@ int getToken(Token* token) {
                 charMacro(unGetCharCheck, currChar);
                 char* formatedString = strGetStr(&bufferString);
                 memmove(formatedString, formatedString + 1, strlen(formatedString));
-                token->atribute.i = strtoull(formatedString, NULL, 2);
+                token->attribute.i = strtoull(formatedString, NULL, 2);
                 token->type = TokenWholeNbr;
                 strFree(&bufferString);
                 return SUCCESS;
