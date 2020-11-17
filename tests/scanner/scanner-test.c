@@ -6,6 +6,7 @@ int main(int argc, char const *argv[]) {
     int result;
     result = getToken(&token);
     printf("%s", enumTokenTranslate[token.type]);
+    strFree(&token.atribute.s); // Laze free
     return result;
 }
 

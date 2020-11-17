@@ -14,6 +14,7 @@ int main(int argc, char const *argv[]) {
             printf("%d\n", result);
             return result;
         }
+        strFree(&token.atribute.s); // Laze free
     }
     return EXIT_SUCCESS;
 }

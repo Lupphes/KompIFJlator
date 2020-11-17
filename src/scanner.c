@@ -34,10 +34,8 @@
                                        } \
                                        return macroError; }
 
-#define initStringMacro(string) if(strInit(string) == STR_ERROR) { \
+#define initStringMacro(string) if(strInit(string) == STR_ERROR) { return INTERNAL_ERROR; } \
                                     bufferStringInitialised = true; \
-                                    return INTERNAL_ERROR; \
-                                    } \
                         
 #define EOL '\n'
 
@@ -307,11 +305,14 @@ int getToken(Token* token) {
                     strFree(&bufferString);
                     return LEXICAL_ERROR;    
                 }
-            };
+            }
             token->type = TokenStringLiteral;
             initStringMacro(&token->atribute.s)
-            if (strCopyString(&token->atribute.s, &bufferString) == STR_ERROR)
+            if (strCopyString(&token->atribute.s, &bufferString) == STR_ERROR) {
+                strFree(&bufferString);
                 return INTERNAL_ERROR;
+            }
+            strFree(&bufferString);
             return SUCCESS;
             break;
         case StateEquals:
@@ -394,8 +395,9 @@ int getToken(Token* token) {
             token->type = TokenIdentifier;
             initStringMacro(&token->atribute.s)
             if (strCopyString(&token->atribute.s, &bufferString) == STR_ERROR) {
-                return INTERNAL_ERROR;
                 strFree(&bufferString);
+                return INTERNAL_ERROR;
+                
             }
             strFree(&bufferString);
             return SUCCESS;
