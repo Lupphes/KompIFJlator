@@ -28,15 +28,24 @@
 #include "str.h"
 #include "error.h"
 
+/*!
+ *  Macro function which validates if the funtion result was 0, If not release buffer and exit
+ */ 
 #define charMacro(func, char) if ((macroError = func(char)) != 0) { \
                                        if (bufferStringInitialised) { \
                                            strFree(&bufferString); \
                                        } \
-                                       return macroError; }
+                                       return macroError; } \
 
+/*!
+ *  Macro function which initializes buffer and sets flag.
+ */ 
 #define initStringMacro(string) if(strInit(string) == STR_ERROR) { return INTERNAL_ERROR; } \
-                                    bufferStringInitialised = true; \
-                        
+                                bufferStringInitialised = true; \
+
+/*!
+ *  End of the line is more readable now
+ */                       
 #define EOL '\n'
 
 /**
