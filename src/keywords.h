@@ -18,12 +18,18 @@
 #include "token.h"
 #include "str.h"
 
+/** @struct keywordEntry
+ *  @brief This structure matches the correct token to its found value
+ */
 typedef struct {
-    const char* key;
-    const Token value;
+    const char* key; /** Key read by scanner */
+    const Token value; /** Matching token value */
 } keywordEntry;
 
-
+/**
+ *  @brief This array translates the correct token to its found value
+ * 
+*/
 const keywordEntry keywords[] = {
     {
     "else", {TokenElse}
