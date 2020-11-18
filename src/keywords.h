@@ -1,8 +1,8 @@
-/*File name: error.h ------------------------------------------------*
+/*File name: keywords.h ---------------------------------------------*
  |Project:    Implementace překladače imperativního jazyka IFJ20     |
  |Team:       124, varianta II                                       |
- |Authors:    Viktor Rucký (xrucky01)                                |
- |            Ondřej Sloup (xsloup02)                                |
+ |Authors:    Ondřej Sloup (xsloup02)                                |
+ |            Viktor Rucký (xrucky01)                                |
  |                                                                   |
  |  _      _     _   __                   __  _        _             |
  | | |    (_)   | | /_/                  /_/ | |      | |            |
@@ -13,21 +13,45 @@
  |                                       __/ |                       |
  |                                      |___/                        |
  *-------------------------------------------------------------------*/
+#ifndef KEYWORDS_H
+#define KEYWORDS_H
+#include "token.h"
+#include "str.h"
 
-#ifndef ERROR_H
-#define ERROR_H
+typedef struct {
+    const char* key;
+    const Token value;
+} keywordEntry;
 
-#define SUCCESS 0
-#define LEXICAL_ERROR 1
-#define SYNTAX_ERROR 2
-#define SEMANTIC_ERROR_DEFINITION 3
-#define SEMANTIC_ERROR_TYPE_INFERENCE 4
-#define SEMANTIC_ERROR_TYPE_EXPRESION 5
-#define SEMANTIC_ERROR_TYPE_FUNCTION 6
-#define SEMANTIC_ERROR_OTHER 7
-#define SEMANTIC_ERROR_DIV_ZERO 9
-#define INTERNAL_ERROR 99
 
-typedef int make_iso_compilers_happy;
+const keywordEntry keywords[] = {
+    {
+    "else", {TokenElse}
+    },
+    {
+    "float64", {TokenDataType, {.t = TypeFloat64}}
+    },
+    {
+    "for", {TokenFor}
+    },
+    {
+    "func", {TokenFunc}
+    },
+    {
+    "if", {TokenIf}
+    },
+    {
+    "int", {TokenDataType, {.t = TypeInt}}
+    },
+    {
+    "package", {TokenPackage}
+    },
+    {
+    "return", {TokenReturn}
+    },
+    {
+    "string", {TokenDataType, {.t = TypeString}}
+    }
+};
 
 #endif

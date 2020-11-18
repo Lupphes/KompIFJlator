@@ -1,7 +1,24 @@
+/*File name: token.h ------------------------------------------------*
+ |Project:    Implementace překladače imperativního jazyka IFJ20     |
+ |Team:       124, varianta II                                       |
+ |Authors:    Ondřej Sloup (xsloup02)                                |
+ |            Viktor Rucký (xrucky01)                                |
+ |                                                                   |
+ |  _      _     _   __                   __  _        _             |
+ | | |    (_)   | | /_/                  /_/ | |      | |            |
+ | | |     _  __| | ___   _   _  __   ___   _| |_ __ _| |__  _   _   |
+ | | |    | |/ _` |/ _ \ | | | | \ \ / / | | | __/ _` | '_ \| | | |  |
+ | | |____| | (_| |  __/ | |_| |  \ V /| |_| | || (_| | | | | |_| |  |
+ | |______|_|\__,_|\___|  \__,_|   \_/  \__, |\__\__,_|_| |_|\__,_|  |
+ |                                       __/ |                       |
+ |                                      |___/                        |
+ *-------------------------------------------------------------------*/
+
 #ifndef TOKEN_H
 #define TOKEN_H
 #include <stdint.h>
 #include "str.h"
+#include "data_type.h"
 
 typedef enum  {
     /* Definition of Tokens */
@@ -15,7 +32,7 @@ typedef enum  {
     TokenIsLessThan,
     TokenIsLessEqual,
     /* Operation */
-    TokenEquals,
+    TokenAssignment,
     TokenVarDefine,
     TokenAdd,
     TokenSubtract,
@@ -27,12 +44,12 @@ typedef enum  {
     /* Symbols */   
     TokenLeftCurlyBracket,
     TokenRightCurlyBracket,
-    TokenRightBracket,
     TokenLeftBracket,
+    TokenRightBracket,
     TokenComma,
     TokenSemicolon,
     TokenIdentifier,
-    TokenEOL, // Needs to be discussed
+    TokenEOL,
     TokenEOF,
     /* Key words */ 
     TokenFor,
@@ -44,12 +61,6 @@ typedef enum  {
     TokenDataType, // Float64, String, Int
     TokenUndefined
 } _TokenType;
-
-typedef enum {
-  TypeInt,
-  TypeFloat64,
-  TypeString
-} DataType;
 
 typedef union {
   int64_t i;

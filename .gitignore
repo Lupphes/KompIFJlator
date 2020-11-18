@@ -53,3 +53,7 @@ dkms.conf
 
 # VSCODE
 .vscode
+
+#Build folder
+build
+tests/test.txt
