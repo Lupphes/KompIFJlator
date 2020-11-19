@@ -14,8 +14,8 @@
  |                                      |___/                        |
  *-------------------------------------------------------------------*/
 
-#ifndef LEX_ANALYSIS_H
-#define LEX_ANALYSIS_H
+#ifndef EXPRESSION_ANALYSIS_H
+#define EXPRESSION_ANALYSIS_H
 #include <stdbool.h> 
 
 typedef enum {

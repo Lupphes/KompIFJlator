@@ -17,9 +17,11 @@
 
 #include <stdio.h>
 
-#include "lex_analysis.h"
+#include "expression_analysis.h"
 #include "token.h"
 #include "error.h"
+#include "str.h"
+
 
 
 int initStack(Stack *stack, int64_t initialSize) {
@@ -32,7 +34,7 @@ int initStack(Stack *stack, int64_t initialSize) {
     return SUCCESS;
 }
 
-int addToStack(Stack *stack, int operation) {
+int pushToStack(Stack *stack, int operation) {
     if (stack->used == stack->size) {
         stack->size *= 2;
         stack->values = realloc(stack->values, stack->size * sizeof(int64_t));
@@ -44,8 +46,17 @@ int addToStack(Stack *stack, int operation) {
     return SUCCESS;
 }
 
-int getLastValueStack(Stack *stack) {
-    return stack->values[stack->size - 1];
+int popFromStack(Stack *stack, int *operation) {
+    operation = stack->values[stack->used];
+    stack->values = realloc(stack->values, stack->size-- * sizeof(int64_t));
+    if (stack->values == NULL) {
+        return INTERNAL_ERROR;
+    }
+    return SUCCESS;
+}
+
+int seekValueStack(Stack *stack) {
+    return stack->values[stack->used];
 }
 
 void freeStack(Stack *stack) {
