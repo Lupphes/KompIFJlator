@@ -16,39 +16,82 @@
 
 #ifndef LEX_ANALYSIS_H
 #define LEX_ANALYSIS_H
+#include <stdbool.h> 
 
 typedef enum {
-    SUCCESS = 0
-} ErrorGetToken;
+    OperatorAdd = 0, /** + */
+    OperatorSubtract, /** - */
+    OperatorMultiple, /** * */
+    OperatorDivide, /** / */
+
+    OperatorLessThan, /** < */
+    OperatorLessEqual, /** <= */
+    OperatorGreaterThan, /** > */
+    OperatorGreaterEqual, /** >= */
+    OperatorIsEqual, /** == */
+    OperatorIsNotEqual, /** != */
+
+    OperatorRightBracket, /** ) */
+    OperatorLeftBracket, /** ( */
+    OperatorId, /** id */
+
+    OperatorWholeNumeber, /** int -- whole numeber */
+    OperatorDecimal, /** float -- decimal number */
+    OperatorString, /** string -- text string */
+
+    OperatorLeftAssociative,  /** [ */
+    OperatorRightAssociative,  /** ] */
+    OperatorExpression, /** Exp */
+    OperatorEnd /** $ */
+} _Operators;
+
+typedef enum {
+    RuleAdd, /** E->E+E */
+    RuleSub, /** E->E-E */
+    RuleMul, /** E->E*E */
+    RuleDiv, /** E->E/E */
+    RulePar, /** E->(E) */
+    RuleVar, /** E->i */
+    RuleBth, /** E->E<E */
+    RuleBEq, /** E->E<=E */
+    RuleLes, /** E->E>E */
+    RuleLEq, /** E->E>=E */
+    RuleEqu, /** E->E==E */
+    RuleNEq /* E->E!=E */
+} _Rules;
 
 
 typedef enum {
-    SymbolMultiple = 0,
-    SymbolDivide,
+  TypeInt,
+  TypeFloat64,
+  TypeString,
+  TypeBool,
+  TypeNotDefined
+} _ExpressionType;
 
-    SymbolAdd,
-    SymbolSubtract,
+typedef union {
+  int64_t i;
+  double d;
+  string s;
+  bool b;
+} _ExpressionValue;
 
-    SymbolLessThan,
-    SymbolLessEqual,
-    SymbolGreaterThan,
-    SymbolGreaterEqual,
-    SymbolIsEqual,
-    SymbolIsNotEqual,
+typedef struct {
+    _ExpressionType type;
+    _ExpressionValue value;
+} Expression;
 
-    SymbolEquals, // =
-    SymbolVariableDefine, // :=
-    SymbolResultAdd,
-    SymbolResultSubtract,
-    SymbolResultMultiply,
-    SymbolResultDivide,
+typedef struct {
+  int *values;
+  int64_t used;
+  int64_t size;
+} Stack;
 
-    SymbolRightBracket,
-    SymbolLeftBracket
-
-} Symbols;
-
-int analyzeExpression(Token* token);
-
+int initStack(Stack *stack, int64_t initialSize);
+int addToStack(Stack *stack, int operation);
+int getLastValueStack(Stack *stack);
+void freeStack(Stack *stack);
+int checkIfValidToken(Token *token, Stack *stack);
+int parseExpression(Expression* expression);
 
 #endif

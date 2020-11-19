@@ -16,12 +16,120 @@
 
 
 #include <stdio.h>
+
 #include "lex_analysis.h"
 #include "token.h"
+#include "error.h"
 
 
-int analyzeExpression(Token* token) {
-
+int initStack(Stack *stack, int64_t initialSize) {
+    stack->values = malloc(initialSize * sizeof(int64_t));
+    if (stack->values == NULL) {
+        return INTERNAL_ERROR;
+    }
+    stack->used = 0;
+    stack->size = initialSize;
     return SUCCESS;
 }
+
+int addToStack(Stack *stack, int operation) {
+    if (stack->used == stack->size) {
+        stack->size *= 2;
+        stack->values = realloc(stack->values, stack->size * sizeof(int64_t));
+        if (stack->values == NULL) {
+            return INTERNAL_ERROR;
+        }
+    }
+    stack->values[stack->used++] = operation;
+    return SUCCESS;
+}
+
+int getLastValueStack(Stack *stack) {
+    return stack->values[stack->size - 1];
+}
+
+void freeStack(Stack *stack) {
+    free(stack->values);
+    stack->values = NULL;
+    stack->used = stack->size = 0;
+}
+
+int checkIfValidToken(Token *token, Stack *stack) {
+    getToken(&token);
+    switch (token->type) {
+        case TokenAdd:
+            addToStack(&stack, OperatorAdd);
+            break;
+        case TokenSubtract:
+            addToStack(&stack, OperatorSubtract);
+            break;
+        case TokenMultiply:
+            addToStack(&stack, OperatorMultiple);
+            break;
+        case TokenDivide:
+            addToStack(&stack, OperatorDivide);
+            break;
+        case TokenIsLessThan:
+            addToStack(&stack, OperatorLessThan);
+            break;
+        case TokenIsLessEqual:
+            addToStack(&stack, OperatorGreaterEqual);
+            break;
+        case TokenIsGreaterEqual:
+            addToStack(&stack, OperatorIsEqual);
+            break;
+        case TokenIsGreaterThan:
+            addToStack(&stack, OperatorGreaterThan);
+            break;
+        case TokenIsEqual:
+            addToStack(&stack, OperatorIsEqual);
+            break;
+        case TokenNotEqual:
+            addToStack(&stack, OperatorIsNotEqual);
+            break;
+        case TokenLeftBracket:
+            addToStack(&stack, OperatorLeftBracket);
+            break;
+        case TokenRightBracket:
+            addToStack(&stack, OperatorRightBracket);
+            break;
+        case TokenIdentifier:
+            addToStack(&stack, OperatorId);
+            break;
+        case TokenWholeNbr:
+            addToStack(&stack, OperatorWholeNumeber);
+            break;
+        case TokenDecimalNbr:
+            addToStack(&stack, OperatorDecimal);
+            break;
+        case TokenStringLiteral:
+            addToStack(&stack, OperatorString);
+            break;
+    default:
+        return SYNTAX_ERROR;
+        break;
+    }
+    return SUCCESS;
+}
+
+int parseExpression(Expression* expression) {
+    /* Stack init */
+    Stack *stack;
+    initStack(&stack, 1);
+    addToStack(&stack, OperatorEnd);
+
+    /* getToken */
+    Token token;
+
+    while (stack->values[0] == OperatorEnd) {
+        if(checkIfValidToken(&token, &stack) == SYNTAX_ERROR) {
+            return SYNTAX_ERROR;
+        }
+        break;
+    }
+    freeStack(&stack);
+    return SUCCESS;
+}
+
+
 
