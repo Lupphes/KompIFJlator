@@ -51,7 +51,6 @@ typedef enum  {
     TokenIdentifier,
     TokenEOL,
     TokenEOF,
-    TokenAssignment,
     /* Key words */ 
     TokenFor,
     TokenReturn,
