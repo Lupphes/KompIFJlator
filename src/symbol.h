@@ -20,20 +20,22 @@
 
 typedef struct {
     string id;
-    struct {
-        struct {
-            string id;
-            DataType type; 
-        } param[];
+    DataType type; 
+} SymbolFunctionParameter;
+
+typedef struct _SymbolFunction{
+    string id;
+    struct _parameters {
+        SymbolFunctionParameter* params;
         int count;
     } parameters;
-    struct {
-        DataType type[];
+    struct _returnTypes{
+        DataType* types;
         int count;
     } returnTypes;
 } SymbolFunction;
 
-typedef struct {
+typedef struct _SymbolVariable {
     string id;
     DataType type;
 } SymbolVariable;

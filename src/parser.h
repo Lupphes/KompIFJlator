@@ -16,6 +16,7 @@
 #define PARSER_H
 #include <stdbool.h>
 #include "token.h"
+#include "symbol.h"
 
 int accept(_TokenType type);
 bool peek(_TokenType type);
@@ -27,11 +28,11 @@ int Start();
 int Prolog();
 int Chief();
 int FunctionDefinition();
-int FunctionDefinitionParameters_Start();
-int FunctionDefinitionParameters_Next();
-int FunctionReturnValues();
-int FunctionReturnValues_First();
-int FunctionReturnValues_Next();
+int FunctionDefinitionParameters_Start(SymbolFunction* function);
+int FunctionDefinitionParameters_Next(SymbolFunction* function);
+int FunctionReturnValues(SymbolFunction* function);
+int FunctionReturnValues_First(SymbolFunction* function);
+int FunctionReturnValues_Next(SymbolFunction* function);
 int Block();
 int Statement();
 int StatementStartingWithIdentifier();

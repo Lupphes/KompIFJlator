@@ -17,13 +17,19 @@
 #include "token.h"
 #include "scanner.h"
 #include "error.h"
+#include "symbol.h"
+#include "symtable.h"
+#include <stdlib.h>
 #include <stdbool.h>
 
 //Shorthand. Advances to the next token without any checks of the current token. If there are issues raised by the nextToken function, returns from the function with the return code returned by nextToken.
 #define acceptAny() if ((returnCode = nextToken()) != SUCCESS) return returnCode;
 
+//Short hand. Process the "call" (usually a function call, but can technically be any expression in C) and returns its return code if is non-zero (i.e. the function returned unsuccesfully-)
+#define callAndHandleException(call) if ((returnCode = (call))) return returnCode;
+
 //Short hand. Processes the function of the specified nonterminal and returns its failure code if it finds issues; otherwise the control flow will resume.
-#define NTERM(nt) if ((returnCode = (nt()))) return returnCode;
+#define NTERM(nt) callAndHandleException(nt())
 
 //Short hand. Tries to accept the specied token type. If the current token isn't of the specied type, returns from the current function with SYNTAX_ERROR. If the acceptance of the next token fails, returns the error value returned by nextToken.
 #define assert(term) if((returnCode =  accept(term)) != SUCCESS) return returnCode;
@@ -164,65 +170,177 @@ int Chief(){
 
 int FunctionDefinition(){
     int returnCode;
-    
+    SymbolFunction function;
+    function.parameters.count = 0;
+    function.parameters.params = NULL;
+    function.returnTypes.count = 0;
+    function.returnTypes.types = NULL;
+
     assert(TokenFunc);
 
     if(peek(TokenIdentifier)){
-        //Todo: Handling of function name assignment to the symtable. I guess?
-        acceptAny();
+        if (getFunction(strGetStr(&curTok.atribute.s)) == NULL){
+            callAndHandleException(strInit(&function.id));
+            callAndHandleException(strCopyString(&function.id,&curTok.atribute.s));
+            acceptAny();
+        } else return SEMANTIC_ERROR_DEFINITION; // A function with the given name already exists.
     }
     else return SYNTAX_ERROR;
 
     assert(TokenLeftBracket);
-    NTERM(FunctionDefinitionParameters_Start); //Todo: yes.
+    if((returnCode = FunctionDefinitionParameters_Start(&function)) != SUCCESS){
+        strFree(&function.id);
+        free(function.parameters.params);
+        free(function.returnTypes.types);
+        return returnCode;
+    }
     assert(TokenRightBracket);
-    NTERM(FunctionReturnValues); //Todo: yes.
-    NTERM(Block);
+    if((returnCode = FunctionReturnValues(&function)) != SUCCESS){
+        strFree(&function.id);
+        free(function.parameters.params);
+        free(function.returnTypes.types);
+        return returnCode;
+    }
+    
+    addFunction(&function);
+    
+    strFree(&function.id);
+    free(function.parameters.params);
+    free(function.returnTypes.types);
+    
+    NTERM(Block); //Todo: attach to the AST generation later.
     return SUCCESS;
 }
 
-int FunctionDefinitionParameters_Start(){
+/**
+ * @brief Adds a function parameter to the given function definition. 
+ * 
+ * @param function The function symbol to which to add the parameter.
+ * @param id The name of the parameter.
+ * @param type The type of the paramter.
+ * @return SUCCESS The function added the paramter to the given function.
+ * @return SEMANTIC_ERROR_OTHER A parameter with the given id was already given to the function.
+ * @return INTERNAL_ERROR The function encountered an unrecoverable error.
+ */
+int addFunctionParameter(SymbolFunction* function, const string* id, DataType type){
     int returnCode;
     
-    assertOrEpsilon(TokenIdentifier);
-    assert(TokenDataType);
-    NTERM(FunctionDefinitionParameters_Next);
+    for(int i = 0;i < function->parameters.count;i++)
+        if(strCmpString(&function->parameters.params[i].id,id) != 0)
+            return SEMANTIC_ERROR_OTHER;
+    
+    int newCount = ++function->parameters.count;
+    if ((function->parameters.params = realloc(function->parameters.params,sizeof(SymbolFunctionParameter)*newCount)) == NULL)
+        return INTERNAL_ERROR;
+    
+    callAndHandleException(strInit(&function->parameters.params[newCount-1].id));
+    callAndHandleException(strCopyString(&function->parameters.params[newCount-1].id,id));
+    function->parameters.params[newCount-1].type = type;
+
     return SUCCESS;
 }
 
-int FunctionDefinitionParameters_Next(){
+/**
+ * @brief Processes a single function parameter in a function definition. This functions EXPECTS that a TokenIdentifier is present as the current token.
+ * 
+ * @param function 
+ * @return int SUCCESS If everthing was succesful.
+ * @return int SYNTAX_ERROR If the second token wasn't of type TokenDataType
+ * @return int SEMANTIC_ERROR_OTHER If the function already has a parameter with the given id.
+ * @return int INTERNAL_ERROR There was fatal problem with memory allocation.
+ */
+int processFunctionDefinitionParameter(SymbolFunction* function){
+    int returnCode;
+
+    string id;
+    callAndHandleException(strInit(&id));
+    callAndHandleException(strCopyString(&id,&curTok.atribute.s));
+    acceptAny();
+    if (peek(TokenDataType)){
+        callAndHandleException(addFunctionParameter(function,&id,curTok.atribute.t));
+    } else {
+        strFree(&id);
+        return SYNTAX_ERROR;
+    }
+    strFree(&id);
+
+    return SUCCESS;
+}
+
+int FunctionDefinitionParameters_Start(SymbolFunction* function){
+    int returnCode;
+    
+    if (!peek(TokenIdentifier)) //Epsilon rule
+        return SUCCESS;
+    
+    callAndHandleException(processFunctionDefinitionParameter(function));
+    callAndHandleException(FunctionDefinitionParameters_Next(function));
+    return SUCCESS;
+}
+
+int FunctionDefinitionParameters_Next(SymbolFunction* function){
     int returnCode;
     
     assertOrEpsilon(TokenComma);
-    assert(TokenIdentifier);
-    assert(TokenDataType);
-    NTERM(FunctionDefinitionParameters_Next);
+    
+    if(!peek(TokenIdentifier))
+        return SYNTAX_ERROR;
+
+    callAndHandleException(processFunctionDefinitionParameter(function));
+    callAndHandleException(FunctionDefinitionParameters_Next(function));
     return SUCCESS;
 }
 
-int FunctionReturnValues(){
+int FunctionReturnValues(SymbolFunction* function){
     int returnCode;
 
     assertOrEpsilon(TokenLeftBracket);
-    NTERM(FunctionReturnValues_First);
+    callAndHandleException(FunctionReturnValues_First(function));
     assert(TokenRightBracket);
     return SUCCESS;
 }
 
-int FunctionReturnValues_First(){
-    int returnCode;
+/**
+ * @brief Adds a return type to the specified to the given function definition.
+ * 
+ * @param function The function to which to add the new return type.
+ * @param type The return type to add.
+ * @return int SUCCESS If everything was succesful.
+ * @return int INTERNAL_ERROR If there was a fatal memory allocation error.
+ */
+int addFunctionReturnType(SymbolFunction* function, DataType type){
+    int newCount = ++function->returnTypes.count;
 
-    assertOrEpsilon(TokenDataType);
-    NTERM(FunctionReturnValues_Next);
+    if ((function->returnTypes.types = realloc(function->returnTypes.types,sizeof(DataType)*newCount)) == NULL)
+        return INTERNAL_ERROR;
+    
+    function->returnTypes.types[newCount-1] = type;
+
     return SUCCESS;
 }
 
-int FunctionReturnValues_Next(){
+int FunctionReturnValues_First(SymbolFunction* function){
+    int returnCode;
+
+    if(!peek(TokenDataType)) //Epsilon rule
+        return SUCCESS;
+
+    callAndHandleException(addFunctionReturnType(function,curTok.atribute.t));
+    callAndHandleException(FunctionReturnValues_Next(function));
+
+    return SUCCESS;
+}
+
+int FunctionReturnValues_Next(SymbolFunction* function){
     int returnCode;
     
     assertOrEpsilon(TokenComma);
-    assert(TokenDataType);
-    NTERM(FunctionReturnValues_Next);
+    if(!peek(TokenDataType))
+        return SYNTAX_ERROR;
+    
+    callAndHandleException(addFunctionReturnType(function, curTok.atribute.t));
+    callAndHandleException(FunctionReturnValues_Next(function));
+
     return SUCCESS;
 }
 
