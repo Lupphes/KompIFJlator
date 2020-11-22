@@ -19,10 +19,10 @@
 #include "str.h"
 
 /** @struct keywordEntry
- *  @brief This structure matches the correct token to its found value
+ *  @brief Structure for keywords array
  */
 typedef struct {
-    const char* key; /** Key read by scanner */
+    const char* key; /** Key processed by the scanner */
     const Token value; /** Matching token value */
 } keywordEntry;
 
@@ -30,7 +30,7 @@ typedef struct {
  *  @brief This array translates the correct token to its found value
  * 
 */
-const keywordEntry keywords[] = {
+const keywordEntry _keywords[] = {
     {
     "else", {TokenElse}
     },

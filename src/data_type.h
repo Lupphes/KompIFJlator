@@ -7,9 +7,9 @@
  *
  */
 typedef enum {
-  TypeInt, /** Type is an integer */
-  TypeFloat64, /** Type is a decimal number (float) */
-  TypeString /** Type is a text string */
+  TypeInt,
+  TypeFloat64,
+  TypeString
 } DataType;
 
 #endif 

@@ -60,10 +60,10 @@ typedef enum {
     StateIncompleteUnsignedExpoNbr, /** The scanner loaded 'E'. Waiting for next number */
     StateIncompleteSignedExpoNbr, /** The scanner loaded '-' '+'. Waiting for next number */
     StateCompleteExpoNbr /** The scanner loaded a returnable exponential number */
-} ScannerState;
+} _ScannerState;
 
 /**
- * @brief Checks if getchar() function was successfully called
+ * @brief Calls and checks if getchar() function was successfully called
  * 
  * @param[out] value The character (int) value to which the character will be returned
  * @return int SUCCESS Returned if getchar() did not fail
@@ -77,7 +77,7 @@ typedef enum {
 int getCharCheck(int *value);
 
 /**
- * @brief Checks if ungetc() function was successfully called
+ * @brief Calls and checks if ungetc() function was successfully called
  * 
  * @param[in] value The character (int) which should be returned to stdin
  * @return int SUCCESS Returned if ungetc() did not fail

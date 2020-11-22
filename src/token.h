@@ -12,47 +12,47 @@
 typedef enum  {
     /* Definition of Tokens */
     /* Strings */
-    TokenStringLiteral, /** Returned string literal (value is in the attribute 's') */
+    TokenStringLiteral, /** Read string literal (value is in the attribute 's') */
     /* Conditions */
-    TokenNotEqual,  /** Returned '!=' */
-    TokenIsEqual, /** Returned '=' */
-    TokenIsGreaterThan, /** Returned '>' */
-    TokenIsGreaterEqual, /** Returned '>=' */
-    TokenIsLessThan, /** Returned '<' */
-    TokenIsLessEqual, /** Returned '>=' */
+    TokenNotEqual,  /** Read '!=' */
+    TokenIsEqual, /** Read '=' */
+    TokenIsGreaterThan, /** Read '>' */
+    TokenIsGreaterEqual, /** Read '>=' */
+    TokenIsLessThan, /** Read '<' */
+    TokenIsLessEqual, /** Read '>=' */
     /* Feature UNARY */
-    TokenAddEqual, /** Returned '+=' */
-    TokenSubtractEqual, /** Returned '-=' */
-    TokenMultiplyEqual, /** Returned '*=' */
-    TokenDivideEqual, /** Returned '/=' */
+    TokenAddEqual, /** Read '+=' */
+    TokenSubtractEqual, /** Read '-=' */
+    TokenMultiplyEqual, /** Read '*=' */
+    TokenDivideEqual, /** Read '/=' */
     /* Operation */
-    TokenAssignment, /** Returned '=' */
-    TokenVarDefine, /** Returned ':=' */
-    TokenAdd, /** Returned '+' */
-    TokenSubtract, /** Returned '-' */
-    TokenMultiply, /** Returned '*' */
-    TokenDivide, /** Returned '/' */
+    TokenAssignment, /** Read '=' */
+    TokenVarDefine, /** Read ':=' */
+    TokenAdd, /** Read '+' */
+    TokenSubtract, /** Read '-' */
+    TokenMultiply, /** Read '*' */
+    TokenDivide, /** Read '/' */
     /* Numbers */
-    TokenWholeNbr, /** Returned whole number (value is in the attribute 'i') */
-    TokenDecimalNbr, /** Returned decimal number (value is in the attribute 'd') */
+    TokenWholeNbr, /** Read whole number (value is in the attribute 'i') */
+    TokenDecimalNbr, /** Read decimal number (value is in the attribute 'd') */
     /* Symbols */   
-    TokenLeftCurlyBracket, /** Returned '{' */
-    TokenRightCurlyBracket, /** Returned '}' */
-    TokenLeftBracket, /** Returned '(' */
-    TokenRightBracket, /** Returned ')' */
-    TokenComma, /** Returned ',' */
-    TokenSemicolon, /** Returned ';' */
-    TokenIdentifier, /** Returned string identifier (value is in the attribute 's') */
-    TokenEOL, /** Returned End of Line – '\n' */
-    TokenEOF, /** Returned EOL –  End of file */
+    TokenLeftCurlyBracket, /** Read '{' */
+    TokenRightCurlyBracket, /** Read '}' */
+    TokenLeftBracket, /** Read '(' */
+    TokenRightBracket, /** Read ')' */
+    TokenComma, /** Read ',' */
+    TokenSemicolon, /** Read ';' */
+    TokenIdentifier, /** Read string identifier (value is in the attribute 's') */
+    TokenEOL, /** Read End of Line – '\n' */
+    TokenEOF, /** Read EOL –  End of file */
     /* Keywords */ 
-    TokenFor, /** Returned keyword 'for' */
-    TokenReturn, /** Returned keyword 'return' */
-    TokenElse, /** Returned keyword 'else' */
-    TokenFunc, /** Returned keyword 'func' */
-    TokenIf, /** Returned keyword 'if' */
-    TokenPackage, /** Returned keyword 'package' */
-    TokenDataType, /** Returned keyword 'float64', 'string' or 'int'. The exact datatype is described in attribute 't' */
+    TokenFor, /** Read keyword 'for' */
+    TokenReturn, /** Read keyword 'return' */
+    TokenElse, /** Read keyword 'else' */
+    TokenFunc, /** Read keyword 'func' */
+    TokenIf, /** Read keyword 'if' */
+    TokenPackage, /** Read keyword 'package' */
+    TokenDataType, /** Read keyword 'float64', 'string' or 'int'. The exact datatype is described in attribute 't' */
     TokenUndefined /** Undefined token – Error state */
 } _TokenType;
 

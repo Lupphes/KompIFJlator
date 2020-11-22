@@ -67,7 +67,7 @@ int unGetCharCheck(int value) {
 }
 
 int getToken(Token* token) {
-    ScannerState state = StateStart;
+    _ScannerState state = StateStart;
     string bufferString;
     bool bufferStringInitialised = false;
     int currChar, savedChar, macroError;
@@ -393,9 +393,9 @@ int getToken(Token* token) {
                 charMacro(getCharCheck, &currChar);       
             } 
             charMacro(unGetCharCheck, currChar);
-            for (int i = 0; i < sizeof(keywords)/sizeof(keywordEntry); i++) {
-                if(strCmpConstStr(&bufferString, keywords[i].key) == 0) {
-                    *token = keywords[i].value;
+            for (int i = 0; i < sizeof(_keywords)/sizeof(keywordEntry); i++) {
+                if(strCmpConstStr(&bufferString, _keywords[i].key) == 0) {
+                    *token = _keywords[i].value;
                     strFree(&bufferString);
                     return SUCCESS;
                     break;
@@ -411,7 +411,7 @@ int getToken(Token* token) {
             strFree(&bufferString);
             return SUCCESS;
             break;
-        case StateZero: //ds
+        case StateZero:
             initStringMacro(&bufferString)
             if (strAddChar(&bufferString, savedChar) == STR_ERROR) {
                 strFree(&bufferString);
