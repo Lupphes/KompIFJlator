@@ -17,6 +17,15 @@
 #include <stdbool.h>
 #include "token.h"
 #include "symbol.h"
+#include "helper.h"
+#include "term.h"
+#include "str.h"
+
+typedef struct{
+    string functionName;
+    SymbolVariableArray* lValues;
+    TermArray* functionParameters;
+} DubiousFunctionCall;
 
 int accept(_TokenType type);
 bool peek(_TokenType type);
@@ -36,15 +45,15 @@ int FunctionReturnValues_Next(SymbolFunction* function);
 int Block();
 int Statement();
 int StatementStartingWithIdentifier();
-int Assignment();
+int Assignment(SymbolVariableArray* lValues);
 int ExpressionList_Start();
 int ExpressionList_Next();
-int IDList_Next();
+int IDList_Next(SymbolVariableArray* lValues);
 int VariableDefinition(string* id_name);
-int FunctionCall();
-int TermList();
-int TermListNext();
-int Term();
+int FunctionCall_rule(SymbolVariableArray* lValues, SymbolFunction* function, string* functionName);
+int TermList(TermArray* functionParameters);
+int TermListNext(TermArray* functionParameters);
+int Term_rule(Term* term);
 int If();
 int Return();
 int For();

@@ -15,6 +15,9 @@
 
 #include "helper.h"
 #include "error.h"
+#include "str.h"
+#include "symbol.h"
+#include "term.h"
 #include <stdlib.h>
 
 /**
@@ -34,7 +37,7 @@ void initStringArray(StringArray* arr){
  * @param str The string to insert into the array.
  * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
  */
-int addStringToStringArray(StringArray* arr, string* str){
+int addToStringArray(StringArray* arr, string* str){
     int returnCode;
     
     int newCount = ++arr->count;
@@ -86,7 +89,7 @@ void initSymbolVariableArray(SymbolVariableArray* arr){
  * @param str The variable symbol to insert into the array.
  * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
  */
-int addSymbolVariableToSymbolVariableArray(SymbolVariableArray* arr, SymbolVariable* var){
+int addToSymbolVariableArray(SymbolVariableArray* arr, SymbolVariable* var){
     int returnCode;
     
     int newCount = ++arr->count;
@@ -108,11 +111,118 @@ int countInSymbolVariableArray(SymbolVariableArray* arr){
 }
 
 /**
- * @brief Frees the memory used by the string array (does not destroy the "objects" stored within the array).
+ * @brief Frees the memory used by the symbol-variable array (does not destroy the "objects" stored within the array).
  * 
  * @param arr The array to free its memory.
  */
-void freeStringArray(StringArray* arr){
+void freeSymbolVariableArray(SymbolVariableArray* arr){
+    free(arr->arr);
+    arr->count = -1;
+}
+
+/**
+ * @brief Initalises the term array for use. This function must be called before any other on an uninitialised term array.
+ * 
+ * @param arr The string array to initialise.
+ */
+void initTermArray(TermArray* arr){
+    arr->count = 0;
+    arr->arr = NULL;
+}
+
+/**
+ * @brief Adds a variable to the specified term array (by performing a shallow copy).
+ * 
+ * @param arr The array to insert the term into.
+ * @param str The term to insert into the array.
+ * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
+ */
+int addToTermArray(TermArray* arr, Term* term){
+    int returnCode;
+    
+    int newCount = ++arr->count;
+    if ((arr->arr = realloc(arr->arr,sizeof(Term)*newCount)) == NULL)
+        return INTERNAL_ERROR;
+    arr->arr[newCount-1] = term;
+
+    return SUCCESS;
+}
+
+/**
+ * @brief Return the number of elements in the specified term array.
+ * 
+ * @param arr The array to get the number of elements of.
+ * @return int The number of elements in the specified array.
+ */
+int countInTermArray(TermArray* arr){
+    return arr->count;
+}
+
+/**
+ * @brief Frees the memory used by the term array (DESTROYS the "objects" stored within the array).
+ * 
+ * @param arr The array to free its memory.
+ */
+void freeTermArray(TermArray* arr){
+    for(int i = 0; i < arr->count;i++){
+        if(arr->arr[i]->type == TermStringLiteral)
+            strFree(&arr->arr[i]->value.s);
+        free(arr->arr[i]);
+    }
+    free(arr->arr);
+    arr->count = -1;
+}
+
+/**
+ * @brief Initalises the function-call array for use. This function must be called before any other on an uninitialised function-call array.
+ * 
+ * @param arr The function-call array to initialise.
+ */
+void initDubiousFunctionCallArray(DubiousFunctionCallArray* arr){
+    arr->count = 0;
+    arr->arr = NULL;
+}
+
+/**
+ * @brief Adds a variable to the specified function-call array (by performing a deep copy).
+ * 
+ * @param arr The array to insert the function call into.
+ * @param str The function call to insert into the array.
+ * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
+ */
+int addToDubiousFunctionCallArray(DubiousFunctionCallArray* arr, DubiousFunctionCall* functionCall){
+    int returnCode;
+    
+    int newCount = ++arr->count;
+    if ((arr->arr = realloc(arr->arr,sizeof(Term)*newCount)) == NULL)
+        return INTERNAL_ERROR;
+    arr->arr[newCount-1] = *functionCall;
+
+    return SUCCESS;
+}
+
+/**
+ * @brief Return the number of elements in the specified function-call array.
+ * 
+ * @param arr The array to get the number of elements of.
+ * @return int The number of elements in the specified array.
+ */
+int countInDubiousFunctionCallArray(DubiousFunctionCallArray* arr){
+    return arr->count;
+}
+
+/**
+ * @brief Frees the memory used by the function-call array (DESTROYS the "objects" stored within the array).
+ * 
+ * @param arr The array to free its memory.
+ */
+void freeDubiousFunctionCallArray(DubiousFunctionCallArray* arr){
+    for(int i = 0; i < arr->count;i++){
+        for (int j = 0; i < arr->arr[i].functionParameters->count;j++)
+            free(arr->arr[i].functionParameters->arr[j]);
+        free(arr->arr[i].functionParameters);
+        strFree(&arr->arr[i].functionName);
+    }
     free(arr->arr);
     arr->count = -1;
 }
