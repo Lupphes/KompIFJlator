@@ -40,7 +40,7 @@ int Assignment();
 int ExpressionList_Start();
 int ExpressionList_Next();
 int IDList_Next();
-int VariableDefinition();
+int VariableDefinition(string* id_name);
 int FunctionCall();
 int TermList();
 int TermListNext();

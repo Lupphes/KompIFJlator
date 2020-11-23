@@ -385,16 +385,21 @@ int Statement(){
 }
 
 int StatementStartingWithIdentifier(){
-    int returnCode;
+    int returnCode = SUCCESS;
     
-    assert(TokenIdentifier); //TODO: DEFINITELY TODO. THIS WILL BE ANNOYING AF.
+    string firstID;
+    if(peek(TokenIdentifier)){ //Unnecessary check since we already know that we are dealing with an identifier as the current token, but for good measure I check here as well.
+        callAndHandleException(strInit(&firstID));
+        callAndHandleException_clean(strCopyString(&firstID, &curTok.atribute.s));
+        acceptAny();
+    } else {returnAndClean(SYNTAX_ERROR)};
 
     switch(curTok.type){
         case TokenLeftBracket:
             NTERM(FunctionCall);
             return SUCCESS;
         case TokenVarDefine:
-            NTERM(VariableDefinition);
+            callAndHandleException_clean(VariableDefinition());
             return SUCCESS;
         case TokenAssignment:
         case TokenComma:
@@ -403,6 +408,11 @@ int StatementStartingWithIdentifier(){
         default:
             return SYNTAX_ERROR;
     }
+
+    CLEAN_UP:
+    strFree(&firstID);
+    return returnCode;
+
 }
 
 int Assignment(){
@@ -462,11 +472,21 @@ int IDList_Next(){
     return SUCCESS;
 }
 
-int VariableDefinition(){
+int VariableDefinition(string* idName){
     int returnCode;
-    
+    SymbolVariable newVariable;
+
     assert(TokenVarDefine);
-    NTERM(parseExpression_Dummy);
+    NTERM(parseExpression_Dummy); //TODO: Waiting for expression team.
+    
+    callAndHandleException(strInit(&newVariable.id));
+    if (strCopyString(&newVariable.id,idName) != SUCCESS){
+        strFree(&newVariable.id);
+        return INTERNAL_ERROR;
+    }
+    newVariable.type = TypeInt; //Todo: Waiting for expression team.
+    //Todo: Add the initial assignment to the AST later.
+
     return SUCCESS;
 }
 
