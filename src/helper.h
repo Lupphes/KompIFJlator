@@ -16,6 +16,7 @@
 #ifndef HELPER_H
 #define HELPER_H
 #include "str.h"
+#include "symbol.h"
 
 //Short hand. Process the "call" (usually a function call, but can technically be any expression in C) and returns its return code if is non-zero (i.e. the function returned unsuccesfully-)
 #define callAndHandleException(call) if ((returnCode = (call))) return returnCode;
@@ -23,9 +24,19 @@
 #define returnAndClean(code) returnCode = code; goto CLEAN_UP;
 
 typedef struct {
-    string* str;
+    string* arr;
     int count;
 } StringArray;
+
+typedef struct {
+    SymbolVariable** arr;
+    int count;
+} SymbolVariableArray;
+
+void initSymbolVariableArray(SymbolVariableArray* arr);
+int addSymbolVariableToSymbolVariableArray(SymbolVariableArray* arr, SymbolVariable* var);
+int countInSymbolVariableArray(SymbolVariableArray* arr);
+void freeSymbolVariableArray(SymbolVariableArray* arr);
 
 void initStringArray(StringArray* arr);
 int addStringToStringArray(StringArray* arr, string* str);
