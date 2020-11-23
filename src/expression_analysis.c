@@ -21,6 +21,7 @@
 #include "token.h"
 #include "error.h"
 #include "str.h"
+#include "scanner.c"
 
 
 
@@ -46,14 +47,14 @@ int pushToStack(Stack *stack, int operation) {
     return SUCCESS;
 }
 
-int popFromStack(Stack *stack, int *operation) {
-    operation = stack->values[stack->used];
-    stack->values = realloc(stack->values, stack->size-- * sizeof(int64_t));
-    if (stack->values == NULL) {
-        return INTERNAL_ERROR;
-    }
-    return SUCCESS;
-}
+// int popFromStack(Stack *stack, int *operation) {
+//     *(&operation) = stack->values[stack->used];
+//     stack->values = realloc(stack->values, stack->size-- * sizeof(int64_t));
+//     if (stack->values == NULL) {
+//         return INTERNAL_ERROR;
+//     }
+//     return SUCCESS;
+// }
 
 int seekValueStack(Stack *stack) {
     return stack->values[stack->used];
@@ -66,55 +67,55 @@ void freeStack(Stack *stack) {
 }
 
 int checkIfValidToken(Token *token, Stack *stack) {
-    getToken(&token);
+    getToken(token);
     switch (token->type) {
         case TokenAdd:
-            addToStack(&stack, OperatorAdd);
+            pushToStack(stack, OperatorAdd);
             break;
         case TokenSubtract:
-            addToStack(&stack, OperatorSubtract);
+            pushToStack(stack, OperatorSubtract);
             break;
         case TokenMultiply:
-            addToStack(&stack, OperatorMultiple);
+            pushToStack(stack, OperatorMultiple);
             break;
         case TokenDivide:
-            addToStack(&stack, OperatorDivide);
+            pushToStack(stack, OperatorDivide);
             break;
         case TokenIsLessThan:
-            addToStack(&stack, OperatorLessThan);
+            pushToStack(stack, OperatorLessThan);
             break;
         case TokenIsLessEqual:
-            addToStack(&stack, OperatorGreaterEqual);
+            pushToStack(stack, OperatorGreaterEqual);
             break;
         case TokenIsGreaterEqual:
-            addToStack(&stack, OperatorIsEqual);
+            pushToStack(stack, OperatorIsEqual);
             break;
         case TokenIsGreaterThan:
-            addToStack(&stack, OperatorGreaterThan);
+            pushToStack(stack, OperatorGreaterThan);
             break;
         case TokenIsEqual:
-            addToStack(&stack, OperatorIsEqual);
+            pushToStack(stack, OperatorIsEqual);
             break;
         case TokenNotEqual:
-            addToStack(&stack, OperatorIsNotEqual);
+            pushToStack(stack, OperatorIsNotEqual);
             break;
         case TokenLeftBracket:
-            addToStack(&stack, OperatorLeftBracket);
+            pushToStack(stack, OperatorLeftBracket);
             break;
         case TokenRightBracket:
-            addToStack(&stack, OperatorRightBracket);
+            pushToStack(stack, OperatorRightBracket);
             break;
         case TokenIdentifier:
-            addToStack(&stack, OperatorId);
+            pushToStack(stack, OperatorId);
             break;
         case TokenWholeNbr:
-            addToStack(&stack, OperatorWholeNumber);
+            pushToStack(stack, OperatorWholeNumber);
             break;
         case TokenDecimalNbr:
-            addToStack(&stack, OperatorDecimal);
+            pushToStack(stack, OperatorDecimal);
             break;
         case TokenStringLiteral:
-            addToStack(&stack, OperatorString);
+            pushToStack(stack, OperatorString);
             break;
     default:
         return SYNTAX_ERROR;
@@ -125,14 +126,14 @@ int checkIfValidToken(Token *token, Stack *stack) {
 
 int parseExpression(Expression* expression) {
     /* Stack init */
-    Stack *stack;
+    Stack stack;
     initStack(&stack, 1);
-    addToStack(&stack, OperatorEnd);
+    pushToStack(&stack, OperatorEnd);
 
     /* getToken */
     Token token;
 
-    while (stack->values[0] == OperatorEnd) {
+    while (stack.values[0] == OperatorEnd) {
         if(checkIfValidToken(&token, &stack) == SYNTAX_ERROR) {
             return SYNTAX_ERROR;
         }

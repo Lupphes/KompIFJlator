@@ -12,7 +12,8 @@ VERBOSE = TRUE
 
 # Scanner Tests
 PRJ=scanner
-SCANNEROBJ=$(PRJ)-test $(PRJ)-test2 $(PRJ)-test3
+PRJ3=expression_analysis
+SCANNEROBJ=$(PRJ)-test $(PRJ)-test2 $(PRJ)-test3 $(PRJ3)-test
 
 .PHONY: directories
 
@@ -30,6 +31,9 @@ $(PRJ)-test2: $(LIBDIR)/*.h $(LIBDIR)/$(PRJ).h $(TESTSDIR)/$(PRJ)/*.h $(LIBDIR)/
 
 $(PRJ)-test3: $(LIBDIR)/*.h $(LIBDIR)/$(PRJ).h $(TESTSDIR)/$(PRJ)/*.h $(LIBDIR)/*.c  $(LIBDIR)/$(PRJ).c $(TESTSDIR)/$(PRJ)/*.c 
 	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@.out $(TESTSDIR)/$(PRJ)/$(PRJ)-test3.c $(LIBDIR)/$(PRJ).c $(LIBDIR)/str.c
+
+$(PRJ3)-test: $(LIBDIR)/*.h $(LIBDIR)/$(PRJ3).h $(TESTSDIR)/$(PRJ3)/*.h $(LIBDIR)/*.c  $(LIBDIR)/$(PRJ3).c $(TESTSDIR)/$(PRJ3)/*.c 
+	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@.out $(TESTSDIR)/$(PRJ3)/$(PRJ3)-test.c $(LIBDIR)/$(PRJ3).c $(LIBDIR)/str.c
 
 clean:
 	rm -rf $(BUILDDIR)

@@ -17,6 +17,12 @@
 #ifndef EXPRESSION_ANALYSIS_H
 #define EXPRESSION_ANALYSIS_H
 #include <stdbool.h> 
+#include <stdint.h>
+#include <stdlib.h>
+
+#include "str.h"
+#include "token.h"
+
 
 typedef enum {
     OperatorAdd = 0, /** + */
@@ -62,11 +68,11 @@ typedef enum {
 
 
 typedef enum {
-  TypeInt,
-  TypeFloat64,
-  TypeString,
-  TypeBool,
-  TypeNotDefined
+  ExpressionTypeInt,
+  ExpressionTypeFloat64,
+  ExpressionTypeString,
+  ExpressionTypeBool,
+  ExpressionTypeNotDefined
 } _ExpressionType;
 
 typedef union {
