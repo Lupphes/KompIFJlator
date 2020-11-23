@@ -1,5 +1,5 @@
 # Directory level
-PROJDIR := $(realpath $(CURDIR)/../)
+PROJDIR := ..
 LIBDIR := $(PROJDIR)/src
 BUILDDIR := $(PROJDIR)/build
 TESTSDIR := $(PROJDIR)/tests
@@ -14,9 +14,12 @@ VERBOSE = TRUE
 PRJ=scanner
 SCANNEROBJ=$(PRJ)-test $(PRJ)-test2 $(PRJ)-test3
 
+# Symtable
+SYMTABLE=symtable
+
 .PHONY: directories
 
-all: directories $(SCANNEROBJ)
+all: directories $(SCANNEROBJ) symtable
 
 directories: ${BUILDDIR}
 ${BUILDDIR}:
@@ -30,6 +33,10 @@ $(PRJ)-test2: $(LIBDIR)/*.h $(LIBDIR)/$(PRJ).h $(TESTSDIR)/$(PRJ)/*.h $(LIBDIR)/
 
 $(PRJ)-test3: $(LIBDIR)/*.h $(LIBDIR)/$(PRJ).h $(TESTSDIR)/$(PRJ)/*.h $(LIBDIR)/*.c  $(LIBDIR)/$(PRJ).c $(TESTSDIR)/$(PRJ)/*.c 
 	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@.out $(TESTSDIR)/$(PRJ)/$(PRJ)-test3.c $(LIBDIR)/$(PRJ).c $(LIBDIR)/str.c
+
+$(SYMTABLE)-test:	#$(LIBDIR)/*.h $(LIBDIR)/$(PRJ).h $(LIBDIR)/*.c  $(LIBDIR)/$(PRJ).c $(TESTSDIR)/$(PRJ)/*.h $(TESTSDIR)/$(PRJ)/*.c $(TESTSDIR)/$(SYMTABLE)/*.c 
+	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/$(SYMTABLE)/*.c $(LIBDIR)/$(SYMTABLE).h $(LIBDIR)/$(SYMTABLE).c
+	./$(BUILDDIR)/$@
 
 clean:
 	rm -rf $(BUILDDIR)
