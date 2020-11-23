@@ -19,7 +19,22 @@
 
 int main(int argc, char const *argv[]) {
 	printf("Hello World.\n");
-	int successcode = initFunctionTable();
-	printf("successcode: %d\n", successcode);
+
+	printf("\nHashCode function tests:\n");
+	char *key[] = {"Ahoj", "jak", "se", "mas"};
+	string str;
+	string *s = &str;
+	for(int i = 0; i < 4; i++){
+		strInit(s);
+		strCopyConstString(s, key[i]);
+		int hash = hashCode(s);
+		printf("hash(%s): \t%d\n", key[i], hash);
+		strFree(s);
+	}
+
+
+
+
+
 	return 0;
 }
