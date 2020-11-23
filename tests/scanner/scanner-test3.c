@@ -17,13 +17,16 @@ int main(int argc, char const *argv[]) {
         printf("%.9lf", token.attribute.d);
     } else if (token.type == TokenStringLiteral) {
         printf("%s", strGetStr(&token.attribute.s));
+        strFree(&token.attribute.s);
     } else if (token.type == TokenIdentifier) {
         printf("%s", strGetStr(&token.attribute.s));
+        strFree(&token.attribute.s);
     } else if (token.type == TokenDataType) {
         printf("%s", enumDataTypeTranslate[token.attribute.t]);
     } else {
         printf("%s", enumTokenTranslate[token.type]);
     }
+    
     return result;
 }
 
