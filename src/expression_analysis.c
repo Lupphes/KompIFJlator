@@ -55,6 +55,7 @@ int pushToStack(Stack *stack, int operation) {
 //     }
 //     return SUCCESS;
 // }
+// I love this project man pogU
 
 int seekValueStack(Stack *stack) {
     return stack->values[stack->used];
