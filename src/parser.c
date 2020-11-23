@@ -107,7 +107,7 @@ bool peek(_TokenType type){
  */
 int nextToken(){
     if (curTok.type == TokenIdentifier || curTok.type == TokenStringLiteral) //Checks whether we need to free the smart string if the token used it.
-        strFree(&curTok.atribute.s);
+        strFree(&curTok.attribute.s);
     return getToken(&curTok);
 }
 
@@ -140,7 +140,7 @@ int Prolog(){
     assert(TokenPackage);
 
     if(peek(TokenIdentifier)){
-        if (!strCmpConstStr(&curTok.atribute.s,"main")){
+        if (!strCmpConstStr(&curTok.attribute.s,"main")){
             acceptAny();
             return SUCCESS;
         }
@@ -177,9 +177,9 @@ int FunctionDefinition(){
     assert(TokenFunc);
 
     if(peek(TokenIdentifier)){
-        if (getFunction(strGetStr(&curTok.atribute.s)) == NULL){
+        if (getFunction(strGetStr(&curTok.attribute.s)) == NULL){
             callAndHandleException(strInit(&function.id));
-            callAndHandleException(strCopyString(&function.id,&curTok.atribute.s));
+            callAndHandleException(strCopyString(&function.id,&curTok.attribute.s));
             acceptAny();
         } else return SEMANTIC_ERROR_DEFINITION; // A function with the given name already exists.
     }
@@ -252,14 +252,14 @@ int processFunctionDefinitionParameter(SymbolFunction* function){
 
     string id;
     callAndHandleException(strInit(&id));
-    if(strCopyString(&id,&curTok.atribute.s) != SUCCESS){
+    if(strCopyString(&id,&curTok.attribute.s) != SUCCESS){
         strFree(&id);
         return INTERNAL_ERROR;
     }
 
     acceptAny();
     if (peek(TokenDataType)){
-        callAndHandleException(addFunctionParameter(function,&id,curTok.atribute.t));
+        callAndHandleException(addFunctionParameter(function,&id,curTok.attribute.t));
     } else {
         strFree(&id);
         return SYNTAX_ERROR;
@@ -327,7 +327,7 @@ int FunctionReturnValues_First(SymbolFunction* function){
     if(!peek(TokenDataType)) //Epsilon rule
         return SUCCESS;
 
-    callAndHandleException(addFunctionReturnType(function,curTok.atribute.t));
+    callAndHandleException(addFunctionReturnType(function,curTok.attribute.t));
     callAndHandleException(FunctionReturnValues_Next(function));
 
     return SUCCESS;
@@ -340,7 +340,7 @@ int FunctionReturnValues_Next(SymbolFunction* function){
     if(!peek(TokenDataType))
         return SYNTAX_ERROR;
     
-    callAndHandleException(addFunctionReturnType(function, curTok.atribute.t));
+    callAndHandleException(addFunctionReturnType(function, curTok.attribute.t));
     callAndHandleException(FunctionReturnValues_Next(function));
 
     return SUCCESS;
@@ -390,7 +390,7 @@ int StatementStartingWithIdentifier(){
     string firstID;
     if(peek(TokenIdentifier)){ //Unnecessary check since we already know that we are dealing with an identifier as the current token, but for good measure I check here as well.
         callAndHandleException(strInit(&firstID));
-        callAndHandleException_clean(strCopyString(&firstID, &curTok.atribute.s));
+        callAndHandleException_clean(strCopyString(&firstID, &curTok.attribute.s));
         acceptAny();
     } else {returnAndClean(SYNTAX_ERROR)};
 

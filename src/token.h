@@ -67,11 +67,11 @@ typedef union {
   double d;
   string s;
   DataType t;
-} Atribute;
+} Attribute;
 
 typedef struct {
     _TokenType type;
-    Atribute atribute;
+    Attribute attribute;
 } Token;
 
 #endif
