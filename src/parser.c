@@ -399,7 +399,7 @@ int StatementStartingWithIdentifier(){
             NTERM(FunctionCall);
             return SUCCESS;
         case TokenVarDefine:
-            callAndHandleException_clean(VariableDefinition());
+            callAndHandleException_clean(VariableDefinition(&firstID));
             return SUCCESS;
         case TokenAssignment:
         case TokenComma:
