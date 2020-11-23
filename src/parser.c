@@ -21,12 +21,10 @@
 #include "symtable.h"
 #include <stdlib.h>
 #include <stdbool.h>
+#include "helper.h"
 
 //Shorthand. Advances to the next token without any checks of the current token. If there are issues raised by the nextToken function, returns from the function with the return code returned by nextToken.
 #define acceptAny() if ((returnCode = nextToken()) != SUCCESS) return returnCode;
-
-//Short hand. Process the "call" (usually a function call, but can technically be any expression in C) and returns its return code if is non-zero (i.e. the function returned unsuccesfully-)
-#define callAndHandleException(call) if ((returnCode = (call))) return returnCode;
 
 //Short hand. Processes the function of the specified nonterminal and returns its failure code if it finds issues; otherwise the control flow will resume.
 #define NTERM(nt) callAndHandleException(nt())
