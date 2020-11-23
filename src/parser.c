@@ -252,7 +252,11 @@ int processFunctionDefinitionParameter(SymbolFunction* function){
 
     string id;
     callAndHandleException(strInit(&id));
-    callAndHandleException(strCopyString(&id,&curTok.atribute.s));
+    if(strCopyString(&id,&curTok.atribute.s) != SUCCESS){
+        strFree(&id);
+        return INTERNAL_ERROR;
+    }
+
     acceptAny();
     if (peek(TokenDataType)){
         callAndHandleException(addFunctionParameter(function,&id,curTok.atribute.t));
