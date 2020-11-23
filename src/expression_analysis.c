@@ -108,7 +108,7 @@ int checkIfValidToken(Token *token, Stack *stack) {
             addToStack(&stack, OperatorId);
             break;
         case TokenWholeNbr:
-            addToStack(&stack, OperatorWholeNumeber);
+            addToStack(&stack, OperatorWholeNumber);
             break;
         case TokenDecimalNbr:
             addToStack(&stack, OperatorDecimal);

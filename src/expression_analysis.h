@@ -35,19 +35,19 @@ typedef enum {
     OperatorLeftBracket, /** ( */
     OperatorId, /** id */
 
-    OperatorWholeNumeber, /** int -- whole numeber */
+    OperatorWholeNumber, /** int -- whole numeber */
     OperatorDecimal, /** float -- decimal number */
     OperatorString, /** string -- text string */
 
-    OperatorLeftAssociative,  /** [ */
-    OperatorRightAssociative,  /** ] */
+    OperatorLeftAssociative,  /** [ || < */
+    OperatorRightAssociative,  /** ] || > */
     OperatorExpression, /** Exp */
     OperatorEnd /** $ */
 } _Operators;
 
 typedef enum {
     RuleAdd, /** E->E+E */
-    RuleSub, /** E->E-E */
+    RuleSub = 34, /** E->E-E */
     RuleMul, /** E->E*E */
     RuleDiv, /** E->E/E */
     RulePar, /** E->(E) */
@@ -57,7 +57,7 @@ typedef enum {
     RuleLes, /** E->E>E */
     RuleLEq, /** E->E>=E */
     RuleEqu, /** E->E==E */
-    RuleNEq /* E->E!=E */
+    RuleNEq /** E->E!=E */
 } _Rules;
 
 
