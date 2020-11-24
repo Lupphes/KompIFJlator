@@ -13,42 +13,23 @@
  |                                      |___/                        |
  *-------------------------------------------------------------------*/
 
+#include <stdlib.h>
+#include <stdbool.h>
 #include "parser.h"
+#include "parser_common.h"
 #include "token.h"
 #include "scanner.h"
 #include "error.h"
 #include "symbol.h"
 #include "symtable.h"
-#include <stdlib.h>
-#include <stdbool.h>
 #include "helper.h"
 #include "term.h"
-
-//Shorthand. Advances to the next token without any checks of the current token. If there are issues raised by the nextToken function, returns from the function with the return code returned by nextToken.
-#define acceptAny() if ((returnCode = nextToken()) != SUCCESS) return returnCode;
 
 //Short hand. Processes the function of the specified nonterminal and returns its failure code if it finds issues; otherwise the control flow will resume.
 #define NTERM(nt) callAndHandleException(nt())
 
 //Variant of assert that executes the clean-up function instead of returning straight away in case of failure.
 #define NTERM_clean(nt) callAndHandleException_clean(nt())
-
-//Short hand. Tries to accept the specied token type. If the current token isn't of the specied type, returns from the current function with SYNTAX_ERROR. If the acceptance of the next token fails, returns the error value returned by nextToken.
-#define assert(term) if((returnCode =  accept(term)) != SUCCESS) return returnCode;
-
-//Variant of assert that executes the clean-up function instead of returning straight away in case of failure.
-#define assert_clean(term) if((returnCode =  accept(term)) != SUCCESS) goto CLEAN_UP;
-
-//Short hand. Tries to accept the specied token type. If the current token isn't of the specied type, returns from the current function with SUCCESS, i.e. it instead applies the epsilon rule. If there is a failure with nextToken, reuturs the returned error code.
-#define assertOrEpsilon(token) if((returnCode = accept(token)) == SYNTAX_ERROR) return SUCCESS; else if (returnCode != SUCCESS) return returnCode;
-
-#define EOL_Mandatory() assert(TokenEOL); while(peek(TokenEOL)) { acceptAny(); }
-
-#define EOL_Optional() while(peek(TokenEOL)) { acceptAny(); }
-
-Token curTok = {TokenEOF}; //We initialise the current token so that the function nextToken works properly.
-
-DubiousFunctionCallArray dubiousFunctionCalls;
 
 #define TEMP_NO_EXPRESSION -1
 int parseExpression_Dummy(){
@@ -82,57 +63,6 @@ int parseExpression_Dummy(){
         break;
     }
     return found;
-}
-
-/**
- * @brief Checks whether the currently read token is of the specified type, and if it is, advances to the next token.
- * 
- * @param type The type of the token to accept.
- * @return int 0 (SUCCESS)  Returned if the token is accepted and nextToken did not fail
- * @return int SYNTAX_ERROR Returned if the token is not acccepted.
- * @return int other values If nextToken fails, the error code returned by nextToken is returned.
- */
-int accept(_TokenType type){
-    if (curTok.type == type){
-        return nextToken();
-    }
-    return SYNTAX_ERROR;
-}
-
-/**
- * @brief Checks whether the currently read token is of the specified type.
- * 
- * @param type The type of the token to expect.
- */
-bool peek(_TokenType type){
-    return curTok.type == type;
-}
-
-/**
- * @brief Asks the scanner for the next token and stores it in the curTok variable. The function FREES the string stored in curTok if it needs to.
- * 
- * @return int The return code of the getToken function.
- */
-int nextToken(){
-    if (curTok.type == TokenIdentifier || curTok.type == TokenStringLiteral) //Checks whether we need to free the smart string if the token used it.
-        strFree(&curTok.attribute.s);
-    return getToken(&curTok);
-}
-
-/**
- * @brief Starts the parsing process; essentially could be said to start the compilation.
- * 
- * @return int An error code (or SUCCESS) to be returned by main to the operating system.
- */
-int beginParsing(){
-    int returnCode;
-    if ((returnCode = nextToken()) != SUCCESS) //First read of the token.
-        return returnCode;
-    initDubiousFunctionCallArray(&dubiousFunctionCalls);
-    returnCode = Start();
-    
-    for (int i = 0; i < countInDubiousFunctionCallArray(&dubiousFunctionCalls);i++)
-        callAndHandleException(validateFunctionCall())
 }
 
 int Start(){
@@ -179,47 +109,40 @@ int Chief(){
 }
 
 int FunctionDefinition(){
-    int returnCode;
+    int returnCode = SUCCESS;
     SymbolFunction function;
     function.parameters.count = 0;
     function.parameters.params = NULL;
     function.returnTypes.count = 0;
     function.returnTypes.types = NULL;
+    callAndHandleException(strInit(&function.id));
 
-    assert(TokenFunc);
+    assert_clean(TokenFunc);
 
     if(peek(TokenIdentifier)){
         if (getFunction(strGetStr(&curTok.attribute.s)) == NULL){
-            callAndHandleException(strInit(&function.id));
-            callAndHandleException(strCopyString(&function.id,&curTok.attribute.s));
+            callAndHandleException_clean(strCopyString(&function.id,&curTok.attribute.s));
             acceptAny();
         } else return SEMANTIC_ERROR_DEFINITION; // A function with the given name already exists.
     }
     else return SYNTAX_ERROR;
 
-    assert(TokenLeftBracket);
-    if((returnCode = FunctionDefinitionParameters_Start(&function)) != SUCCESS){
-        strFree(&function.id);
-        free(function.parameters.params);
-        free(function.returnTypes.types);
-        return returnCode;
-    }
-    assert(TokenRightBracket);
-    if((returnCode = FunctionReturnValues(&function)) != SUCCESS){
-        strFree(&function.id);
-        free(function.parameters.params);
-        free(function.returnTypes.types);
-        return returnCode;
-    }
+    assert_clean(TokenLeftBracket);
+    callAndHandleException_clean(FunctionDefinitionParameters_Start(&function));
+    assert_clean(TokenRightBracket);
+    callAndHandleException_clean(FunctionReturnValues(&function));
     
-    addFunction(&function);
-    
-    strFree(&function.id);
-    free(function.parameters.params);
-    free(function.returnTypes.types);
+    callAndHandleException_clean(addFunction(&function));
     
     NTERM(Block); //Todo: attach to the AST generation later.
-    return SUCCESS;
+    
+    CLEAN_UP:
+    strFree(&function.id);
+    for (int i = 0; i < function.parameters.count;i++)
+        strFree(&function.parameters.params[i].id);
+    free(function.parameters.params);
+    free(function.returnTypes.types);
+    return returnCode;
 }
 
 /**
@@ -401,6 +324,7 @@ int StatementStartingWithIdentifier(){
     
     string firstID;
     SymbolVariableArray lValues;
+    const SymbolVariable* firstVariable;
     callAndHandleException(strInit(&firstID));
     initSymbolVariableArray(&lValues);
 
@@ -411,14 +335,14 @@ int StatementStartingWithIdentifier(){
 
     switch(curTok.type){
         case TokenLeftBracket:
-            NTERM(FunctionCall_rule);
+            //NTERM(FunctionCall_rule);
             return SUCCESS;
         case TokenVarDefine:
             callAndHandleException_clean(VariableDefinition(&firstID));
             returnAndClean(SUCCESS);
         case TokenAssignment:
         case TokenComma:
-            SymbolVariable* firstVariable = getVariable(strGetStr(&firstID));
+            firstVariable = getVariable(strGetStr(&firstID));
             if (firstVariable == NULL) //No variable with the given name exists in the current context.
                 returnAndClean(SEMANTIC_ERROR_DEFINITION);
             callAndHandleException_clean(addToSymbolVariableArray(&lValues,firstVariable));
@@ -447,7 +371,7 @@ int Assignment(SymbolVariableArray* lValues){
         callAndHandleException_clean(strCopyString(&functionCandidate, &curTok.attribute.s));
         acceptAny();
         if(peek(TokenLeftBracket)){ //We are dealing with a function call with assignment now.
-            SymbolFunction* function = getFunction(strGetStr(&functionCandidate));
+            const SymbolFunction* function = getFunction(strGetStr(&functionCandidate));
             callAndHandleException_clean(FunctionCall_rule(lValues, function,&functionCandidate)); //TODO: AST handling somewhere.
         }
         else{
@@ -521,33 +445,7 @@ int VariableDefinition(string* idName){
     return SUCCESS;
 }
 
-int validateFunctionCall(SymbolFunction* function, SymbolVariableArray* lValues, TermArray* functionParameters){
-    //Paremer count check
-    if(countInTermArray(&functionParameters) != function->parameters.count){
-        return SEMANTIC_ERROR_TYPE_FUNCTION;
-    }
-    
-    //Parameter type check
-    for(int i = 0;i < function->parameters.count;i++){
-        if(function->parameters.params[i].type != termType(functionParameters->arr[i]))
-            return SEMANTIC_ERROR_TYPE_FUNCTION;
-    }
-
-    //Return value count check
-    if(countInSymbolVariableArray(lValues) != function->returnTypes.count){ //TODO: change on behest of the boss mayble later.
-        return SEMANTIC_ERROR_TYPE_FUNCTION;
-    }
-
-    //lValues type check
-    for(int i=0;i < countInSymbolVariableArray(lValues);i++){
-        if(lValues->arr[i]->type != TypeBlackHole && lValues->arr[i]->type != function->returnTypes.types[i])
-            return SEMANTIC_ERROR_TYPE_FUNCTION;
-    }
-
-    return SUCCESS;
-}
-
-int FunctionCall_rule(SymbolVariableArray* lValues, SymbolFunction* function, string* functionName){
+int FunctionCall_rule(SymbolVariableArray* lValues, const SymbolFunction* function, string* functionName){
     int returnCode = SUCCESS;
     TermArray* functionParameters = malloc(sizeof(TermArray));
     if(functionParameters == NULL)
@@ -563,8 +461,10 @@ int FunctionCall_rule(SymbolVariableArray* lValues, SymbolFunction* function, st
         callAndHandleException_clean(validateFunctionCall(function,lValues,functionParameters));
     }
     else{ //We cannot determine the semantic correctness of the function call yet; we instead save this occurence for later investigation.
-        DubiousFunctionCall functionCall = {function,functionParameters,lValues};
-        callAndHandleException_clean(addToDubiousFunctionCallArray(&dubiousFunctionCalls,functionCall));
+        DubiousFunctionCall functionCall = {.functionParameters=functionParameters, .lValues=lValues};
+        callAndHandleException_clean(strInit(&functionCall.functionName));
+        callAndHandleException_clean(strCopyString(&functionCall.functionName,functionName));
+        callAndHandleException_clean(addToDubiousFunctionCallArray(&dubiousFunctionCalls,&functionCall));
         return SUCCESS; //We don't want to clean the function-parameter array here because we need it later in the dubious-function-call check at the end of parsing.
     }
 
@@ -580,7 +480,7 @@ int TermList(TermArray* functionParameters){
     if(term == NULL)
         return INTERNAL_ERROR;
     
-    if(Term_rule(term) == SUCCESS){
+    if(parseTerm(term) == SUCCESS){
         addToTermArray(functionParameters,term);
         callAndHandleException(TermListNext(functionParameters));
         return SUCCESS;
@@ -600,7 +500,7 @@ int TermListNext(TermArray* functionParameters){
     if(term == NULL)
         return INTERNAL_ERROR;
 
-    if((returnCode = Term_rule(term)) == SUCCESS){
+    if((returnCode = parseTerm(term)) == SUCCESS){
         addToTermArray(functionParameters,term);
         callAndHandleException(TermListNext(functionParameters));
         return SUCCESS;
@@ -609,50 +509,6 @@ int TermListNext(TermArray* functionParameters){
         free(term);
         return returnCode;
     }
-}
-
-DataType termType(Term* term){
-    if (term->type != TermVariable)
-        return term->type; //The TermType enum has equivalent enum values for all types except TermVariable.
-    else
-        return term->value.v->type;
-}
-
-int Term_rule(Term* term){ //Name collision with the "Term" data type
-    int returnCode;
-    
-    switch(curTok.type){
-        case TokenWholeNbr:
-            term->type = TermIntegerLiteral;
-            term->value.i = curTok.attribute.i;
-            break;
-        case TokenDecimalNbr:
-            term->type = TermFloatLiteral;
-            term->value.d = curTok.attribute.d;
-            break;
-        case TokenStringLiteral:
-            term->type = TermStringLiteral;
-            if(strInit(&term->value.s) != SUCCESS){
-                strFree(&term->value.s);
-                return INTERNAL_ERROR;
-            }
-            if(strCopyString(&term->value.s,&curTok.attribute.s) != SUCCESS){
-                strFree(&term->value.s);
-                return INTERNAL_ERROR;
-            }
-            break;
-        case TokenIdentifier:
-            term->type = TermVariable;
-            SymbolVariable* variable = getVariable(strGetStr(&curTok.attribute.s));
-            if (variable == NULL)
-                return SEMANTIC_ERROR_DEFINITION;
-            term->value.v = variable;
-            break;
-        default:
-            return SYNTAX_ERROR;
-    }
-    acceptAny();
-    return SUCCESS;
 }
 
 int If(){
@@ -695,7 +551,7 @@ int For_Definition(){
     int returnCode;
     
     assertOrEpsilon(TokenIdentifier);
-    NTERM(VariableDefinition);
+    //NTERM(VariableDefinition);
 
     return SUCCESS;
 }
@@ -704,7 +560,7 @@ int For_Assignment(){
     int returnCode;
     
     assertOrEpsilon(TokenIdentifier);
-    NTERM(Assignment);
+    //NTERM(Assignment);
 
     return SUCCESS;
 }

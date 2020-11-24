@@ -55,7 +55,7 @@ int addToStringArray(StringArray* arr, string* str){
  * @param arr The array to get the number of elements of.
  * @return int The number of elements in the specified array.
  */
-int countInStringArray(StringArray* arr){
+int countInStringArray(const StringArray* arr){
     return arr->count;
 }
 
@@ -89,9 +89,7 @@ void initSymbolVariableArray(SymbolVariableArray* arr){
  * @param str The variable symbol to insert into the array.
  * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
  */
-int addToSymbolVariableArray(SymbolVariableArray* arr, SymbolVariable* var){
-    int returnCode;
-    
+int addToSymbolVariableArray(SymbolVariableArray* arr, const SymbolVariable* var){
     int newCount = ++arr->count;
     if ((arr->arr = realloc(arr->arr,sizeof(SymbolVariable)*newCount)) == NULL)
         return INTERNAL_ERROR;
@@ -106,7 +104,7 @@ int addToSymbolVariableArray(SymbolVariableArray* arr, SymbolVariable* var){
  * @param arr The array to get the number of elements of.
  * @return int The number of elements in the specified array.
  */
-int countInSymbolVariableArray(SymbolVariableArray* arr){
+int countInSymbolVariableArray(const SymbolVariableArray* arr){
     return arr->count;
 }
 
@@ -138,8 +136,6 @@ void initTermArray(TermArray* arr){
  * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
  */
 int addToTermArray(TermArray* arr, Term* term){
-    int returnCode;
-    
     int newCount = ++arr->count;
     if ((arr->arr = realloc(arr->arr,sizeof(Term)*newCount)) == NULL)
         return INTERNAL_ERROR;
@@ -154,7 +150,7 @@ int addToTermArray(TermArray* arr, Term* term){
  * @param arr The array to get the number of elements of.
  * @return int The number of elements in the specified array.
  */
-int countInTermArray(TermArray* arr){
+int countInTermArray(const TermArray* arr){
     return arr->count;
 }
 
@@ -191,10 +187,8 @@ void initDubiousFunctionCallArray(DubiousFunctionCallArray* arr){
  * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
  */
 int addToDubiousFunctionCallArray(DubiousFunctionCallArray* arr, DubiousFunctionCall* functionCall){
-    int returnCode;
-    
     int newCount = ++arr->count;
-    if ((arr->arr = realloc(arr->arr,sizeof(Term)*newCount)) == NULL)
+    if ((arr->arr = realloc(arr->arr,sizeof(DubiousFunctionCall)*newCount)) == NULL)
         return INTERNAL_ERROR;
     arr->arr[newCount-1] = *functionCall;
 
@@ -207,7 +201,7 @@ int addToDubiousFunctionCallArray(DubiousFunctionCallArray* arr, DubiousFunction
  * @param arr The array to get the number of elements of.
  * @return int The number of elements in the specified array.
  */
-int countInDubiousFunctionCallArray(DubiousFunctionCallArray* arr){
+int countInDubiousFunctionCallArray(const DubiousFunctionCallArray* arr){
     return arr->count;
 }
 

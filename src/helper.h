@@ -18,7 +18,6 @@
 #include "str.h"
 #include "symbol.h"
 #include "term.h"
-#include "parser.h"
 
 //Short hand. Process the "call" (usually a function call, but can technically be any expression in C) and returns its return code if is non-zero (i.e. the function returned unsuccesfully.)
 #define callAndHandleException(call) if ((returnCode = (call))) return returnCode;
@@ -35,7 +34,7 @@ typedef struct {
 } StringArray;
 
 typedef struct {
-    SymbolVariable** arr;
+    const SymbolVariable** arr;
     int count;
 } SymbolVariableArray;
 
@@ -44,29 +43,35 @@ typedef struct {
     int count;
 } TermArray;
 
+typedef struct{ //I'd like for this declaration to be in parser.h, but there are some problems with circular dependencies.
+    string functionName;
+    SymbolVariableArray* lValues;
+    TermArray* functionParameters;
+} DubiousFunctionCall;
+
 typedef struct {
     DubiousFunctionCall* arr;
     int count;
 } DubiousFunctionCallArray;
 
 void initSymbolVariableArray(SymbolVariableArray* arr);
-int addToSymbolVariableArray(SymbolVariableArray* arr, SymbolVariable* var);
-int countInSymbolVariableArray(SymbolVariableArray* arr);
+int addToSymbolVariableArray(SymbolVariableArray* arr, const SymbolVariable* var);
+int countInSymbolVariableArray(const SymbolVariableArray* arr);
 void freeSymbolVariableArray(SymbolVariableArray* arr);
 
 void initTermArray(TermArray* arr);
 int addToTermArray(TermArray* arr, Term* var);
-int countInTermArray(TermArray* arr);
+int countInTermArray(const TermArray* arr);
 void freeTermArray(TermArray* arr);
 
 void initStringArray(StringArray* arr);
 int addToStringArray(StringArray* arr, string* str);
-int countInStringArray(StringArray* arr);
+int countInStringArray(const StringArray* arr);
 void freeStringArray(StringArray* arr);
 
 void initDubiousFunctionCallArray(DubiousFunctionCallArray* arr);
 int addToDubiousFunctionCallArray(DubiousFunctionCallArray* arr, DubiousFunctionCall* functionCall);
-int countInDubiousFunctionCallArray(DubiousFunctionCallArray* arr);
+int countInDubiousFunctionCallArray(const DubiousFunctionCallArray* arr);
 void freeDubiousFunctionCallArray(DubiousFunctionCallArray* arr);
 
 

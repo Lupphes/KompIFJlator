@@ -13,7 +13,7 @@
  |                                      |___/                        |
  *-------------------------------------------------------------------*/
 
-#include "parser.h"
+#include "parser_common.h"
 
 int main(){
     return beginParsing();
