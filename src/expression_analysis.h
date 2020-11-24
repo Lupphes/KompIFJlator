@@ -96,7 +96,7 @@ typedef struct {
 
 int initStack(Stack *stack, int64_t initialSize);
 int addToStack(Stack *stack, int operation);
-int getLastValueStack(Stack *stack);
+int popFromStack(Stack *stack, int *operation);
 void freeStack(Stack *stack);
 int checkIfValidToken(Token *token, Stack *stack);
 int parseExpression(Expression* expression);

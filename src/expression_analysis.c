@@ -23,8 +23,6 @@
 #include "str.h"
 #include "scanner.c"
 
-
-
 int initStack(Stack *stack, int64_t initialSize) {
     stack->values = malloc(initialSize * sizeof(int64_t));
     if (stack->values == NULL) {
@@ -47,18 +45,17 @@ int pushToStack(Stack *stack, int operation) {
     return SUCCESS;
 }
 
-// int popFromStack(Stack *stack, int *operation) {
-//     *(&operation) = stack->values[stack->used];
-//     stack->values = realloc(stack->values, stack->size-- * sizeof(int64_t));
-//     if (stack->values == NULL) {
-//         return INTERNAL_ERROR;
-//     }
-//     return SUCCESS;
-// }
-// I love this project man pogU
+int popFromStack(Stack *stack, int *operation) {
+    if (stack->values == NULL) {
+        return INTERNAL_ERROR;
+    }
+    *operation = getLastValueStack(stack);
+    stack->values = realloc(stack->values, (stack->size - 1) * sizeof(int64_t));
+    return SUCCESS;
+}
 
-int seekValueStack(Stack *stack) {
-    return stack->values[stack->used];
+int getLastValueStack(Stack *stack) {
+    return stack->values[(stack->used - 1)];
 }
 
 void freeStack(Stack *stack) {
