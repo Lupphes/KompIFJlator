@@ -21,6 +21,8 @@
 /*
  * @brief counts hash from given string
  *
+ * @param 	string_key	Key to count hash from.
+ *
  * @TODO Copied from IAL Homework 2020 c016.c
  *		Copyright belongs to Petr Přikryl (prosinec 1994), Vaclav Topinka (2005), 
  *		Karel Masařík (říjen 2014) and Radek Hranický (2014-2018)
@@ -42,12 +44,11 @@ int hashCode (const char *string_key){
  *		only once. This function does NOT populate the table of functions with built-in functions.
  * 
  * @return SUCCESS If the initialisation was successful
- * @return INTERNAL_ERROR If there was an error with the function initialisation.
  */
 int initFunctionTable(){
-	for (int i = 0; i < TABSIZE; ++i){
+	for (int i = 0; i < TABSIZE; ++i)
 		FuncTab[i] = NULL;
-	}
+
 	return SUCCESS;
 }
 
@@ -73,9 +74,7 @@ int addFunction(SymbolFunction* function){
 			printf("ptr->FuncData.id: %s, function->id: %s\n", strGetStr(&ptr->FuncData.id), strGetStr(&function->id));
 			return SEMANTIC_ERROR_DEFINITION;
 		}
-		else{
-			ptr = ptr->ptrNext;
-		}
+		ptr = ptr->ptrNext;
 	}
 
 	return deepCopyFunction(function, hash);
@@ -91,37 +90,40 @@ int addFunction(SymbolFunction* function){
  * @return 	INTENRAL_ERROR 	If there was a problem with adding the function (like malloc).
  */
 int deepCopyFunction(SymbolFunction* function, int hash){
-
+	// Alloc new function
 	FuncTabEl *newElPtr = (FuncTabEl *)malloc(sizeof(FuncTabEl));
 	if(newElPtr == NULL)
 		return INTERNAL_ERROR;
-
 	strInit(&newElPtr->FuncData.id);
 	strCopyString(&newElPtr->FuncData.id, &function->id);
 
+	// Alloc parametrs
 	newElPtr->FuncData.parameters.params = (SymbolFunctionParameter *)malloc(sizeof(SymbolFunctionParameter) * function->parameters.count);
 	if(newElPtr->FuncData.parameters.params == NULL){
 		free(newElPtr);
 		return INTERNAL_ERROR;
 	}
+	// Fill parametrs
 	for(int i = 0; i < function->parameters.count; i++){
 		strCopyString(&newElPtr->FuncData.parameters.params[i].id, &function->parameters.params[i].id);
 		newElPtr->FuncData.parameters.params[i].type = function->parameters.params[i].type;
 	}
 	newElPtr->FuncData.parameters.count = function->parameters.count;
 
-
+	// Alloc returntype
 	newElPtr->FuncData.returnTypes.types = (DataType *)malloc(sizeof(DataType) * function->returnTypes.count);
 	if(newElPtr->FuncData.returnTypes.types == NULL){
 		free(newElPtr->FuncData.parameters.params);
 		free(newElPtr);
 		return INTERNAL_ERROR;
 	}
+	// Fill return Types
 	for(int i = 0; i < function->returnTypes.count; i++){
 		newElPtr->FuncData.returnTypes.types[i] = function->returnTypes.types[i];
 	}
 	newElPtr->FuncData.returnTypes.count = function->returnTypes.count;
 
+	// Join new function to the linked list of synonyms
 	newElPtr->ptrNext = FuncTab[hash];
 	FuncTab[hash] = newElPtr;
 
@@ -140,6 +142,7 @@ const SymbolFunction* getFunction(const char* id){
 		return NULL;
 
 	int hash = hashCode(id);
+
 	FuncTabEl *ptr = FuncTab[hash];
 	while(ptr != NULL){		// go through the linkd list with given hash
 		if(!strCmpConstStr(&ptr->FuncData.id, id)){	// functions have same id
@@ -157,7 +160,6 @@ const SymbolFunction* getFunction(const char* id){
  * @brief Cleans up all memory used by the function table. It is guaranteed that this function 
  * 		is called only once and that, after it's called, no additional functions dealing 
  *		with the table of functions are called.
- * 
  */
 void freeFunctionTable(){
 	if(FuncTab == NULL)
@@ -182,7 +184,6 @@ void freeFunctionTable(){
 			free(*ptrptr);
 			*ptrptr = ptrNext;
 		}
-		//FuncTab[i] = NULL;
 	}
 }
 

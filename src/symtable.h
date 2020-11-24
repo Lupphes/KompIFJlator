@@ -24,8 +24,6 @@
 #include <string.h>
 
 #define TABSIZE 19
-//#define SUCCESS 0
-//#define INTERNAL_ERROR 1
 #define DEFAULTANSWER 42
 
 typedef struct FuncTabEl{
@@ -37,8 +35,6 @@ typedef struct VarTabEl{
 	struct VarTabEl *ptrNext;
 	SymbolVariable *VarData;
 } VarTabEl;
-
-//VarTabEl *VarTab[TABSIZE];
 
 typedef struct{
     int size;

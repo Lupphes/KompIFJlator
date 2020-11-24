@@ -14,13 +14,13 @@
  *-------------------------------------------------------------------*/
 
 #include "./../../src/symtable.h"
-//#include "./../../src/data_type.h"
 #include <stdlib.h>
 #include <stdlib.h>
 
 #define DATATYPEMAX 3
 #define EMPTYID "emptyID"
 
+// print DataType according to given number
 char *printDataType(DataType type){
 	switch (type){
 		case TypeInt:
@@ -33,6 +33,7 @@ char *printDataType(DataType type){
 	return "";
 }
 
+// Print given function to one line
 void printFunction(SymbolFunction *function){
 	printf("\t%s, ", strGetStr(&function->id));
 	printf("%d{", function->parameters.count);	// print parameters count
@@ -52,9 +53,7 @@ void printFunction(SymbolFunction *function){
 	printf("}\n");
 }
 
-/*
- * @brief Prints out all functions from FuncTab
- */
+// Print out all functions from FuncTab
 void printFuncTable(){
 	printf("\n");
 	if(FuncTab == NULL){
@@ -82,28 +81,30 @@ void printFuncTable(){
 	printf("\n");
 }
 
+// prepare function to add to FuncTab according to given arguments
 void prepareFunction(SymbolFunction *function, char *id, int paramsCount, int returnTypesCount){
-	//printf("========= prepareFunction =====\n");
-	//printf("function->parameters.count: %d\n", function->parameters.count);
 	strInit(&function->id);
 	strCopyConstString(&function->id, id);
-	//function->id = str;
-	//printf("function id: %s\n", strGetStr(&function->id));
+
+	// fill all parameters
 	function->parameters.count = paramsCount;
 	function->parameters.params = (SymbolFunctionParameter *)malloc(sizeof(SymbolFunctionParameter) * paramsCount);
+
 	for(int i = 0; i < paramsCount; i++){
 		strInit(&function->parameters.params[i].id);
 		strCopyConstString(&function->parameters.params[i].id, EMPTYID);
 		function->parameters.params[i].type = (TypeInt + i) % DATATYPEMAX;
 	}
+
+	// fill all return types 
 	function->returnTypes.count = returnTypesCount;
 	function->returnTypes.types = (DataType *)malloc(sizeof(DataType) * returnTypesCount);
-	for(int i = 0; i < returnTypesCount; i++){
+
+	for(int i = 0; i < returnTypesCount; i++)
 		function->returnTypes.types[i] = (TypeInt + i) % DATATYPEMAX;
-		//printf("new type: %d\n", function->returnTypes.types[i]);
-	}
 }
 
+// free given function and free memory
 void freeFunction(SymbolFunction **function){
 	free((*function)->returnTypes.types);
 
@@ -134,7 +135,6 @@ void addFunctionTest(char *id, int paramsCount, int returnTypesCount){
 	}
 
 	freeFunction(&newFunction);
-	//free(newFunction);
 }
 
 void getFunctionTest(char * id, int paramsCount){
@@ -179,6 +179,8 @@ int main(int argc, char const *argv[]) {
 	for(int i = 0; i < count; i++)
 		addFunctionTest(keys[i], i % 3, i % 3);
 	printFuncTable();
+
+	// add already existing function
 
 	printf("\ngetFunction test - should return functions.\n");
 	printf("--------------------------------------\n");
