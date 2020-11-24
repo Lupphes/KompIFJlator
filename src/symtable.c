@@ -69,15 +69,58 @@ int addFunction(SymbolFunction* function){
 
 	FuncTabEl *ptr = FuncTab[hash];
 	while(ptr != NULL){		// go through the linked list with given hash
-		if(!strCmpString(&ptr->FuncData.id, &function->id)){	// functions have same id
-			// TODO compare the rest of function definition
-			printf("ptr->FuncData.id: %s, function->id: %s\n", strGetStr(&ptr->FuncData.id), strGetStr(&function->id));
+		if(equalFunctions(&ptr->FuncData, function)){	// functions are identical
+			printf("Function %s, and %s are identical\n", strGetStr(&ptr->FuncData.id), strGetStr(&function->id));
 			return SEMANTIC_ERROR_DEFINITION;
 		}
 		ptr = ptr->ptrNext;
 	}
 
 	return deepCopyFunction(function, hash);
+}
+
+/*
+ *	@brief	compaers two functions and its items
+ *
+ *	@param f1	First function
+ *	@param f2	Second function
+ *
+ *	@return 1	If functions are identical
+ * 	@return 0	If functions are different 
+ */
+int equalFunctions(const SymbolFunction *f1, const SymbolFunction *f2){
+	int diff = 0;
+
+	// compare ids
+	if(strCmpString(&f1->id, &f2->id))
+		diff++;
+
+	// compare parameters
+	if (f1->parameters.count == f2->parameters.count){
+		for(int i = 0; i < f1->parameters.count; i++){
+			diff += (f1->parameters.params[i].type != f2->parameters.params[i].type);
+			if(strCmpString(&f1->parameters.params[i].id, &f2->parameters.params[i].id))
+				diff++;
+		}
+	}
+	else{
+		diff++;
+	}
+
+	if(f1->parameters.count != f2->returnTypes.count){
+		for(int i = 0; i < f1->returnTypes.count; i++)
+			diff += (f1->returnTypes.types[i] != f2->returnTypes.types[i]);
+	}
+	else {
+		diff++;
+	}
+
+	if (diff > 0){
+		return 1;
+	}
+	else {
+		return 0;
+	}
 }
 
 /*
