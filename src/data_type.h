@@ -25,7 +25,8 @@
 typedef enum {
   TypeInt,
   TypeFloat64,
-  TypeString
+  TypeString,
+  TypeBlackHole //A pseudo data type used by the pseudo variable "_".
 } DataType;
 
 #endif 

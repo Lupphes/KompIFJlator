@@ -143,4 +143,4 @@ SymbolVariable* getVariable(const char* id);
  */
 void freeVariableTableStack();
 
-#endif SYMTABLE_H
+#endif

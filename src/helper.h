@@ -1,4 +1,4 @@
-/*File name: parser_common.c ----------------------------------------*
+/*File name: helper.h -----------------------------------------------*
  |Project:    Implementace překladače imperativního jazyka IFJ20     |
  |Team:       124, varianta II                                       |
  |Authors:    Viktor Rucký (xrucky01)                                |
@@ -13,149 +13,66 @@
  |                                      |___/                        |
  *-------------------------------------------------------------------*/
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include "parser_common.h"
-#include "parser.h"
-#include "symtable.h"
+#ifndef HELPER_H
+#define HELPER_H
+#include "str.h"
 #include "symbol.h"
-#include "token.h"
-#include "helper.h"
-#include "error.h"
-#include "scanner.h"
+#include "term.h"
 
-Token curTok = {TokenEOF}; //We initialise the current token so that the function nextToken works properly.
+//Short hand. Process the "call" (usually a function call, but can technically be any expression in C) and returns its return code if is non-zero (i.e. the function returned unsuccesfully.)
+#define callAndHandleException(call) if ((returnCode = (call))) return returnCode;
 
-DubiousFunctionCallArray dubiousFunctionCalls;
+//Short hand. Process the "call" (usually a function call, but can technically be any expression in C). If the call resulted in a failure, sets the returnCode variable to whatever the call returned and goes to the CLEAN_UP label.
+#define callAndHandleException_clean(call) if ((returnCode = (call))) goto CLEAN_UP;
 
-/**
- * @brief Starts the parsing process; essentially could be said to start the compilation.
- * 
- * @return int An error code (or SUCCESS) to be returned by main to the operating system.
- */
-int beginParsing(){
-    int returnCode = SUCCESS;
-    initDubiousFunctionCallArray(&dubiousFunctionCalls);
-    callAndHandleException_clean(nextToken()) //First read of the token.
-    
-    callAndHandleException_clean(Start());
-    
-    for (int i = 0; i < countInDubiousFunctionCallArray(&dubiousFunctionCalls);i++){
-        const SymbolFunction* function = getFunction(strGetStr(&dubiousFunctionCalls.arr[i].functionName));
-        if (function == NULL)
-            returnAndClean(SEMANTIC_ERROR_DEFINITION);
-        callAndHandleException_clean(validateFunctionCall(function,dubiousFunctionCalls.arr[i].lValues,dubiousFunctionCalls.arr[i].functionParameters));
-    }
+//Short hand. Sets the returnCode variable to the provided code and goes to the CLEAN_UP label. 
+#define returnAndClean(code) {returnCode = code; goto CLEAN_UP;}
 
-    //TODO: Start code generation here.
+typedef struct {
+    string* arr;
+    int count;
+} StringArray;
 
-    CLEAN_UP:
-    freeDubiousFunctionCallArray(&dubiousFunctionCalls);
-    return returnCode;
-        
-}
+typedef struct {
+    const SymbolVariable** arr;
+    int count;
+} SymbolVariableArray;
 
-/**
- * @brief Checks whether the currently read token is of the specified type, and if it is, advances to the next token.
- * 
- * @param type The type of the token to accept.
- * @return int 0 (SUCCESS)  Returned if the token is accepted and nextToken did not fail
- * @return int SYNTAX_ERROR Returned if the token is not acccepted.
- * @return int other values If nextToken fails, the error code returned by nextToken is returned.
- */
-int accept(_TokenType type){
-    if (curTok.type == type){
-        return nextToken();
-    }
-    return SYNTAX_ERROR;
-}
+typedef struct {
+    Term** arr;
+    int count;
+} TermArray;
 
-/**
- * @brief Checks whether the currently read token is of the specified type.
- * 
- * @param type The type of the token to expect.
- */
-bool peek(_TokenType type){
-    return curTok.type == type;
-}
+typedef struct{ //I'd like for this declaration to be in parser.h, but there are some problems with circular dependencies.
+    string functionName;
+    SymbolVariableArray* lValues;
+    TermArray* functionParameters;
+} DubiousFunctionCall;
 
-/**
- * @brief Asks the scanner for the next token and stores it in the curTok variable. The function FREES the string stored in curTok if it needs to.
- * 
- * @return int The return code of the getToken function.
- */
-int nextToken(){
-    if (curTok.type == TokenIdentifier || curTok.type == TokenStringLiteral) //Checks whether we need to free the smart string if the token used it.
-        strFree(&curTok.attribute.s);
-    return getToken(&curTok);
-}
+typedef struct {
+    DubiousFunctionCall* arr;
+    int count;
+} DubiousFunctionCallArray;
 
-int validateFunctionCall(const SymbolFunction* function, const SymbolVariableArray* lValues, const TermArray* functionParameters){
-    //Paremer count check
-    if(countInTermArray(functionParameters) != function->parameters.count){
-        return SEMANTIC_ERROR_TYPE_FUNCTION;
-    }
-    
-    //Parameter type check
-    for(int i = 0;i < function->parameters.count;i++){
-        if(function->parameters.params[i].type != termType(functionParameters->arr[i]))
-            return SEMANTIC_ERROR_TYPE_FUNCTION;
-    }
+void initSymbolVariableArray(SymbolVariableArray* arr);
+int addToSymbolVariableArray(SymbolVariableArray* arr, const SymbolVariable* var);
+int countInSymbolVariableArray(const SymbolVariableArray* arr);
+void freeSymbolVariableArray(SymbolVariableArray* arr);
 
-    //Return value count check
-    if(countInSymbolVariableArray(lValues) != function->returnTypes.count){ //TODO: change on behest of the boss mayble later.
-        return SEMANTIC_ERROR_TYPE_FUNCTION;
-    }
+void initTermArray(TermArray* arr);
+int addToTermArray(TermArray* arr, Term* var);
+int countInTermArray(const TermArray* arr);
+void freeTermArray(TermArray* arr);
 
-    //lValues type check
-    for(int i=0;i < countInSymbolVariableArray(lValues);i++){
-        if(lValues->arr[i]->type != TypeBlackHole && lValues->arr[i]->type != function->returnTypes.types[i])
-            return SEMANTIC_ERROR_TYPE_FUNCTION;
-    }
+void initStringArray(StringArray* arr);
+int addToStringArray(StringArray* arr, string* str);
+int countInStringArray(const StringArray* arr);
+void freeStringArray(StringArray* arr);
 
-    return SUCCESS;
-}
+void initDubiousFunctionCallArray(DubiousFunctionCallArray* arr);
+int addToDubiousFunctionCallArray(DubiousFunctionCallArray* arr, DubiousFunctionCall* functionCall);
+int countInDubiousFunctionCallArray(const DubiousFunctionCallArray* arr);
+void freeDubiousFunctionCallArray(DubiousFunctionCallArray* arr);
 
-int parseTerm(Term* term){
-    int returnCode;
-    
-    switch(curTok.type){
-        case TokenWholeNbr:
-            term->type = TermIntegerLiteral;
-            term->value.i = curTok.attribute.i;
-            break;
-        case TokenDecimalNbr:
-            term->type = TermFloatLiteral;
-            term->value.d = curTok.attribute.d;
-            break;
-        case TokenStringLiteral:
-            term->type = TermStringLiteral;
-            if(strInit(&term->value.s) != SUCCESS){
-                strFree(&term->value.s);
-                return INTERNAL_ERROR;
-            }
-            if(strCopyString(&term->value.s,&curTok.attribute.s) != SUCCESS){
-                strFree(&term->value.s);
-                return INTERNAL_ERROR;
-            }
-            break;
-        case TokenIdentifier:
-            term->type = TermVariable;
-            SymbolVariable* variable = getVariable(strGetStr(&curTok.attribute.s));
-            if (variable == NULL)
-                return SEMANTIC_ERROR_DEFINITION;
-            term->value.v = variable;
-            break;
-        default:
-            return SYNTAX_ERROR;
-    }
-    acceptAny();
-    return SUCCESS;
-}
 
-DataType termType(Term* term){
-    if (term->type != TermVariable)
-        return term->type; //The TermType enum has equivalent enum values for all types except TermVariable.
-    else
-        return term->value.v->type;
-}
+#endif
