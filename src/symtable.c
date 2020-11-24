@@ -45,8 +45,10 @@ int hashCode (string *string_key){
  * @return INTERNAL_ERROR If there was an error with the function initialisation.
  */
 int initFunctionTable(){
-	return DEFAULTANSWER;
-
+	for (int i = 0; i < TABSIZE; ++i){
+		FuncTab[i] = NULL;
+	}
+	return SUCCESS;
 }
 
 /**
@@ -59,7 +61,79 @@ int initFunctionTable(){
  * @return INTENRAL_ERROR If there was a problem with adding the function (like malloc).
  */
 int addFunction(SymbolFunction* function){
-	return DEFAULTANSWER;
+	if(function == NULL)
+		return INTERNAL_ERROR;
+
+	int hash = hashCode(&function->id);
+
+	FuncTabEl *ptr = FuncTab[hash];
+	while(ptr != NULL){		// go through the linkd list with given hash
+		if(!strCmpString(&ptr->FuncData.id, &function->id)){	// functions have same id
+			// TODO compare the rest of function definition
+			printf("ptr->FuncData.id: %s, function->id: %s\n", strGetStr(&ptr->FuncData.id), strGetStr(&function->id));
+			return SEMANTIC_ERROR_DEFINITION;
+		}
+		else{
+			ptr = ptr->ptrNext;
+		}
+	}
+
+	return deepCopyFunction(function, hash);
+}
+
+/*
+ * @brief Creates a deep copy of given function in HashTable
+ *
+ * @param function 	The function to add.
+ * @param hash 		Hash of given function.
+ *
+ * @return 	SUCCESS 		If the function was added succesfully.
+ * @return 	INTENRAL_ERROR 	If there was a problem with adding the function (like malloc).
+ */
+int deepCopyFunction(SymbolFunction* function, int hash){
+
+	FuncTabEl *newElPtr = (FuncTabEl *)malloc(sizeof(FuncTabEl));
+	if(newElPtr == NULL)
+		return INTERNAL_ERROR;
+
+	//printf("newElPtr malloced.\n");
+
+	/*
+	newElPtr->FuncData = (SymbolFunction *)malloc(sizeof(SymbolFunction));
+	if(newElPtr->FuncData == NULL){
+		free(newElPtr);
+		return INTERNAL_ERROR;
+	}*/
+	strInit(&newElPtr->FuncData.id);
+	strCopyString(&newElPtr->FuncData.id, &function->id);
+
+	newElPtr->FuncData.parameters.params = (SymbolFunctionParameter *)malloc(sizeof(SymbolFunctionParameter) * function->parameters.count);
+	if(newElPtr->FuncData.parameters.params == NULL){
+		free(newElPtr);
+		return INTERNAL_ERROR;
+	}
+	for(int i = 0; i < function->parameters.count; i++){
+		newElPtr->FuncData.parameters.params[i].id = function->parameters.params[i].id;
+		newElPtr->FuncData.parameters.params[i].type = function->parameters.params[i].type;
+	}
+	newElPtr->FuncData.parameters.count = function->parameters.count;
+
+
+	newElPtr->FuncData.returnTypes.types = (DataType *)malloc(sizeof(DataType) * function->returnTypes.count);
+	if(newElPtr->FuncData.returnTypes.types == NULL){
+		free(newElPtr->FuncData.parameters.params);
+		free(newElPtr);
+		return INTERNAL_ERROR;
+	}
+	for(int i = 0; i < function->returnTypes.count; i++){
+		newElPtr->FuncData.returnTypes.types[i] = function->returnTypes.types[i];
+	}
+	newElPtr->FuncData.returnTypes.count = function->returnTypes.count;
+
+	newElPtr->ptrNext = FuncTab[hash];
+	FuncTab[hash] = newElPtr;
+
+	return SUCCESS;
 }
 
 /**

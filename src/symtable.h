@@ -17,27 +17,35 @@
 #ifndef SYMTABLE_H
 #define SYMTABLE_H
 #include "symbol.h"
+#include "error.h"
+#include "data_type.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define TABSIZE 19
+//#define SUCCESS 0
+//#define INTERNAL_ERROR 1
 #define DEFAULTANSWER 42
-#define SUCCESS 0
-#define INTERNAL_ERROR 1
 
 typedef struct FuncTabEl{
 	struct FuncTabEl *ptrNext;
 	SymbolFunction FuncData;
 } FuncTabEl;
 
+typedef struct VarTabEl{
+	struct VarTabEl *ptrNext;
+	SymbolVariable *VarData;
+} VarTabEl;
+
+//VarTabEl *VarTab[TABSIZE];
+
 typedef struct{
     int size;
     FuncTabEl *data[TABSIZE];
-} FunctionTable;
-
-typedef struct{
-    int todo;
 } VariableTable;
+
+FuncTabEl *FuncTab[TABSIZE];
 
 int hashCode (string *string_key);
 
@@ -46,6 +54,8 @@ int hashCode (string *string_key);
 int initFunctionTable();
 
 int addFunction(SymbolFunction* function);
+
+int deepCopyFunction(SymbolFunction* function, int hash);
 
 const SymbolFunction* getFunction(const char* id);
 
