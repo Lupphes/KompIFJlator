@@ -104,8 +104,8 @@ void prepareFunction(SymbolFunction *function, char *id, int paramsCount, int re
 		function->returnTypes.types[i] = (TypeInt + i) % DATATYPEMAX;
 }
 
-// free given function and free memory
-void freeFunction(SymbolFunction **function){
+// delete given function and free memory
+void freeFunctionPtrPtr(SymbolFunction **function){
 	free((*function)->returnTypes.types);
 
 	for(int i = 0; i < (*function)->parameters.count; i++){
@@ -123,6 +123,7 @@ void addFunctionTest(char *id, int paramsCount, int returnTypesCount){
 	SymbolFunction *newFunction = (SymbolFunction *)malloc(sizeof(SymbolFunction));
 	prepareFunction(newFunction, id, paramsCount, returnTypesCount);
 
+
 	int result = addFunction(newFunction);
 
 	switch (result){
@@ -131,10 +132,11 @@ void addFunctionTest(char *id, int paramsCount, int returnTypesCount){
 		case INTERNAL_ERROR:
 			printf("function returned INTERNAL_ERROR\n"); break;
 		case SEMANTIC_ERROR_DEFINITION:
-			printf("Function already exists in FunctionTable\n");
+			printf("Function (%s) already exists in FunctionTable\n", id);
 	}
-
-	freeFunction(&newFunction);
+	freeFunctionPtrPtr(&newFunction);
+	//freeFunction(newFunction);
+	//free(newFunction);
 }
 
 void getFunctionTest(char * id, int paramsCount){
@@ -179,8 +181,11 @@ int main(int argc, char const *argv[]) {
 	for(int i = 0; i < count; i++)
 		addFunctionTest(keys[i], i % 3, i % 3);
 	printFuncTable();
-
-	// add already existing function
+	
+	printf("\nAddFunction existing method test\n");
+	printf("--------------------------------------\n");
+	addFunctionTest(keys[2], 2, 2);
+	printFuncTable();
 
 	printf("\ngetFunction test - should return functions.\n");
 	printf("--------------------------------------\n");

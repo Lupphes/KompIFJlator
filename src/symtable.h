@@ -59,6 +59,8 @@ const SymbolFunction* getFunction(const char* id);
 
 void freeFunctionTable();
 
+void freeFunction(SymbolFunction *func);
+
 /*------------------------------------------ Variable Table -----------------------------------------*/
 
 int initVariableTable(VariableTable* table);

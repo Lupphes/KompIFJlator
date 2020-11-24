@@ -69,13 +69,13 @@ int addFunction(SymbolFunction* function){
 
 	FuncTabEl *ptr = FuncTab[hash];
 	while(ptr != NULL){		// go through the linked list with given hash
-		if(equalFunctions(&ptr->FuncData, function)){	// functions are identical
+		if(!strCmpString(&ptr->FuncData.id, &function->id)){
+			//equalFunctions(&ptr->FuncData, function)){	// functions are identical
 			printf("Function %s, and %s are identical\n", strGetStr(&ptr->FuncData.id), strGetStr(&function->id));
 			return SEMANTIC_ERROR_DEFINITION;
 		}
 		ptr = ptr->ptrNext;
 	}
-
 	return deepCopyFunction(function, hash);
 }
 
@@ -107,7 +107,7 @@ int equalFunctions(const SymbolFunction *f1, const SymbolFunction *f2){
 		diff++;
 	}
 
-	if(f1->parameters.count != f2->returnTypes.count){
+	if(f1->parameters.count == f2->returnTypes.count){
 		for(int i = 0; i < f1->returnTypes.count; i++)
 			diff += (f1->returnTypes.types[i] != f2->returnTypes.types[i]);
 	}
@@ -116,10 +116,10 @@ int equalFunctions(const SymbolFunction *f1, const SymbolFunction *f2){
 	}
 
 	if (diff > 0){
-		return 1;
+		return 0;
 	}
 	else {
-		return 0;
+		return 1;
 	}
 }
 
@@ -215,6 +215,10 @@ void freeFunctionTable(){
 			FuncTabEl *ptrNext = (*ptrptr)->ptrNext;
 			printf("freeing (%d, %s)\n", i, strGetStr(&(*ptrptr)->FuncData.id));
 
+
+			freeFunction(&(*ptrptr)->FuncData);
+
+			/*
 			free((*ptrptr)->FuncData.returnTypes.types);
 
 			for(int i = 0; i < (*ptrptr)->FuncData.parameters.count; i++)
@@ -223,11 +227,23 @@ void freeFunctionTable(){
 			free((*ptrptr)->FuncData.parameters.params);
 
 			strFree(&(*ptrptr)->FuncData.id);
+			//*/
 
 			free(*ptrptr);
 			*ptrptr = ptrNext;
 		}
 	}
+}
+
+void freeFunction(SymbolFunction *func){
+	free(func->returnTypes.types);
+
+	for(int i = 0; i < func->parameters.count; i++)
+		strFree(&func->parameters.params[i].id);
+
+	free(func->parameters.params);
+
+	strFree(&func->id);
 }
 
 /*------------------------------------------ Variable Table -----------------------------------------*/
