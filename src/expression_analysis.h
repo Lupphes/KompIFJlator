@@ -41,7 +41,7 @@ typedef enum {
     OperatorLeftBracket, /** ( */
     OperatorId, /** id */
 
-    OperatorWholeNumber, /** int -- whole numeber */
+    OperatorWholeNumber, /** int -- whole numeber */ // EXPATOM
     OperatorDecimal, /** float -- decimal number */
     OperatorString, /** string -- text string */
 
@@ -76,16 +76,8 @@ typedef enum {
   ExpressionTypeNotDefined
 } _ExpressionType;
 
-typedef union {
-  int64_t i;
-  double d;
-  string s;
-  bool b;
-} _ExpressionValue;
-
 typedef struct {
     _ExpressionType type;
-    _ExpressionValue value;
 } Expression;
 
 typedef struct {
