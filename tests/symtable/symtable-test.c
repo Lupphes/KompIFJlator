@@ -53,7 +53,7 @@ void printFunction(SymbolFunction *function){
 }
 
 /*
- * @brief Prints out all function ids from FuncTab
+ * @brief Prints out all functions from FuncTab
  */
 void printFuncTable(){
 	printf("\n");
@@ -104,25 +104,25 @@ void prepareFunction(SymbolFunction *function, char *id, int paramsCount, int re
 	}
 }
 
-/*===================== individual method tests =====================*/
+void freeFunction(SymbolFunction **function){
+	free((*function)->returnTypes.types);
 
-void hashCodeTest(char** key, int count){
-	string str;
-	string *s = &str;
-	for(int i = 0; i < count; i++){
-		strInit(s);
-		strCopyConstString(s, key[i]);
-		int hash = hashCode(s);
-		printf("hash(%s): \t%d\n", key[i], hash);
-		strFree(s);
+	for(int i = 0; i < (*function)->parameters.count; i++){
+		strFree(&((*function)->parameters.params[i].id));
 	}
+
+	free((*function)->parameters.params);
+	strFree(&((*function)->id));
+	free(*function);
 }
 
-void addFunctionTest(char *id, int paramsCount, int returnTypesCount){
-	SymbolFunction newFunction;
-	prepareFunction(&newFunction, id, paramsCount, returnTypesCount);
+/*===================== individual method tests =====================*/
 
-	int result = addFunction(&newFunction);
+void addFunctionTest(char *id, int paramsCount, int returnTypesCount){
+	SymbolFunction *newFunction = (SymbolFunction *)malloc(sizeof(SymbolFunction));
+	prepareFunction(newFunction, id, paramsCount, returnTypesCount);
+
+	int result = addFunction(newFunction);
 
 	switch (result){
 		case SUCCESS:
@@ -132,27 +132,69 @@ void addFunctionTest(char *id, int paramsCount, int returnTypesCount){
 		case SEMANTIC_ERROR_DEFINITION:
 			printf("Function already exists in FunctionTable\n");
 	}
+
+	freeFunction(&newFunction);
+	//free(newFunction);
 }
 
+void getFunctionTest(char * id, int paramsCount){
+	const SymbolFunction *function = getFunction(id);
+	if(function != NULL && function->parameters.count == paramsCount){
+		printf("Function found (%s)\n", id);
+	}
+	else {
+		printf("Function NOT found (%s)\n", id);	
+	}
+}
+
+
 int main(int argc, char const *argv[]) {
-	printf("\nSymtable tests\n======================================\n");
+	printf("\nSymtable tests\n");
+	printf("======================================\n");
 
 	printf("\nHashCode function tests:\n");
-	char *key[] = {"Hello", "there", "how", "are", "you", "I", "am", "fine"};
+	char *keys[] = {"Hello", "there", "how", "are", "you", "I", "am", "fine"};
 	int count = 8;
-	hashCodeTest(key, count);
+	for(int i = 0; i < count; i++)
+		printf("hash(%s): \t%d\n", keys[i], hashCode(keys[i]));
+	
 
 	printf("\nInitFunctionTable test\n");
+	printf("--------------------------------------\n");
+	initFunctionTable();
+	printFuncTable();
+
+	printf("\nfreeFunctionTable test - free empty table\n");
+	printf("--------------------------------------\n");
+	freeFunctionTable();
+	printFuncTable();
+
+	printf("\nInitFunctionTable test again\n");
+	printf("--------------------------------------\n");
 	initFunctionTable();
 	printFuncTable();
 
 	printf("\nAddFunction method test\n");
-	for(int i = 0; i < count; i++){
-		addFunctionTest(key[i], i % 3, i % 3);
-	}
+	printf("--------------------------------------\n");
+	for(int i = 0; i < count; i++)
+		addFunctionTest(keys[i], i % 3, i % 3);
 	printFuncTable();
 
+	printf("\ngetFunction test - should return functions.\n");
+	printf("--------------------------------------\n");
+	for (int i = 0; i < count; i++)
+		getFunctionTest(keys[i], i % 3);
 
-	printf("Thank you for watching.\n======================================\n");
+	printf("\ngetFunction test - should return NULL.\n");
+	printf("--------------------------------------\n");
+	getFunctionTest("Compiler", 0);
+
+	printf("\nfreeFunctionTable test\n");
+	printf("--------------------------------------\n");
+	freeFunctionTable();
+	printFuncTable();
+
+	printf("Thank you for watching.\n");
+	printf("======================================\n");
 	return 0;
 }

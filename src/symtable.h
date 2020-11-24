@@ -47,7 +47,7 @@ typedef struct{
 
 FuncTabEl *FuncTab[TABSIZE];
 
-int hashCode (string *string_key);
+int hashCode (const char *string_key);
 
 /*----------------------------------------- Function Table ------------------------------------------*/
 

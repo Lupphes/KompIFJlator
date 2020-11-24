@@ -25,12 +25,12 @@
  *		Copyright belongs to Petr Přikryl (prosinec 1994), Vaclav Topinka (2005), 
  *		Karel Masařík (říjen 2014) and Radek Hranický (2014-2018)
  */
-int hashCode (string *string_key){
+int hashCode (const char *string_key){
 	int retval = 0;
-	int keylen = strGetLength(string_key);
-	char* key = strGetStr(string_key);
-	for ( int i=0; i<keylen; i++ )
-		retval += key[i];
+	int keyLen = strlen(string_key);
+	for(int i = 0; i < keyLen; i++){
+		retval += string_key[i];
+	}
 	return ( retval % TABSIZE );
 }
 
@@ -64,10 +64,10 @@ int addFunction(SymbolFunction* function){
 	if(function == NULL)
 		return INTERNAL_ERROR;
 
-	int hash = hashCode(&function->id);
+	int hash = hashCode(strGetStr(&function->id));
 
 	FuncTabEl *ptr = FuncTab[hash];
-	while(ptr != NULL){		// go through the linkd list with given hash
+	while(ptr != NULL){		// go through the linked list with given hash
 		if(!strCmpString(&ptr->FuncData.id, &function->id)){	// functions have same id
 			// TODO compare the rest of function definition
 			printf("ptr->FuncData.id: %s, function->id: %s\n", strGetStr(&ptr->FuncData.id), strGetStr(&function->id));
@@ -96,14 +96,6 @@ int deepCopyFunction(SymbolFunction* function, int hash){
 	if(newElPtr == NULL)
 		return INTERNAL_ERROR;
 
-	//printf("newElPtr malloced.\n");
-
-	/*
-	newElPtr->FuncData = (SymbolFunction *)malloc(sizeof(SymbolFunction));
-	if(newElPtr->FuncData == NULL){
-		free(newElPtr);
-		return INTERNAL_ERROR;
-	}*/
 	strInit(&newElPtr->FuncData.id);
 	strCopyString(&newElPtr->FuncData.id, &function->id);
 
@@ -113,7 +105,7 @@ int deepCopyFunction(SymbolFunction* function, int hash){
 		return INTERNAL_ERROR;
 	}
 	for(int i = 0; i < function->parameters.count; i++){
-		newElPtr->FuncData.parameters.params[i].id = function->parameters.params[i].id;
+		strCopyString(&newElPtr->FuncData.parameters.params[i].id, &function->parameters.params[i].id);
 		newElPtr->FuncData.parameters.params[i].type = function->parameters.params[i].type;
 	}
 	newElPtr->FuncData.parameters.count = function->parameters.count;
@@ -144,6 +136,20 @@ int deepCopyFunction(SymbolFunction* function, int hash){
  * @return const SymbolFunction* A pointer to the found function symbol or NULL if it wasn't found.
  */
 const SymbolFunction* getFunction(const char* id){
+	if(id == NULL)
+		return NULL;
+
+	int hash = hashCode(id);
+	FuncTabEl *ptr = FuncTab[hash];
+	while(ptr != NULL){		// go through the linkd list with given hash
+		if(!strCmpConstStr(&ptr->FuncData.id, id)){	// functions have same id
+			return &ptr->FuncData;
+		}
+		else{
+			ptr = ptr->ptrNext;
+		}
+	}
+
 	return NULL;
 }
 
@@ -154,7 +160,30 @@ const SymbolFunction* getFunction(const char* id){
  * 
  */
 void freeFunctionTable(){
+	if(FuncTab == NULL)
+		return;
 
+	for(int i = 0; i < TABSIZE; i++){
+		// free this FuncTabEl
+		FuncTabEl **ptrptr = &FuncTab[i];
+		while(*ptrptr != NULL){
+			FuncTabEl *ptrNext = (*ptrptr)->ptrNext;
+			printf("freeing (%d, %s)\n", i, strGetStr(&(*ptrptr)->FuncData.id));
+
+			free((*ptrptr)->FuncData.returnTypes.types);
+
+			for(int i = 0; i < (*ptrptr)->FuncData.parameters.count; i++)
+				strFree(&((*ptrptr)->FuncData.parameters.params[i].id));
+
+			free((*ptrptr)->FuncData.parameters.params);
+
+			strFree(&(*ptrptr)->FuncData.id);
+
+			free(*ptrptr);
+			*ptrptr = ptrNext;
+		}
+		//FuncTab[i] = NULL;
+	}
 }
 
 /*------------------------------------------ Variable Table -----------------------------------------*/
