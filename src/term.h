@@ -1,8 +1,7 @@
-/*File name: data_type.h --------------------------------------------*
+/*File name: term.h -------------------------------------------------*
  |Project:    Implementace překladače imperativního jazyka IFJ20     |
  |Team:       124, varianta II                                       |
- |Authors:    Ondřej Sloup (xsloup02)                                |
- |            Viktor Rucký (xrucky01)                                |
+ |Authors:    Viktor Rucký (xrucky01)                                |
  |                                                                   |
  |  _      _     _   __                   __  _        _             |
  | | |    (_)   | | /_/                  /_/ | |      | |            |
@@ -14,19 +13,28 @@
  |                                      |___/                        |
  *-------------------------------------------------------------------*/
 
-#ifndef DATA_TYPE_H
-#define DATA_TYPE_H
+#ifndef TERM_H
+#define TERM_H
+#include <stdint.h>
+#include "data_type.h"
+#include "str.h"
+#include "symbol.h"
 
-/**
- * @enum DataType
- * @brief Describes all data-types for 'TokenDataType'.
- *
- */
 typedef enum {
-  TypeInt,
-  TypeFloat64,
-  TypeString,
-  TypeBlackHole //A pseudo data type used by the pseudo variable "_".
-} DataType;
+    TermIntegerLiteral = TypeInt,
+    TermFloatLiteral = TypeFloat64,
+    TermStringLiteral = TypeString,
+    TermVariable
+} TermType;
 
-#endif 
+typedef struct {
+    TermType type;
+    union {
+        int64_t i;
+        double d;
+        string s;
+        SymbolVariable* v;
+    } value;
+} Term;
+
+#endif
