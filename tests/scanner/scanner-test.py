@@ -28,6 +28,7 @@ commentChars = [
 ]
 
 basicChars = [
+    ['=', "TokenAssignment"],
     [',', "TokenComma"],
     [';', "TokenSemicolon"],
     ['(', "TokenLeftBracket"],
@@ -37,8 +38,7 @@ basicChars = [
     ['/', "TokenDivide"],
     ['+', "TokenAdd"],
     ['*', "TokenMultiply"],
-    ['-', "TokenSubtract"],
-    ['=', "TokenAssignment"]
+    ['-', "TokenSubtract"]
 ]
 
 nullChars = [
@@ -51,7 +51,11 @@ doubleChars = [
     ['==', "TokenIsEqual"],
     ['>=', "TokenIsGreaterEqual"],
     ['<=', "TokenIsLessEqual"],
-    [':=', "TokenVarDefine"]
+    [':=', "TokenVarDefine"],
+    ['+=', "TokenAddEqual"], # Feature
+    ['-=', "TokenSubtractEqual"], # Feature
+    ['*=', "TokenMultiplyEqual"], # Feature
+    ['/=', "TokenDivideEqual"] # Feature
 ]
 
 identifiers = [
@@ -111,7 +115,13 @@ numbers = [
     ['5E-4', "TokenDecimalNbr"],
     ['0.5E4', "TokenDecimalNbr"],
     ['0.5E-4', "TokenDecimalNbr"],
-    ['0.5E+4', "TokenDecimalNbr"]
+    ['0.5E+4', "TokenDecimalNbr"],
+    ['0x45', "TokenWholeNbr"],
+    ['0X45', "TokenWholeNbr"],
+    ['0o45', "TokenWholeNbr"],
+    ['0O45', "TokenWholeNbr"],
+    ['0b11', "TokenWholeNbr"],
+    ['0B11', "TokenWholeNbr"]
 ]
 
 numbersReturn = [
@@ -128,7 +138,19 @@ numbersReturn = [
     ['5E-4', "0.000500000"],
     ['0.5E4', "5000"],
     ['0.5E-4', "0.00005"],
-    ['0.5E+4', "5000"]
+    ['0.5E+4', "5000"],
+    ['0x45', "69"],
+    ['0X45', "69"],
+    ['0o45', "37"],
+    ['0O45', "37"],
+    ['0b11', "3"],
+    ['0B11', "3"],
+    ['0x_4_5', "69"],
+    ['0o_4_5', "37"],
+    ['0b_1_1', "3"],
+    ['4_5_5', "455"],
+    ['4_5.5_5', "45.550000000"],
+    ['1_1E1_1', "1100000000000"]
 ]
 
 numbersErrors = [
@@ -138,10 +160,19 @@ numbersErrors = [
     ['0.4E+.5', "TokenUndefined"],
     ['45E+.5', "TokenUndefined"],
     ['45..E+..5', "TokenUndefined"],
+    ['45EE5', "TokenUndefined"],
     ['4.', "TokenUndefined"],
     ['00', "TokenUndefined"],
     ['000010', "TokenUndefined"],
-    ['010010', "TokenUndefined"]
+    ['0xx_1_1', "TokenUndefined"],
+    ['0oo_1_1', "TokenUndefined"],
+    ['0bb_1_1', "TokenUndefined"],
+    ['0x__1_1', "TokenUndefined"],
+    ['0o__1_1', "TokenUndefined"],
+    ['0o_1__1', "TokenUndefined"],
+    ['5__1515', "TokenUndefined"],
+    ['15.45__', "TokenUndefined"],
+    ['154E_5', "TokenUndefined"]
 ]
 
 literalValues = [
@@ -207,6 +238,22 @@ def simpleTestInline():
     for j in range(len(basicChars)): 
         if outputlist[j] != basicChars[j][1]:
             print(f"Test {j} didn't pass. Expected {basicChars[j][1]} got {outputlist[j]} with '{basicChars[j][0]}'")
+        if result.returncode != 0:
+            print(f"Test {j} returned non-zero code!")
+    print("-------------------------------------------------------------------")
+    return
+
+def doubleTestInline():
+    print("'DoubleInLine' tests!")
+    with open(_FILENAME, 'w+') as file:
+        for i in range(len(doubleChars)): 
+            file.write(doubleChars[i][0])
+    with open(_FILENAME, 'r') as file:
+        result = subprocess.run([_TESTEDFILE2], stdin=file, capture_output=True, text=True)
+    outputlist = result.stdout.split("\n")
+    for j in range(len(doubleChars)): 
+        if outputlist[j] != basicChars[j][1]:
+            print(f"Test {j} didn't pass. Expected {doubleChars[j][1]} got {outputlist[j]} with '{doubleChars[j][0]}'")
         if result.returncode != 0:
             print(f"Test {j} returned non-zero code!")
     print("-------------------------------------------------------------------")
@@ -299,7 +346,7 @@ def commentLineTest():
     return
 
 
-def commentsBlockTest(): # maybe EOL?
+def commentsBlockTest():
     print("'CommentBlock Error' test!")
     with open(_FILENAME, 'w+') as file:
         file.write("/*/*")
