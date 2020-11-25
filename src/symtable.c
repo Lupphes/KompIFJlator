@@ -148,6 +148,7 @@ int deepCopyFunction(SymbolFunction* function, int hash){
 	}
 	// Fill parametrs
 	for(int i = 0; i < function->parameters.count; i++){
+		strInit(&newElPtr->FuncData.parameters.params[i].id);
 		strCopyString(&newElPtr->FuncData.parameters.params[i].id, &function->parameters.params[i].id);
 		newElPtr->FuncData.parameters.params[i].type = function->parameters.params[i].type;
 	}
