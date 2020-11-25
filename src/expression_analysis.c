@@ -105,6 +105,10 @@ bool isInStackExpressionOrIdentifier(Stack *stack) {
     }
 }
 
+int useRule() {
+    return SUCCESS;
+}
+
 // int translateToPSATable(Stack *stack, int *operator) {
 //     switch (seekValueStack(stack)) {
 //     case OperatorAdd:
@@ -146,13 +150,23 @@ bool isInStackExpressionOrIdentifier(Stack *stack) {
 // }
 
 
-evaluateExpression(Stack *stack, int *operator) {
+int evaluateExpression(Stack *stack, int *operator) {
+    Stack expression;
     switch (_PSATable[seekValueStack(stack)][*operator]) {
-    case OperatorRightAssociative:
-        /* code */
-        break;
     case OperatorLeftAssociative:
-        /* code */
+        pushToStack(stack, _PSATable[seekValueStack(stack)][*operator]);
+        pushToStack(stack, *operator);
+        break;
+    case OperatorRightAssociative:
+        while (seekValueStack(stack) != OperatorLeftAssociative) {
+            int parsedValue;
+            popFromStack(stack, &parsedValue);
+            pushToStack(&expression, parsedValue);
+            
+        }
+        useRule();
+        
+        
         break;
     case OperatorEqualAssociative:
         /* code */
@@ -161,6 +175,7 @@ evaluateExpression(Stack *stack, int *operator) {
         /* code */
         break;
     }
+    return SUCCESS;
 }
 
 
@@ -256,9 +271,9 @@ int checkIfValidToken(Token *token, Stack *stack, int *operator) {
         return ANALYSIS_END;
         break;
     }
-
-    pushToStack(stack, _PSATable[seekValueStack(stack)][*operator]); // to do if < or > or =? use evaluateExpression
-    pushToStack(stack, operator);
+    evaluateExpression(stack, operator);
+    // pushToStack(stack, _PSATable[seekValueStack(stack)][*operator]); // to do if < or > or =? use evaluateExpression
+    // pushToStack(stack, *operator);
     return SUCCESS;
 }
 
@@ -269,7 +284,7 @@ int parseExpression(Expression* expression) {
     pushToStack(&stack, OperatorEnd);
     int operator;
     while (checkIfValidToken(&curTok, &stack, &operator) == SUCCESS) {
-        evaluateExpression();
+        evaluateExpression(&stack, &operator);
         
         
     }
