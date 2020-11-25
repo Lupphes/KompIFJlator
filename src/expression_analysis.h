@@ -1,4 +1,4 @@
-/*File name: scanner.c ----------------------------------------------*
+/*File name: expression_analysis.h -----------------------------------*
  |Project:    Implementace překladače imperativního jazyka IFJ20     |
  |Team:       124, varianta II                                       |
  |Authors:    Ondřej Sloup (xsloup02)                                |
