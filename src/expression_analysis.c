@@ -105,51 +105,62 @@ bool isInStackExpressionOrIdentifier(Stack *stack) {
     }
 }
 
-int translateToPSATable(Stack *stack, int *operator) {
-    switch (seekValueStack(stack)) {
-    case OperatorAdd:
-         pushToStack(stack, _PSATable[OperatorAdd][*operator]);
+// int translateToPSATable(Stack *stack, int *operator) {
+//     switch (seekValueStack(stack)) {
+//     case OperatorAdd:
+//         break;
+//     case OperatorSubtract:
+//         break;
+//     case OperatorMultiply:
+//         break;
+//     case OperatorDivide:
+//         break;
+//     case OperatorLeftBracket:
+//         break;
+//      case OperatorRightBracket:
+//         break;
+//     case OperatorIsLessThan:
+//         break;
+//     case OperatorIsLessEqual:
+//         break;
+//     case OperatorIsGreaterThan:
+//         break;
+//     case OperatorIsGreaterEqual:
+//         break;
+//     case OperatorIsEqual:
+//         break;
+//     case OperatorNotEqual:
+//         break;
+//     case OperatorEnd:
+//         break;
+//     case OperatorLeftAssociative:
+         
+//         break;
+//     case OperatorRightAssociative: // use rules
+//          evaluateExpression();
+//         break;
+//     default:
+//         break;
+//     }
+//     return SUCCESS;
+// }
+
+
+evaluateExpression(Stack *stack, int *operator) {
+    switch (_PSATable[seekValueStack(stack)][*operator]) {
+    case OperatorRightAssociative:
+        /* code */
         break;
-    case OperatorSubtract:
-         pushToStack(stack, _PSATable[OperatorSubtract][*operator]);
+    case OperatorLeftAssociative:
+        /* code */
         break;
-    case OperatorMultiply:
-         pushToStack(stack, _PSATable[OperatorMultiply][*operator]);
+    case OperatorEqualAssociative:
+        /* code */
         break;
-    case OperatorDivide:
-         pushToStack(stack, _PSATable[OperatorDivide][*operator]);
-        break;
-    case OperatorLeftBracket:
-         pushToStack(stack, _PSATable[OperatorLeftBracket][*operator]);
-        break;
-     case OperatorRightBracket:
-         pushToStack(stack, _PSATable[OperatorRightBracket][*operator]);
-        break;
-    case OperatorIsLessThan:
-         pushToStack(stack, _PSATable[OperatorIsLessThan][*operator]);
-        break;
-    case OperatorIsLessEqual:
-         pushToStack(stack, _PSATable[OperatorIsLessEqual][*operator]);
-        break;
-    case OperatorIsGreaterThan:
-         pushToStack(stack, _PSATable[OperatorIsGreaterThan][*operator]);
-        break;
-    case OperatorIsGreaterEqual:
-         pushToStack(stack, _PSATable[OperatorIsGreaterEqual][*operator]);
-        break;
-    case OperatorIsEqual:
-         pushToStack(stack, _PSATable[OperatorIsEqual][*operator]);
-        break;
-    case OperatorNotEqual:
-         pushToStack(stack, _PSATable[OperatorNotEqual][*operator]);
-        break;
-    case OperatorEnd:
-         pushToStack(stack, _PSATable[OperatorEnd][*operator]);
-        break;
-    default:
+    case OperatorError:
+        /* code */
         break;
     }
-    return SUCCESS;
 }
 
 
@@ -176,6 +187,12 @@ int checkIfValidToken(Token *token, Stack *stack, int *operator) {
             if(isInStackOperator(stack)) 
                 return SYNTAX_ERROR;
             *operator = OperatorDivide;
+            break;
+        case TokenLeftBracket:
+            *operator = OperatorLeftBracket;
+            break;
+        case TokenRightBracket:
+            *operator = OperatorRightBracket;
             break;
         case TokenIsLessThan:
             if(isInStackOperator(stack)) 
@@ -206,12 +223,6 @@ int checkIfValidToken(Token *token, Stack *stack, int *operator) {
             if(isInStackOperator(stack)) 
                 return SYNTAX_ERROR;
             *operator = OperatorNotEqual;
-            break;
-        case TokenLeftBracket:
-            *operator = OperatorLeftBracket;
-            break;
-        case TokenRightBracket:
-            *operator = OperatorRightBracket;
             break;
         case TokenIdentifier:
         case TokenWholeNbr:
@@ -245,6 +256,9 @@ int checkIfValidToken(Token *token, Stack *stack, int *operator) {
         return ANALYSIS_END;
         break;
     }
+
+    pushToStack(stack, _PSATable[seekValueStack(stack)][*operator]); // to do if < or > or =? use evaluateExpression
+    pushToStack(stack, operator);
     return SUCCESS;
 }
 
@@ -255,8 +269,9 @@ int parseExpression(Expression* expression) {
     pushToStack(&stack, OperatorEnd);
     int operator;
     while (checkIfValidToken(&curTok, &stack, &operator) == SUCCESS) {
-
-        pushToStack(&stack, operator);
+        evaluateExpression();
+        
+        
     }
     // TODO: generateAST(); 
 
