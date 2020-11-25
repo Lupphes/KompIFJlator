@@ -22,6 +22,7 @@
 #include "error.h"
 #include "str.h"
 #include "scanner.c"
+#include "parser_common.h"
 
 int initStack(Stack *stack, int64_t initialSize) {
     stack->values = malloc(initialSize * sizeof(int64_t));
@@ -49,12 +50,12 @@ int popFromStack(Stack *stack, int *operation) {
     if (stack->values == NULL) {
         return INTERNAL_ERROR;
     }
-    *operation = getLastValueStack(stack);
+    *operation = seekValueStack(stack);
     stack->values = realloc(stack->values, (stack->size - 1) * sizeof(int64_t));
     return SUCCESS;
 }
 
-int getLastValueStack(Stack *stack) {
+int seekValueStack(Stack *stack) {
     return stack->values[(stack->used - 1)];
 }
 
@@ -65,37 +66,58 @@ void freeStack(Stack *stack) {
 }
 
 int checkIfValidToken(Token *token, Stack *stack) {
-    getToken(token);
+    int returnCode;
+    acceptAny();
     switch (token->type) {
         case TokenAdd:
+            if(isInStackOperator(&stack)) 
+                return SYNTAX_ERROR;
             pushToStack(stack, OperatorAdd);
             break;
         case TokenSubtract:
+            if(isInStackOperator(&stack)) 
+                return SYNTAX_ERROR;
             pushToStack(stack, OperatorSubtract);
             break;
         case TokenMultiply:
-            pushToStack(stack, OperatorMultiple);
+            if(isInStackOperator(&stack)) 
+                return SYNTAX_ERROR;
+            pushToStack(stack, OperatorMultiply);
             break;
         case TokenDivide:
+            if(isInStackOperator(&stack)) 
+                return SYNTAX_ERROR;
             pushToStack(stack, OperatorDivide);
             break;
         case TokenIsLessThan:
-            pushToStack(stack, OperatorLessThan);
+            if(isInStackOperator(&stack)) 
+                return SYNTAX_ERROR;
+            pushToStack(stack, OperatorIsLessThan);
             break;
         case TokenIsLessEqual:
-            pushToStack(stack, OperatorGreaterEqual);
-            break;
-        case TokenIsGreaterEqual:
-            pushToStack(stack, OperatorIsEqual);
+            if(isInStackOperator(&stack)) 
+                return SYNTAX_ERROR;
+            pushToStack(stack, OperatorIsGreaterEqual);
             break;
         case TokenIsGreaterThan:
-            pushToStack(stack, OperatorGreaterThan);
+            if(isInStackOperator(&stack)) 
+                return SYNTAX_ERROR;
+            pushToStack(stack, OperatorIsGreaterThan);
+            break;
+        case TokenIsGreaterEqual:
+            if(isInStackOperator(&stack)) 
+                return SYNTAX_ERROR;
+            pushToStack(stack, OperatorIsEqual);
             break;
         case TokenIsEqual:
+            if(isInStackOperator(&stack)) 
+                return SYNTAX_ERROR;
             pushToStack(stack, OperatorIsEqual);
             break;
         case TokenNotEqual:
-            pushToStack(stack, OperatorIsNotEqual);
+            if(isInStackOperator(&stack)) 
+                return SYNTAX_ERROR;
+            pushToStack(stack, OperatorNotEqual);
             break;
         case TokenLeftBracket:
             pushToStack(stack, OperatorLeftBracket);
@@ -104,16 +126,33 @@ int checkIfValidToken(Token *token, Stack *stack) {
             pushToStack(stack, OperatorRightBracket);
             break;
         case TokenIdentifier:
-            pushToStack(stack, OperatorId);
-            break;
         case TokenWholeNbr:
-            pushToStack(stack, OperatorWholeNumber);
-            break;
         case TokenDecimalNbr:
-            pushToStack(stack, OperatorDecimal);
-            break;
         case TokenStringLiteral:
-            pushToStack(stack, OperatorString);
+            int returnCode;
+            if(isInStackExpressionOrIdentifier(&stack)) 
+                return SYNTAX_ERROR;
+            Term* term = malloc(sizeof(term));
+            if(returnCode = parseTerm(term) == SUCCESS){
+                parseTerm(&term);
+                switch (term->type) {
+                case TokenWholeNbr:
+                    pushToStack(stack, OperatorWholeNumber);
+                    break;
+                case TokenDecimalNbr:
+                    pushToStack(stack, OperatorDecimal);
+                    break;
+                case TokenStringLiteral:
+                    pushToStack(stack, OperatorStringLiteral);
+                    break;
+                case TokenIdentifier:
+                    pushToStack(stack, OperatorIdentifier);
+                    break;
+                }
+            } else {
+                free(term);
+                return returnCode;
+            }
             break;
     default:
         return SYNTAX_ERROR;
@@ -122,20 +161,50 @@ int checkIfValidToken(Token *token, Stack *stack) {
     return SUCCESS;
 }
 
+bool isInStackOperator(Stack *stack) {
+    int lastValue = seekValueStack(stack);
+    switch (lastValue) {
+    case OperatorAdd:
+    case OperatorSubtract:
+    case OperatorMultiply:
+    case OperatorDivide:
+    case OperatorIsLessThan:
+    case OperatorIsLessEqual:
+    case OperatorIsGreaterThan:
+    case OperatorIsGreaterEqual:
+    case OperatorIsEqual:
+    case OperatorNotEqual:
+        return true;
+        break;
+    default:
+        return false;
+        break;
+    }
+}
+
+bool isInStackExpressionOrIdentifier(Stack *stack) {
+    int lastValue = seekValueStack(stack);
+    switch (lastValue) {
+    case OperatorIdentifier:
+    case OperatorExpression:
+    case OperatorWholeNumber:
+    case OperatorDecimal:
+    case OperatorStringLiteral:
+        return true;
+        break;
+    default:
+        return false;
+        break;
+    }
+}
+
 int parseExpression(Expression* expression) {
     /* Stack init */
     Stack stack;
     initStack(&stack, 1);
     pushToStack(&stack, OperatorEnd);
-
-    /* getToken */
-    Token token;
-
-    while (stack.values[0] == OperatorEnd) {
-        if(checkIfValidToken(&token, &stack) == SYNTAX_ERROR) {
-            return SYNTAX_ERROR;
-        }
-        break;
+    while (checkIfValidToken(&curTok, &stack) == SUCCESS) {
+        
     }
     // TODO: generateAST(); 
 
