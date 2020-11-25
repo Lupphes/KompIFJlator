@@ -27,23 +27,23 @@
 typedef enum {
     OperatorAdd = 0, /** + */
     OperatorSubtract, /** - */
-    OperatorMultiple, /** * */
+    OperatorMultiply, /** * */
     OperatorDivide, /** / */
 
-    OperatorLessThan, /** < */
-    OperatorLessEqual, /** <= */
-    OperatorGreaterThan, /** > */
-    OperatorGreaterEqual, /** >= */
+    OperatorIsLessThan, /** < */
+    OperatorIsLessEqual, /** <= */
+    OperatorIsGreaterThan, /** > */
+    OperatorIsGreaterEqual, /** >= */
     OperatorIsEqual, /** == */
-    OperatorIsNotEqual, /** != */
+    OperatorNotEqual, /** != */
 
     OperatorRightBracket, /** ) */
     OperatorLeftBracket, /** ( */
-    OperatorId, /** id */
+    OperatorIdentifier, /** id */
 
     OperatorWholeNumber, /** int -- whole numeber */ // EXPATOM
     OperatorDecimal, /** float -- decimal number */
-    OperatorString, /** string -- text string */
+    OperatorStringLiteral, /** string -- text string */
 
     OperatorLeftAssociative,  /** [ || < */
     OperatorRightAssociative,  /** ] || > */
@@ -91,6 +91,7 @@ int addToStack(Stack *stack, int operation);
 int popFromStack(Stack *stack, int *operation);
 void freeStack(Stack *stack);
 int checkIfValidToken(Token *token, Stack *stack);
+int seekValueStack(Stack *stack);
 int parseExpression(Expression* expression);
 
 #endif
