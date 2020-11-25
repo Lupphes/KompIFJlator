@@ -30,16 +30,17 @@ typedef enum {
     OperatorMultiply, /** * */
     OperatorDivide, /** / */
 
+    OperatorLeftBracket, /** ( */
+    OperatorRightBracket, /** ) */
+    OperatorIdentifier, /** id */
+
     OperatorIsLessThan, /** < */
     OperatorIsLessEqual, /** <= */
     OperatorIsGreaterThan, /** > */
     OperatorIsGreaterEqual, /** >= */
     OperatorIsEqual, /** == */
     OperatorNotEqual, /** != */
-
-    OperatorRightBracket, /** ) */
-    OperatorLeftBracket, /** ( */
-    OperatorIdentifier, /** id */
+    OperatorEnd, /** $ */
 
     OperatorWholeNumber, /** int -- whole numeber */ // EXPATOM
     OperatorDecimal, /** float -- decimal number */
@@ -49,8 +50,7 @@ typedef enum {
     OperatorRightAssociative,  /** ] || > */
     OperatorEqualAssociative,  /** = > */
     OperatorError,  /** = > */
-    OperatorExpression, /** Exp */
-    OperatorEnd /** $ */
+    OperatorExpression /** Exp */
 } _Operators;
 
 typedef enum {

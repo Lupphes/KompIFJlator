@@ -25,6 +25,8 @@
 #include "parser_common.h"
 #include "operator_table.h"
 
+#define ANALYSIS_END -1
+
 int initStack(Stack *stack, int64_t initialSize) {
     stack->values = malloc(initialSize * sizeof(int64_t));
     if (stack->values == NULL) {
@@ -102,6 +104,54 @@ bool isInStackExpressionOrIdentifier(Stack *stack) {
         break;
     }
 }
+
+int translateToPSATable(Stack *stack, int *operator) {
+    switch (seekValueStack(stack)) {
+    case OperatorAdd:
+         pushToStack(stack, _PSATable[OperatorAdd][*operator]);
+        break;
+    case OperatorSubtract:
+         pushToStack(stack, _PSATable[OperatorSubtract][*operator]);
+        break;
+    case OperatorMultiply:
+         pushToStack(stack, _PSATable[OperatorMultiply][*operator]);
+        break;
+    case OperatorDivide:
+         pushToStack(stack, _PSATable[OperatorDivide][*operator]);
+        break;
+    case OperatorLeftBracket:
+         pushToStack(stack, _PSATable[OperatorLeftBracket][*operator]);
+        break;
+     case OperatorRightBracket:
+         pushToStack(stack, _PSATable[OperatorRightBracket][*operator]);
+        break;
+    case OperatorIsLessThan:
+         pushToStack(stack, _PSATable[OperatorIsLessThan][*operator]);
+        break;
+    case OperatorIsLessEqual:
+         pushToStack(stack, _PSATable[OperatorIsLessEqual][*operator]);
+        break;
+    case OperatorIsGreaterThan:
+         pushToStack(stack, _PSATable[OperatorIsGreaterThan][*operator]);
+        break;
+    case OperatorIsGreaterEqual:
+         pushToStack(stack, _PSATable[OperatorIsGreaterEqual][*operator]);
+        break;
+    case OperatorIsEqual:
+         pushToStack(stack, _PSATable[OperatorIsEqual][*operator]);
+        break;
+    case OperatorNotEqual:
+         pushToStack(stack, _PSATable[OperatorNotEqual][*operator]);
+        break;
+    case OperatorEnd:
+         pushToStack(stack, _PSATable[OperatorEnd][*operator]);
+        break;
+    default:
+        break;
+    }
+    return SUCCESS;
+}
+
 
 int checkIfValidToken(Token *token, Stack *stack, int *operator) {
     int returnCode;
@@ -192,7 +242,7 @@ int checkIfValidToken(Token *token, Stack *stack, int *operator) {
             }
             break;
     default:
-        return SYNTAX_ERROR;
+        return ANALYSIS_END;
         break;
     }
     return SUCCESS;
@@ -205,6 +255,7 @@ int parseExpression(Expression* expression) {
     pushToStack(&stack, OperatorEnd);
     int operator;
     while (checkIfValidToken(&curTok, &stack, &operator) == SUCCESS) {
+
         pushToStack(&stack, operator);
     }
     // TODO: generateAST(); 
