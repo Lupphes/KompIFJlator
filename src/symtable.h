@@ -48,8 +48,6 @@ int initFunctionTable();
 
 int addFunction(SymbolFunction* function);
 
-int equalFunctions(const SymbolFunction *f1, const SymbolFunction *f2);
-
 int deepCopyFunction(SymbolFunction* function, int hash);
 
 const SymbolFunction* getFunction(const char* id);

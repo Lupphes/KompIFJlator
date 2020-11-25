@@ -225,8 +225,8 @@ int main(int argc, char const *argv[]) {
 
 	VariableTable *varTabPtr = (VariableTable *)malloc(sizeof(VariableTable));
 
-	printf("======================================\n");
-	printf("\nSymtable tests\n");
+	printf("\n======================================\n");
+	printf("Symtable tests\n");
 	printf("======================================\n");
 /*---------------------------- Function Table TESTS ----------------------------*/
 	printf("\nFunction table tests\n");
@@ -279,8 +279,8 @@ int main(int argc, char const *argv[]) {
 
 /*---------------------------- Variable Table TESTS ----------------------------*/
 	
-	printf("======================================\n");
-	printf("\nVariable table tests\n");
+	printf("\n======================================\n");
+	printf("Variable table tests\n");
 	printf("======================================\n");
 
 	printf("\nHashCode function tests:\n");
@@ -328,8 +328,8 @@ int main(int argc, char const *argv[]) {
 	printVarTable(varTabPtr);
 
 	free(varTabPtr);
-	printf("======================================\n");
-	printf("\nThank you for watching.\n");
+	printf("\n======================================\n");
+	printf("Thank you for watching.\n");
 	printf("======================================\n");
 	return 0;
 }
