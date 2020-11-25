@@ -48,6 +48,7 @@ typedef enum {
     OperatorLeftAssociative,  /** [ || < */
     OperatorRightAssociative,  /** ] || > */
     OperatorEqualAssociative,  /** = > */
+    OperatorError,  /** = > */
     OperatorExpression, /** Exp */
     OperatorEnd /** $ */
 } _Operators;
