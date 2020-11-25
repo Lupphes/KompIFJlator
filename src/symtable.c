@@ -259,7 +259,6 @@ int initVariableTable(VariableTable* table){
 	return SUCCESS;
 }
 
-
 /**
  * @brief Adds a variable to the specified table of variables. Performs a deep copy of given variable.
  * 
@@ -306,6 +305,21 @@ int addVariableToTable(SymbolVariable* variable, VariableTable* table){
  * @return SymbolVariable* A pointer to the found variable symbol or NULL if it wasn't found.
  */
 SymbolVariable* getVariableFromTable(const char * id, VariableTable* table){
+	if(table == NULL)
+		return NULL;
+
+	int hash = hashCode(id);
+
+	VarTabEl *ptr = (*table)[hash];
+	while(ptr != NULL){		// go through the linked list with given hash
+		if(!strCmpConstStr(&ptr->VarData.id, id)){
+			return &ptr->VarData;
+		}
+		else{
+			ptr = ptr->ptrNext;
+		}
+	}
+
 	return NULL;
 }
 
@@ -315,7 +329,20 @@ SymbolVariable* getVariableFromTable(const char * id, VariableTable* table){
  *		with the table of variables are called.
  */
 void freeVariableTable(VariableTable* table){
+	if(table == NULL)
+		return;
 
+	for (int i = 0; i < TABSIZE; ++i){
+		VarTabEl **ptr = &(*table)[i];
+		while(*ptr != NULL){
+			VarTabEl *ptrNext = (*ptr)->ptrNext;
+
+			strFree(&(*ptr)->VarData.id);
+			free(*ptr);
+
+			*ptr = ptrNext;
+		}
+	}
 }
 
 /*--------------------------------------- Variable Table Stack --------------------------------------*/

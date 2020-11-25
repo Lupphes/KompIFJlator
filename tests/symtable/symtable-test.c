@@ -196,12 +196,24 @@ void addVariableToTableTest(VariableTable * varTabPtr, char *id, DataType type){
 		case SUCCESS:
 			printf("Variable added (%s)\n", id); break;
 		case SEMANTIC_ERROR_DEFINITION:
-			printf("Variable already in Table (%s)\n", id); break;
+			printf("Variable already in table (%s)\n", id); break;
 		case INTERNAL_ERROR:
 			printf("Malloc error (%s)\n", id); break;
 	}
 
 	strFree(&newVariable.id);
+}
+
+void getVariableFromTableTest(VariableTable *varTabPtr, const char *id){
+
+	SymbolVariable * Variable = getVariableFromTable(id, varTabPtr);
+
+	if(Variable == NULL){
+		printf("Variable NOT found (%s)\n", id);
+	}
+	else{
+		printf("Variable found (%s) \n", id);
+	}
 }
 
 
@@ -213,8 +225,8 @@ int main(int argc, char const *argv[]) {
 
 	VariableTable *varTabPtr = (VariableTable *)malloc(sizeof(VariableTable));
 
-	printf("\nSymtable tests\n");
 	printf("======================================\n");
+	printf("\nSymtable tests\n");
 	printf("======================================\n");
 /*---------------------------- Function Table TESTS ----------------------------*/
 	printf("\nFunction table tests\n");
@@ -246,11 +258,9 @@ int main(int argc, char const *argv[]) {
 	printFuncTable();
 	
 	printf("\nAddFunction method test #2\n");
-	printf("Add one equal function to already in table\n");
-	printf("then add one with same id but different specification.\n");
+	printf("Try to add function already in table\n");
 	printf("--------------------------------------\n");
 	addFunctionTest(keysF[2], 2, 2);
-	addFunctionTest(keysF[2], 1, 1);
 	printFuncTable();
 
 	printf("\ngetFunction test - should return functions.\n");
@@ -269,6 +279,7 @@ int main(int argc, char const *argv[]) {
 
 /*---------------------------- Variable Table TESTS ----------------------------*/
 	
+	printf("======================================\n");
 	printf("\nVariable table tests\n");
 	printf("======================================\n");
 
@@ -302,9 +313,23 @@ int main(int argc, char const *argv[]) {
 	addVariableToTableTest(varTabPtr, keysV[2], 2);
 	printVarTable(varTabPtr);
 
+	printf("\ngetVariableFromTable test - should return variables.\n");
+	printf("--------------------------------------\n");
+	for (int i = 0; i < countV; i++)
+		getVariableFromTableTest(varTabPtr, keysV[i]);
 
-	printf("\nThank you for watching.\n");
+	printf("\ngetVariableFromTable test - should return NULL.\n");
+	printf("--------------------------------------\n");
+	getVariableFromTableTest(varTabPtr, "Pocahontas");
+
+	printf("\nfreeVariableTable test\n");
+	printf("--------------------------------------\n");
+	freeVariableTable(varTabPtr);
+	printVarTable(varTabPtr);
+
+	free(varTabPtr);
 	printf("======================================\n");
+	printf("\nThank you for watching.\n");
 	printf("======================================\n");
 	return 0;
 }

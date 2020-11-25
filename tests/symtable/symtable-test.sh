@@ -2,6 +2,8 @@
 # Authors: Vojtěch Vlach (xvlach22)
 # This file compares two outputs from symtable-test.c
 # and prints th result
+# For correct response run with:
+# %PROJECTDIR%/src$ ./../tests/symtable/symtable-test.sh
 
 SOURCEFILE="./../tests/symtable/symtable-test-model.out"
 TESTFILE="./../tests/symtable/symtable-test-my.out"
