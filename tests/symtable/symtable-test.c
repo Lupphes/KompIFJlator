@@ -245,9 +245,12 @@ int main(int argc, char const *argv[]) {
 		addFunctionTest(keysF[i], i % 3, i % 3);
 	printFuncTable();
 	
-	printf("\nAddFunction existing method test\n");
+	printf("\nAddFunction method test #2\n");
+	printf("Add one equal function to already in table\n");
+	printf("then add one with same id but different specification.\n");
 	printf("--------------------------------------\n");
 	addFunctionTest(keysF[2], 2, 2);
+	addFunctionTest(keysF[2], 1, 1);
 	printFuncTable();
 
 	printf("\ngetFunction test - should return functions.\n");
@@ -265,13 +268,13 @@ int main(int argc, char const *argv[]) {
 	printFuncTable();
 
 /*---------------------------- Variable Table TESTS ----------------------------*/
+	
+	printf("\nVariable table tests\n");
+	printf("======================================\n");
 
 	printf("\nHashCode function tests:\n");
 	for(int i = 0; i < countV; i++)
 		printf("hash(%s): \t%d\n", keysV[i], hashCode(keysV[i]));
-	
-	printf("\nVariable table tests\n");
-	printf("======================================\n");
 
 	printf("\nInitVariableTable test\n");
 	printf("--------------------------------------\n");

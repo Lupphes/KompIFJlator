@@ -69,8 +69,8 @@ int addFunction(SymbolFunction* function){
 
 	FuncTabEl *ptr = FuncTab[hash];
 	while(ptr != NULL){		// go through the linked list with given hash
-		if(!strCmpString(&ptr->FuncData.id, &function->id)){
-			//equalFunctions(&ptr->FuncData, function)){	// functions are identical
+		//if(!strCmpString(&ptr->FuncData.id, &function->id)){	// functions have same id
+		if(equalFunctions(&ptr->FuncData, function)){	// functions are identical
 			printf("Function %s, and %s are identical\n", strGetStr(&ptr->FuncData.id), strGetStr(&function->id));
 			return SEMANTIC_ERROR_DEFINITION;
 		}
