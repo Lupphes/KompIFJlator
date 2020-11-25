@@ -4,7 +4,7 @@
 #include "expression_analysis.h"
 
 
-const int PSATable [14][7] = {
+const int _PSATable [14][7] = {
     //                  +,-                           *,/                          (                       )                           i                   <,<=,>,>=,==,!=                 $
    /* + */  { OperatorRightAssociative,    OperatorLeftAssociative,   OperatorLeftAssociative,  OperatorRightAssociative,   OperatorLeftAssociative,  OperatorRightAssociative,   OperatorRightAssociative},
    /* - */  { OperatorRightAssociative,    OperatorLeftAssociative,   OperatorLeftAssociative,  OperatorRightAssociative,   OperatorLeftAssociative,  OperatorRightAssociative,   OperatorRightAssociative},
