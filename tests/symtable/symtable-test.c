@@ -153,6 +153,9 @@ void getFunctionTest(char * id, int paramsCount){
 int main(int argc, char const *argv[]) {
 	printf("\nSymtable tests\n");
 	printf("======================================\n");
+	printf("======================================\n");
+	printf("\nFunction table tests\n");
+	printf("======================================\n");
 
 	printf("\nHashCode function tests:\n");
 	char *keys[] = {"Hello", "there", "how", "are", "you", "I", "am", "fine"};
@@ -201,7 +204,12 @@ int main(int argc, char const *argv[]) {
 	freeFunctionTable();
 	printFuncTable();
 
-	printf("Thank you for watching.\n");
+	printf("\nVariable table tests\n");
+	printf("======================================\n");
+
+
+	printf("\nThank you for watching.\n");
+	printf("======================================\n");
 	printf("======================================\n");
 	return 0;
 }
