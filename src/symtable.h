@@ -33,15 +33,12 @@ typedef struct FuncTabEl{
 
 typedef struct VarTabEl{
 	struct VarTabEl *ptrNext;
-	SymbolVariable *VarData;
+	SymbolVariable VarData;
 } VarTabEl;
 
-typedef struct{
-    int size;
-    FuncTabEl *data[TABSIZE];
-} VariableTable;
-
 FuncTabEl *FuncTab[TABSIZE];
+
+typedef VarTabEl *VariableTable[TABSIZE];
 
 int hashCode (const char *string_key);
 

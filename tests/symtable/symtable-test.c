@@ -33,6 +33,8 @@ char *printDataType(DataType type){
 	return "";
 }
 
+/*=========================== Function table methods ==========================*/
+
 // Print given function to one line
 void printFunction(SymbolFunction *function){
 	printf("\t%s, ", strGetStr(&function->id));
@@ -117,7 +119,7 @@ void freeFunctionPtrPtr(SymbolFunction **function){
 	free(*function);
 }
 
-/*===================== individual method tests =====================*/
+/*--------------------- Individual function method tests ------------------*/
 
 void addFunctionTest(char *id, int paramsCount, int returnTypesCount){
 	SymbolFunction *newFunction = (SymbolFunction *)malloc(sizeof(SymbolFunction));
@@ -149,21 +151,79 @@ void getFunctionTest(char * id, int paramsCount){
 	}
 }
 
+/*=========================== Variable method tests ==========================*/
+
+void printVarTable(VariableTable *varTab){
+	printf("\n");
+	if(varTab == NULL){
+		printf("VariableTable not initialized.\n");
+		return;
+	}
+
+	int empty = 1;	//true
+
+	for(int i = 0; i < TABSIZE; i++){
+		VarTabEl *ptr = (*varTab)[i];
+		if(ptr == NULL){
+			continue;
+		}
+		empty = 0; 	// false
+		printf("  %d.", i);
+		while(ptr != NULL){
+			printf("\t%s, %s\n", strGetStr(&ptr->VarData.id), printDataType(ptr->VarData.type));
+			ptr = ptr->ptrNext;
+		}
+	}
+	if(empty){
+		printf("The VariableTable is empty.\n");
+	}
+	printf("\n");
+}
+
+/*--------------------- Individual Variable method tests ------------------*/
+
+// Prepares new variable and adds it to table
+void addVariableToTableTest(VariableTable * varTabPtr, char *id, DataType type){
+	SymbolVariable newVariable;
+	strInit(&newVariable.id);
+	strCopyConstString(&newVariable.id, id);
+
+	newVariable.type = type;
+
+	int result = addVariableToTable(&newVariable, varTabPtr);
+
+	switch (result){
+		case SUCCESS:
+			printf("Variable added (%s)\n", id); break;
+		case SEMANTIC_ERROR_DEFINITION:
+			printf("Variable already in Table (%s)\n", id); break;
+		case INTERNAL_ERROR:
+			printf("Malloc error (%s)\n", id); break;
+	}
+
+	strFree(&newVariable.id);
+}
+
 
 int main(int argc, char const *argv[]) {
+	char *keysF[] = {"Hello", "there", "how", "are", "you", "I", "am", "fine"};
+	int countF = 8;
+	char *keysV[] = {"sum", "var", "i", "height", "width", "true", "false", "type", "ptr"};
+	int countV = 9;
+
+	VariableTable *varTabPtr = (VariableTable *)malloc(sizeof(VariableTable));
+
 	printf("\nSymtable tests\n");
 	printf("======================================\n");
 	printf("======================================\n");
+/*---------------------------- Function Table TESTS ----------------------------*/
 	printf("\nFunction table tests\n");
 	printf("======================================\n");
 
 	printf("\nHashCode function tests:\n");
-	char *keys[] = {"Hello", "there", "how", "are", "you", "I", "am", "fine"};
-	int count = 8;
-	for(int i = 0; i < count; i++)
-		printf("hash(%s): \t%d\n", keys[i], hashCode(keys[i]));
+	for(int i = 0; i < countF; i++)
+		printf("hash(%s): \t%d\n", keysF[i], hashCode(keysF[i]));
 	
-
 	printf("\nInitFunctionTable test\n");
 	printf("--------------------------------------\n");
 	initFunctionTable();
@@ -181,19 +241,19 @@ int main(int argc, char const *argv[]) {
 
 	printf("\nAddFunction method test\n");
 	printf("--------------------------------------\n");
-	for(int i = 0; i < count; i++)
-		addFunctionTest(keys[i], i % 3, i % 3);
+	for(int i = 0; i < countF; i++)
+		addFunctionTest(keysF[i], i % 3, i % 3);
 	printFuncTable();
 	
 	printf("\nAddFunction existing method test\n");
 	printf("--------------------------------------\n");
-	addFunctionTest(keys[2], 2, 2);
+	addFunctionTest(keysF[2], 2, 2);
 	printFuncTable();
 
 	printf("\ngetFunction test - should return functions.\n");
 	printf("--------------------------------------\n");
-	for (int i = 0; i < count; i++)
-		getFunctionTest(keys[i], i % 3);
+	for (int i = 0; i < countF; i++)
+		getFunctionTest(keysF[i], i % 3);
 
 	printf("\ngetFunction test - should return NULL.\n");
 	printf("--------------------------------------\n");
@@ -204,8 +264,40 @@ int main(int argc, char const *argv[]) {
 	freeFunctionTable();
 	printFuncTable();
 
+/*---------------------------- Variable Table TESTS ----------------------------*/
+
+	printf("\nHashCode function tests:\n");
+	for(int i = 0; i < countV; i++)
+		printf("hash(%s): \t%d\n", keysV[i], hashCode(keysV[i]));
+	
 	printf("\nVariable table tests\n");
 	printf("======================================\n");
+
+	printf("\nInitVariableTable test\n");
+	printf("--------------------------------------\n");
+	initVariableTable(varTabPtr);
+	printVarTable(varTabPtr);
+
+	printf("\nfreeVariableTable test - free empty table\n");
+	printf("--------------------------------------\n");
+	freeVariableTable(varTabPtr);
+	printVarTable(varTabPtr);
+
+	printf("\nInitVariableTable test again\n");
+	printf("--------------------------------------\n");
+	initVariableTable(varTabPtr);
+	printVarTable(varTabPtr);
+
+	printf("\addVariableToTable method test\n");
+	printf("--------------------------------------\n");
+	for(int i = 0; i < countV; i++)
+		addVariableToTableTest(varTabPtr, keysV[i], i % 3);
+	printVarTable(varTabPtr);
+
+	printf("\addVariableToTable with existing variable\n");
+	printf("--------------------------------------\n");
+	addVariableToTableTest(varTabPtr, keysV[2], 2);
+	printVarTable(varTabPtr);
 
 
 	printf("\nThank you for watching.\n");

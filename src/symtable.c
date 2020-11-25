@@ -115,12 +115,7 @@ int equalFunctions(const SymbolFunction *f1, const SymbolFunction *f2){
 		diff++;
 	}
 
-	if (diff > 0){
-		return 0;
-	}
-	else {
-		return 1;
-	}
+	return (diff) ? 0 : 1;
 }
 
 /*
@@ -256,24 +251,51 @@ void freeFunction(SymbolFunction *func){
  * @param table The table to be initialised.
  * 
  * @return SUCCESS If the function initialised the variable table succesfully.
- * @return INTERNAL_ERROR If there was an error in initialising the table.
  */
 int initVariableTable(VariableTable* table){
-	return DEFAULTANSWER;
+	for (int i = 0; i < TABSIZE; ++i)
+		(*table)[i] = NULL;
+
+	return SUCCESS;
 }
 
 
 /**
- * @brief Adds a variable to the specified table of variables.
+ * @brief Adds a variable to the specified table of variables. Performs a deep copy of given variable.
  * 
  * @param variable A pointer to a valid SymbolVariable to be added.
  * @param table A pointer to a valid VariableTable into which to add the new variable entry.
  * @return SUCCESS If the variable was successfully added to the table of variables.
  * @return SEMANTIC_ERROR_DEFINITION If the variable with the specified name already exists.
- * @return INTERNAL_ERROR f there was a problem with adding the variable (like malloc).
+ * @return INTERNAL_ERROR If there was a problem with adding the variable (like malloc).
  */
 int addVariableToTable(SymbolVariable* variable, VariableTable* table){
-	return DEFAULTANSWER;
+	if(table == NULL || variable == NULL)
+		return INTERNAL_ERROR;
+
+	int hash = hashCode(strGetStr(&variable->id));
+
+	VarTabEl *ptr = (*table)[hash];
+	while(ptr != NULL){		// go through the linked list with given hash
+		if(!strCmpString(&ptr->VarData.id, &variable->id))
+			return SEMANTIC_ERROR_DEFINITION;
+		ptr = ptr->ptrNext;
+	}
+
+	// create a new Variable element
+	VarTabEl *newElPtr = (VarTabEl *)malloc(sizeof(VarTabEl));
+	if(newElPtr == NULL)
+		return INTERNAL_ERROR;
+
+	strInit(&newElPtr->VarData.id);
+	strCopyString(&newElPtr->VarData.id, &variable->id);
+
+	newElPtr->VarData.type = variable->type;
+
+	newElPtr->ptrNext = (*table)[hash];
+	(*table)[hash] = newElPtr;
+
+	return SUCCESS;
 }
 
 /**

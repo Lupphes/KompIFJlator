@@ -14,8 +14,8 @@ testFile(){
 		#make -i ${MAKEFILEDIR}
 		make
 	fi
-	echo "${SOURCEFILE}"
 	if [ -f ${SOURCEFILE} ]; then
+		make
 		./${PROGRAM} > ${TESTFILE}
 		diff -s $SOURCEFILE $TESTFILE
 	else
