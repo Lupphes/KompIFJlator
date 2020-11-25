@@ -91,7 +91,7 @@ int initStack(Stack *stack, int64_t initialSize);
 int addToStack(Stack *stack, int operation);
 int popFromStack(Stack *stack, int *operation);
 void freeStack(Stack *stack);
-int checkIfValidToken(Token *token, Stack *stack);
+int checkIfValidToken(Token *token, Stack *stack, int *operator);
 int seekValueStack(Stack *stack);
 int parseExpression(Expression* expression);
 

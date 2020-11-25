@@ -23,6 +23,7 @@
 #include "str.h"
 #include "scanner.c"
 #include "parser_common.h"
+#include "operator_table.h"
 
 int initStack(Stack *stack, int64_t initialSize) {
     stack->values = malloc(initialSize * sizeof(int64_t));
@@ -65,102 +66,6 @@ void freeStack(Stack *stack) {
     stack->used = stack->size = 0;
 }
 
-int checkIfValidToken(Token *token, Stack *stack) {
-    int returnCode;
-    acceptAny();
-    switch (token->type) {
-        case TokenAdd:
-            if(isInStackOperator(&stack)) 
-                return SYNTAX_ERROR;
-            pushToStack(stack, OperatorAdd);
-            break;
-        case TokenSubtract:
-            if(isInStackOperator(&stack)) 
-                return SYNTAX_ERROR;
-            pushToStack(stack, OperatorSubtract);
-            break;
-        case TokenMultiply:
-            if(isInStackOperator(&stack)) 
-                return SYNTAX_ERROR;
-            pushToStack(stack, OperatorMultiply);
-            break;
-        case TokenDivide:
-            if(isInStackOperator(&stack)) 
-                return SYNTAX_ERROR;
-            pushToStack(stack, OperatorDivide);
-            break;
-        case TokenIsLessThan:
-            if(isInStackOperator(&stack)) 
-                return SYNTAX_ERROR;
-            pushToStack(stack, OperatorIsLessThan);
-            break;
-        case TokenIsLessEqual:
-            if(isInStackOperator(&stack)) 
-                return SYNTAX_ERROR;
-            pushToStack(stack, OperatorIsGreaterEqual);
-            break;
-        case TokenIsGreaterThan:
-            if(isInStackOperator(&stack)) 
-                return SYNTAX_ERROR;
-            pushToStack(stack, OperatorIsGreaterThan);
-            break;
-        case TokenIsGreaterEqual:
-            if(isInStackOperator(&stack)) 
-                return SYNTAX_ERROR;
-            pushToStack(stack, OperatorIsEqual);
-            break;
-        case TokenIsEqual:
-            if(isInStackOperator(&stack)) 
-                return SYNTAX_ERROR;
-            pushToStack(stack, OperatorIsEqual);
-            break;
-        case TokenNotEqual:
-            if(isInStackOperator(&stack)) 
-                return SYNTAX_ERROR;
-            pushToStack(stack, OperatorNotEqual);
-            break;
-        case TokenLeftBracket:
-            pushToStack(stack, OperatorLeftBracket);
-            break;
-        case TokenRightBracket:
-            pushToStack(stack, OperatorRightBracket);
-            break;
-        case TokenIdentifier:
-        case TokenWholeNbr:
-        case TokenDecimalNbr:
-        case TokenStringLiteral:
-            int returnCode;
-            if(isInStackExpressionOrIdentifier(&stack)) 
-                return SYNTAX_ERROR;
-            Term* term = malloc(sizeof(term));
-            if(returnCode = parseTerm(term) == SUCCESS){
-                parseTerm(&term);
-                switch (term->type) {
-                case TokenWholeNbr:
-                    pushToStack(stack, OperatorWholeNumber);
-                    break;
-                case TokenDecimalNbr:
-                    pushToStack(stack, OperatorDecimal);
-                    break;
-                case TokenStringLiteral:
-                    pushToStack(stack, OperatorStringLiteral);
-                    break;
-                case TokenIdentifier:
-                    pushToStack(stack, OperatorIdentifier);
-                    break;
-                }
-            } else {
-                free(term);
-                return returnCode;
-            }
-            break;
-    default:
-        return SYNTAX_ERROR;
-        break;
-    }
-    return SUCCESS;
-}
-
 bool isInStackOperator(Stack *stack) {
     int lastValue = seekValueStack(stack);
     switch (lastValue) {
@@ -198,13 +103,109 @@ bool isInStackExpressionOrIdentifier(Stack *stack) {
     }
 }
 
+int checkIfValidToken(Token *token, Stack *stack, int *operator) {
+    int returnCode;
+    acceptAny();
+    switch (token->type) {
+        case TokenAdd:
+            if(isInStackOperator(stack)) 
+                return SYNTAX_ERROR;
+            *operator = OperatorAdd;
+            break;
+        case TokenSubtract:
+            if(isInStackOperator(stack)) 
+                return SYNTAX_ERROR;
+            break;
+            *operator = OperatorSubtract;
+        case TokenMultiply:
+            if(isInStackOperator(stack)) 
+                return SYNTAX_ERROR;
+            break;
+            *operator = OperatorMultiply;
+        case TokenDivide:
+            if(isInStackOperator(stack)) 
+                return SYNTAX_ERROR;
+            *operator = OperatorDivide;
+            break;
+        case TokenIsLessThan:
+            if(isInStackOperator(stack)) 
+                return SYNTAX_ERROR;
+            *operator = OperatorIsLessThan;
+            break;
+        case TokenIsLessEqual:
+            if(isInStackOperator(stack)) 
+                return SYNTAX_ERROR;
+            *operator = OperatorIsGreaterEqual;
+            break;
+        case TokenIsGreaterThan:
+            if(isInStackOperator(stack)) 
+                return SYNTAX_ERROR;
+            *operator = OperatorIsGreaterThan;
+            break;
+        case TokenIsGreaterEqual:
+            if(isInStackOperator(stack)) 
+                return SYNTAX_ERROR;
+            *operator = OperatorIsGreaterEqual;
+            break;
+        case TokenIsEqual:
+            if(isInStackOperator(stack)) 
+                return SYNTAX_ERROR;
+            *operator = OperatorIsEqual;
+            break;
+        case TokenNotEqual:
+            if(isInStackOperator(stack)) 
+                return SYNTAX_ERROR;
+            *operator = OperatorNotEqual;
+            break;
+        case TokenLeftBracket:
+            *operator = OperatorLeftBracket;
+            break;
+        case TokenRightBracket:
+            *operator = OperatorRightBracket;
+            break;
+        case TokenIdentifier:
+        case TokenWholeNbr:
+        case TokenDecimalNbr:
+        case TokenStringLiteral:
+            if(isInStackExpressionOrIdentifier(stack)) 
+                return SYNTAX_ERROR;
+            Term* term = malloc(sizeof(term));
+            if((returnCode = parseTerm(term)) == SUCCESS){
+                parseTerm(term);
+                switch (term->type) {
+                case TermIntegerLiteral:
+                    *operator = OperatorWholeNumber;
+                    break;
+                case TermFloatLiteral:
+                    *operator = OperatorDecimal;
+                    break;
+                case TermStringLiteral:
+                    *operator = OperatorStringLiteral;
+                    break;
+                case TermVariable:
+                    *operator = OperatorIdentifier;
+                    break;
+                }
+            } else {
+                free(term);
+                return returnCode;
+            }
+            break;
+    default:
+        return SYNTAX_ERROR;
+        break;
+    }
+    return SUCCESS;
+}
+
 int parseExpression(Expression* expression) {
     /* Stack init */
     Stack stack;
     initStack(&stack, 1);
     pushToStack(&stack, OperatorEnd);
-    while (checkIfValidToken(&curTok, &stack) == SUCCESS) {
-        
+    int operator;
+    while (checkIfValidToken(&curTok, &stack, &operator) == SUCCESS) {
+        pushToStack(&stack, operator);
     }
     // TODO: generateAST(); 
 
