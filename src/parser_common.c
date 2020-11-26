@@ -116,7 +116,7 @@ int validateFunctionCall(const SymbolFunction* function, const SymbolVariableArr
     return SUCCESS;
 }
 
-int parseTerm(Term* term){
+int parseTerm(Term* term, bool autoAdvance){
     int returnCode;
     
     switch(curTok.type){
@@ -149,7 +149,9 @@ int parseTerm(Term* term){
         default:
             return SYNTAX_ERROR;
     }
+    if (autoAdvance){
     acceptAny();
+    }
     return SUCCESS;
 }
 
