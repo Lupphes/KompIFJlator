@@ -730,9 +730,8 @@ int getToken(Token* token) {
                 break;
             } else {
                 charMacro(unGetCharCheck, currChar);
-                char* formatedString = strGetStr(&bufferString);
-                memmove(formatedString, formatedString + 1, strlen(formatedString));
-                token->attribute.i = strtoull(formatedString, NULL, 2);
+                const char* formatedString = strGetStr(&bufferString);
+                token->attribute.i = strtoull(formatedString+1, NULL, 2);
                 token->type = TokenWholeNbr;
                 strFree(&bufferString);
                 return SUCCESS;
