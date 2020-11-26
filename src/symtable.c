@@ -307,13 +307,14 @@ void freeVariableTable(VariableTable* table){
 /*--------------------------------------- Variable Table Stack --------------------------------------*/
 
 /**
- * @brief Initialisases the stack of variable tables used by the parser.
+ * @brief Initialisases the two stacks of variable tables used by the parser. mainStack and binStack.
  * 
  * @return SUCCESS Initialisation was successful.
- * @return INTERNAL_ERROR Initialisation wasn't successfuly (malloc or similar).
  */
 int initVariableTableStack(){
-	return DEFAULTANSWER;
+	mainStack = NULL;
+	binStack = NULL;
+	return SUCCESS;
 }
 
 /**
@@ -324,54 +325,88 @@ int initVariableTableStack(){
  * @return INTERNAL_ERROR Creation of new stack frame wasn't successful (malloc or similar).
  */
 int enterNewStackFrame(){
-	return DEFAULTANSWER;
+	StackEl *newFramePtr;
+	if((newFramePtr = (StackEl *)malloc(sizeof(StackEl))) == NULL)
+		return INTERNAL_ERROR;
+
+	initVariableTable(&newFramePtr->table);
+
+	newFramePtr->ptrNext = mainStack;
+	mainStack = newFramePtr;
+
+	return SUCCESS;
 }
 
 /**
- * @brief Deletes and cleans up the memory used by the active variable stack frame and moves back 
- *		to the previous one (like a stack pop). Using this function when the stack is empty 
- *		is guaranteed not to happen.
- *		zmena: neuvolnuje pamet, ale ulozi si referenci na danou tabulku do "allTheTables" nebo tak nejak
+ * @brief Saves reference on active variable to binStack and deletes from mainStack (like a stack pop)
+ * 			Using this function when the stack is empty is guaranteed not to happen.
  */
 void leaveStackFrame(){
+	if(mainStack == NULL)
+		return;
 
+	StackEl *formerMainHead = mainStack;
+	mainStack = mainStack->ptrNext;
+
+	formerMainHead->ptrNext = binStack;
+	binStack = formerMainHead;
 }
 
 /**
  * @brief Adds the specified variable to the active variable stack frame.
  * 
  * @param variable The variable to add.
- * @return SUCCESS uhh... you know what.
+ * 
+ * @return SUCCESS If the variable was successfully added to active table of variables.
+ * @return INTERNAL_ERROR If there was a problem with adding the variable (like malloc).
  * @return SEMANTIC_ERROR_DEFINITION The variable already exists in the active variable stack frame. 
- *		(The varialbe may or may not exist in the previous stack frames, but this is does not concern 
+ *		(The variable may or may not exist in the previous stack frames, but this is does not concern 
  *		the output of this function.)
- *
- * @return INTERNAL_ERROR uhh... you know what
  */
 int addVariable(SymbolVariable* variable){
-	return DEFAULTANSWER;
+	return addVariableToTable(variable, &mainStack->table);
 }
 
 /**
  * @brief Gets a reference to the FIRST occurence of the variable in the stack of variable tables. 
  *		I.e. this function first looks in the current variable stack frame and if it doesn't find 
- *		the variable there, it goes to the previous and so on until it hits the top of the stack.
+ *		the variable there, it goes to the previous and so on until it hits the end of the stack.
  * 
  * @param id The name of the variable to find.
  * @return SymbolVariable* The FIRST occurence of the variable in the stack of variable tables 
- *		or NULL if such a variable doesn't exist ANYWHERE.
+ *		or NULL if such a variable doesn't exist in mainStack.
  */
 SymbolVariable* getVariable(const char* id){
+	StackEl *ptr = mainStack;
+
+	while (ptr != NULL){
+		SymbolVariable *varPtr = getVariableFromTable(id, &ptr->table);
+		if(varPtr != NULL)
+			return varPtr;
+		ptr = ptr->ptrNext;
+	}
+
 	return NULL;
 }
 
 /**
- * @brief Cleans up the entire stacks of variable tables.
- *		zmena: smaz a uvolni pamet celeho pole "allTheTables"
- * 
+ * @brief Cleans up both stacks of variable tables. mainStack and binStack
  */
 void freeVariableTableStack(){
+	freeStack(&mainStack);
+	freeStack(&binStack);
+}
 
+/**
+ * @brief	Cleans up the entire given stack and frees the memory
+ */
+void freeStack(Stack *stack){
+	while (*stack != NULL){
+		StackEl *ptrNext = (*stack)->ptrNext;
+		freeVariableTable(&(*stack)->table);
+		free(*stack);
+		*stack = ptrNext;
+	}
 }
 
 #endif

@@ -36,13 +36,11 @@ upgradeFile(){
 }
 
 makeAndRun(){
-	make
-	./${PROGRAM}
+	make &&	./${PROGRAM}
 }
 
 makeAndValgrindRun(){
-	make
-	valgrind ./${PROGRAM}
+	make &&	valgrind ./${PROGRAM}
 }
 
 #--------------------- START ---------------------#

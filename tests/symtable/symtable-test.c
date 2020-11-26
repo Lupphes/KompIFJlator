@@ -119,8 +119,6 @@ void freeFunctionPtrPtr(SymbolFunction **function){
 	free(*function);
 }
 
-/*--------------------- Individual function method tests ------------------*/
-
 void addFunctionTest(char *id, int paramsCount, int returnTypesCount){
 	SymbolFunction *newFunction = (SymbolFunction *)malloc(sizeof(SymbolFunction));
 	prepareFunction(newFunction, id, paramsCount, returnTypesCount);
@@ -151,7 +149,7 @@ void getFunctionTest(char * id, int paramsCount){
 	}
 }
 
-/*=========================== Variable method tests ==========================*/
+/*=========================== Variable table method tests ==========================*/
 
 void printVarTable(VariableTable *varTab){
 	printf("\n");
@@ -175,12 +173,10 @@ void printVarTable(VariableTable *varTab){
 		}
 	}
 	if(empty){
-		printf("The VariableTable is empty.\n");
+		printf("\tThe VariableTable is empty.\n");
 	}
 	printf("\n");
 }
-
-/*--------------------- Individual Variable method tests ------------------*/
 
 // Prepares new variable and adds it to table
 void addVariableToTableTest(VariableTable * varTabPtr, char *id, DataType type){
@@ -205,7 +201,6 @@ void addVariableToTableTest(VariableTable * varTabPtr, char *id, DataType type){
 }
 
 void getVariableFromTableTest(VariableTable *varTabPtr, const char *id){
-
 	SymbolVariable * Variable = getVariableFromTable(id, varTabPtr);
 
 	if(Variable == NULL){
@@ -213,6 +208,67 @@ void getVariableFromTableTest(VariableTable *varTabPtr, const char *id){
 	}
 	else{
 		printf("Variable found (%s) \n", id);
+	}
+}
+
+/*=========================== Variable stack method tests ==========================*/
+
+void printStack(Stack *stack){
+	int count = 0;
+	StackEl *ptr = *stack;
+	while(ptr != NULL){
+		count++;
+		ptr = ptr->ptrNext;
+	}
+	printf("\nThe stack has %d tables\n", count);
+
+	ptr = *stack;
+	while (ptr != NULL){
+		printVarTable(&ptr->table);
+		ptr = ptr->ptrNext;
+	}
+}
+
+void enterNewStackFrameTest(){
+	int result = enterNewStackFrame();
+
+	switch (result){
+		case SUCCESS:
+			printf("\tNew stackframe added\n"); break;
+		case INTERNAL_ERROR:
+			printf("INTERNAL_ERROR\n");
+	}
+}
+
+void addVariableTest(const char *id, DataType type){
+	SymbolVariable newVariable;
+	strInit(&newVariable.id);
+	strCopyConstString(&newVariable.id, id);
+
+	newVariable.type = type;
+
+	int result = addVariable(&newVariable);
+
+	switch (result){
+		case SUCCESS:
+			printf("Variable added (%s)\n", id); break;
+		case SEMANTIC_ERROR_DEFINITION:
+			printf("Variable already in table (%s)\n", id); break;
+		case INTERNAL_ERROR:
+			printf("Malloc error (%s)\n", id); break;
+	}
+
+	strFree(&newVariable.id);
+}
+
+void getVariableTest(const char *id){
+	SymbolVariable * variable = getVariable(id);
+
+	if(variable == NULL){
+		printf("Variable NOT found (%s)\n", id);
+	}
+	else{
+		printf("Variable found (%s, %s) \n", id, printDataType(variable->type));
 	}
 }
 
@@ -327,6 +383,82 @@ int main(int argc, char const *argv[]) {
 	freeVariableTable(varTabPtr);
 	printVarTable(varTabPtr);
 
+/*---------------------------- Variable Stack tests ----------------------------*/
+
+	printf("\n======================================\n");
+	printf("Variable stack tests\n");
+	printf("======================================\n");
+
+	printf("\ninitVariableTableStack test \n");
+	printf("--------------------------------------\n");
+	initVariableTableStack();
+	printStack(&mainStack);
+	printStack(&binStack);
+
+	printf("\nenterNewStackFrame method test\n");
+	printf("--------------------------------------\n");
+	enterNewStackFrameTest();
+	printStack(&mainStack);
+	printStack(&binStack);
+
+	printf("\nAddVariable method test #1\n");
+	printf("Add some variables to one table\n");
+	printf("--------------------------------------\n");
+	for(int i = 0; i < countV; i++)
+		addVariableTest(keysV[i], i % 3);
+	printStack(&mainStack);
+	printStack(&binStack);
+
+	printf("\nAddVariable method test #2\n");
+	printf("Try to add existing variable\n");
+	printf("--------------------------------------\n");
+	addVariableTest(keysV[5], 2);
+	printStack(&mainStack);
+	printStack(&binStack);
+
+	printf("\nleaveStackFrame test\n");
+	printf("--------------------------------------\n");
+	leaveStackFrame();
+	printStack(&mainStack);
+	printStack(&binStack);
+
+	printf("\nAddVariable method test #3\n");
+	printf("Add some variables to one table\n");
+	printf("--------------------------------------\n");
+	for(int i = 0; i < countV; i++){
+		enterNewStackFrameTest();
+		for(int j = i; j < countV; j++)
+			addVariableTest(keysV[j], (j+i) % 3);
+	}
+	printStack(&mainStack);
+	printStack(&binStack);
+
+	printf("\ngetVariableFromTable test #1\n");
+	printf("Should return variables from the nearest table.\n");
+	printf("--------------------------------------\n");
+	for (int i = countV; i > 0; i--)
+		getVariableTest(keysV[i-1]);
+
+	printf("\ngetVariableFromTable test #2\n");
+	printf("Should return NULL.\n");
+	printf("--------------------------------------\n");
+	getVariableTest("Pocahontas");
+
+	printf("\nleaveStackFrame test #2\n");
+	printf("leave 2 stackframes\n");
+	printf("--------------------------------------\n");
+	leaveStackFrame();
+	leaveStackFrame();
+	printStack(&mainStack);
+	printStack(&binStack);
+
+	printf("\nfreeStack test\n");
+	printf("--------------------------------------\n");
+	freeStack(&mainStack);
+	freeStack(&binStack);
+	printStack(&mainStack);
+	printStack(&binStack);
+	
 	free(varTabPtr);
 	printf("\n======================================\n");
 	printf("Thank you for watching.\n");

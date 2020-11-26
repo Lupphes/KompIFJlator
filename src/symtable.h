@@ -31,14 +31,23 @@ typedef struct FuncTabEl{
 	SymbolFunction FuncData;
 } FuncTabEl;
 
+FuncTabEl *FuncTab[TABSIZE];
+
 typedef struct VarTabEl{
 	struct VarTabEl *ptrNext;
 	SymbolVariable VarData;
 } VarTabEl;
 
-FuncTabEl *FuncTab[TABSIZE];
-
 typedef VarTabEl *VariableTable[TABSIZE];
+
+typedef struct StackEl{
+	struct StackEl *ptrNext;
+	VariableTable table;
+} StackEl;
+
+typedef StackEl *Stack;
+Stack mainStack;
+Stack binStack;
 
 int hashCode (const char *string_key);
 
@@ -79,5 +88,7 @@ int addVariable(SymbolVariable* variable);
 SymbolVariable* getVariable(const char* id);
 
 void freeVariableTableStack();
+
+void freeStack(Stack *stack);
 
 #endif
