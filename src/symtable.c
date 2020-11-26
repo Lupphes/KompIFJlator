@@ -1,7 +1,9 @@
 /*File name: symtable.c ---------------------------------------------*
  |Project:    Implementace překladače imperativního jazyka IFJ20     |
  |Team:       124, varianta II                                       |
- |Authors:    Vojtěch Vlach (xvlach22) 	                             |
+ |Authors:    Vojtěch Vlach (xvlach22)                               |
+ |            hashCode function copied from IAL homework #2 2020     |
+ |            	c016.c (Petr Přikryl, December 1994)                 |
  |                                                                   |
  |  _      _     _   __                   __  _        _             |
  | | |    (_)   | | /_/                  /_/ | |      | |            |
@@ -16,7 +18,6 @@
 #ifndef SYMTABLE_C
 #define SYMTABLE_C
 #include "symtable.h"
-
 
 /*
  * @brief counts hash from given string
@@ -89,21 +90,40 @@ int addFunction(SymbolFunction* function){
 int deepCopyFunction(SymbolFunction* function, int hash){
 	// Alloc new function
 	FuncTabEl *newElPtr = (FuncTabEl *)malloc(sizeof(FuncTabEl));
+	
 	if(newElPtr == NULL)
 		return INTERNAL_ERROR;
-	strInit(&newElPtr->FuncData.id);
-	strCopyString(&newElPtr->FuncData.id, &function->id);
+
+	if(strInit(&newElPtr->FuncData.id) == STR_ERROR)
+		return INTERNAL_ERROR;
+
+	if(strCopyString(&newElPtr->FuncData.id, &function->id) == STR_ERROR){
+		strFree(&newElPtr->FuncData.id);
+		return INTERNAL_ERROR;
+	}
 
 	// Alloc parametrs
 	newElPtr->FuncData.parameters.params = (SymbolFunctionParameter *)malloc(sizeof(SymbolFunctionParameter) * function->parameters.count);
 	if(newElPtr->FuncData.parameters.params == NULL){
+		strFree(&newElPtr->FuncData.id);
 		free(newElPtr);
 		return INTERNAL_ERROR;
 	}
 	// Fill parametrs
 	for(int i = 0; i < function->parameters.count; i++){
-		strInit(&newElPtr->FuncData.parameters.params[i].id);
-		strCopyString(&newElPtr->FuncData.parameters.params[i].id, &function->parameters.params[i].id);
+		if(strInit(&newElPtr->FuncData.parameters.params[i].id) == STR_ERROR ||
+			strCopyString(&newElPtr->FuncData.parameters.params[i].id, &function->parameters.params[i].id) == STR_ERROR){
+			// if str_error, free this function
+			// first prepare function to properly free itself
+			newElPtr->FuncData.parameters.count = i + 1;
+			newElPtr->FuncData.returnTypes.count = 0;
+
+			// free function
+			freeFunction(&newElPtr->FuncData);
+			free(newElPtr);
+
+			return INTERNAL_ERROR;
+		}
 		newElPtr->FuncData.parameters.params[i].type = function->parameters.params[i].type;
 	}
 	newElPtr->FuncData.parameters.count = function->parameters.count;
@@ -111,7 +131,7 @@ int deepCopyFunction(SymbolFunction* function, int hash){
 	// Alloc returntype
 	newElPtr->FuncData.returnTypes.types = (DataType *)malloc(sizeof(DataType) * function->returnTypes.count);
 	if(newElPtr->FuncData.returnTypes.types == NULL){
-		free(newElPtr->FuncData.parameters.params);
+		freeFunction(&newElPtr->FuncData);
 		free(newElPtr);
 		return INTERNAL_ERROR;
 	}
@@ -168,21 +188,8 @@ void freeFunctionTable(){
 		FuncTabEl **ptrptr = &FuncTab[i];
 		while(*ptrptr != NULL){
 			FuncTabEl *ptrNext = (*ptrptr)->ptrNext;
-			printf("freeing (%d, %s)\n", i, strGetStr(&(*ptrptr)->FuncData.id));
-
 
 			freeFunction(&(*ptrptr)->FuncData);
-
-			/*
-			free((*ptrptr)->FuncData.returnTypes.types);
-
-			for(int i = 0; i < (*ptrptr)->FuncData.parameters.count; i++)
-				strFree(&((*ptrptr)->FuncData.parameters.params[i].id));
-
-			free((*ptrptr)->FuncData.parameters.params);
-
-			strFree(&(*ptrptr)->FuncData.id);
-			//*/
 
 			free(*ptrptr);
 			*ptrptr = ptrNext;
@@ -245,8 +252,12 @@ int addVariableToTable(SymbolVariable* variable, VariableTable* table){
 	if(newElPtr == NULL)
 		return INTERNAL_ERROR;
 
-	strInit(&newElPtr->VarData.id);
-	strCopyString(&newElPtr->VarData.id, &variable->id);
+	if(strInit(&newElPtr->VarData.id) == STR_ERROR ||
+		strCopyString(&newElPtr->VarData.id, &variable->id) == STR_ERROR){
+		strFree(&newElPtr->VarData.id);
+		free(newElPtr);
+		return INTERNAL_ERROR;
+	}
 
 	newElPtr->VarData.type = variable->type;
 

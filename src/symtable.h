@@ -24,7 +24,6 @@
 #include <string.h>
 
 #define TABSIZE 19
-#define DEFAULTANSWER 42
 
 typedef struct FuncTabEl{
 	struct FuncTabEl *ptrNext;
