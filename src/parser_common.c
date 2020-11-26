@@ -116,6 +116,17 @@ int validateFunctionCall(const SymbolFunction* function, const SymbolVariableArr
     return SUCCESS;
 }
 
+/**
+ * @brief Tries to parse the current token as a term. Upon success, saves the result to the variable pointed by the "term" parameter.
+ * 
+ * @param term A pointer to a variable of type Term where the result shall be stored.
+ * @param autoAdvance Tells the function whether to automatically advance to the next token if parsing was successful.
+ * @retval SUCCESS Parsing was successful and the result has been stored in "term".
+ * @retval SYNTAX_ERROR The current token cannot possibly be a term as it is of a wrong type.
+ * @retval SEMANTIC_ERROR_DEFINITION The current token is an identifier that corresponds to no valid variable in the current context.
+ * @retval LEXICAL_ERROR The "autoAdvance" parameter is set to true and the scanner reported a lexical error while acquiring the next token.
+ * @retval INTERNAL_ERROR There was an unrecoverable error with memory allocation.
+ */
 int parseTerm(Term* term, bool autoAdvance){
     int returnCode;
     
@@ -150,7 +161,7 @@ int parseTerm(Term* term, bool autoAdvance){
             return SYNTAX_ERROR;
     }
     if (autoAdvance){
-    acceptAny();
+        acceptAny();
     }
     return SUCCESS;
 }
