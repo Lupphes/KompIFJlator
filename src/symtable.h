@@ -54,9 +54,9 @@ int hashCode (const char *string_key);
 
 int initFunctionTable();
 
-int addFunction(SymbolFunction* function);
+int addFunction(const SymbolFunction* function);
 
-int deepCopyFunction(SymbolFunction* function, int hash);
+int deepCopyFunction(const SymbolFunction* function, int hash);
 
 const SymbolFunction* getFunction(const char* id);
 
@@ -68,9 +68,9 @@ void freeFunction(SymbolFunction *func);
 
 int initVariableTable(VariableTable* table);
 
-int addVariableToTable(SymbolVariable* variable, VariableTable* table);
+int addVariableToTable(const SymbolVariable* variable, VariableTable* table);
 
-SymbolVariable* getVariableFromTable(const char * id, VariableTable* table);
+const SymbolVariable* getVariableFromTable(const char * id, VariableTable* table);
 
 void freeVariableTable(VariableTable* table);
 
@@ -82,7 +82,7 @@ int enterNewStackFrame();
 
 void leaveStackFrame();
 
-int addVariable(SymbolVariable* variable);
+int addVariable(const SymbolVariable* variable);
 
 const SymbolVariable* getVariable(const char* id);
 

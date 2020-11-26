@@ -62,7 +62,7 @@ int initFunctionTable(){
  * @return SEMANTIC_ERROR_DEFINITION If the function already exists in the symtable.
  * @return INTENRAL_ERROR If there was a problem with adding the function (like malloc).
  */
-int addFunction(SymbolFunction* function){
+int addFunction(const SymbolFunction* function){
 	if(function == NULL)
 		return INTERNAL_ERROR;
 
@@ -87,7 +87,7 @@ int addFunction(SymbolFunction* function){
  * @return 	SUCCESS 		If the function was added succesfully.
  * @return 	INTENRAL_ERROR 	If there was a problem with adding the function (like malloc).
  */
-int deepCopyFunction(SymbolFunction* function, int hash){
+int deepCopyFunction(const SymbolFunction* function, int hash){
 	// Alloc new function
 	FuncTabEl *newElPtr = (FuncTabEl *)malloc(sizeof(FuncTabEl));
 	
@@ -237,7 +237,7 @@ int initVariableTable(VariableTable* table){
  * @return SEMANTIC_ERROR_DEFINITION If the variable with the specified name already exists.
  * @return INTERNAL_ERROR If there was a problem with adding the variable (like malloc).
  */
-int addVariableToTable(SymbolVariable* variable, VariableTable* table){
+int addVariableToTable(const SymbolVariable* variable, VariableTable* table){
 	if(table == NULL || variable == NULL)
 		return INTERNAL_ERROR;
 
@@ -277,7 +277,7 @@ int addVariableToTable(SymbolVariable* variable, VariableTable* table){
  * @param table A pointer to a VariableTable to look in.
  * @return SymbolVariable* A pointer to the found variable symbol or NULL if it wasn't found.
  */
-SymbolVariable* getVariableFromTable(const char * id, VariableTable* table){
+const SymbolVariable* getVariableFromTable(const char * id, VariableTable* table){
 	if(table == NULL)
 		return NULL;
 
@@ -382,7 +382,7 @@ void leaveStackFrame(){
  *		(The variable may or may not exist in the previous stack frames, but this is does not concern 
  *		the output of this function.)
  */
-int addVariable(SymbolVariable* variable){
+int addVariable(const SymbolVariable* variable){
 	return addVariableToTable(variable, &mainStack->table);
 }
 
@@ -402,7 +402,7 @@ const SymbolVariable* getVariable(const char* id){
 	StackEl *ptr = mainStack;
 
 	while (ptr != NULL){
-		SymbolVariable *varPtr = getVariableFromTable(id, &ptr->table);
+		const SymbolVariable *varPtr = getVariableFromTable(id, &ptr->table);
 		if(varPtr != NULL)
 			return varPtr;
 		ptr = ptr->ptrNext;

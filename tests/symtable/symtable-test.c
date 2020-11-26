@@ -205,7 +205,7 @@ void addVariableToTableTest(VariableTable * varTabPtr, char *id, DataType type){
 }
 
 void getVariableFromTableTest(VariableTable *varTabPtr, const char *id){
-	SymbolVariable * Variable = getVariableFromTable(id, varTabPtr);
+	const SymbolVariable * Variable = getVariableFromTable(id, varTabPtr);
 
 	if(Variable == NULL){
 		printf("Variable NOT found (%s)\n", id);
@@ -266,7 +266,7 @@ void addVariableTest(const char *id, DataType type){
 }
 
 void getVariableTest(const char *id){
-	SymbolVariable * variable = getVariable(id);
+	const SymbolVariable * variable = getVariable(id);
 
 	if(variable == NULL){
 		printf("Variable NOT found (%s)\n", id);
