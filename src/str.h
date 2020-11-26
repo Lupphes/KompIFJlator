@@ -19,6 +19,8 @@
 #ifndef STR_H
 #define STR_H
 
+#include "error.h"
+
 typedef struct
 {
   char* str;		// misto pro dany retezec ukonceny znakem '\0'
@@ -27,8 +29,8 @@ typedef struct
 } string;
 
 typedef enum {
-    STR_SUCCESS,
-    STR_ERROR
+    STR_SUCCESS = SUCCESS,
+    STR_ERROR = INTERNAL_ERROR
 } ErrorString;
 
 
