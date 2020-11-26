@@ -13,6 +13,11 @@ static const char* enumTokenTranslate[] = {
     "TokenIsGreaterEqual", 
     "TokenIsLessThan", 
     "TokenIsLessEqual", 
+    /* Feature UNARY */
+    "TokenAddEqual",
+    "TokenSubtractEqual",
+    "TokenMultiplyEqual",
+    "TokenDivideEqual",
     /* Operation */
     "TokenAssignment",
     "TokenVarDefine", 
