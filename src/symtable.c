@@ -18,6 +18,11 @@
 
 #include "symtable.h"
 
+// Represents the pseudo variable "_".
+// Initialised in the initVariableTableStack function.
+// This variable always exists and thus cannot be stored on any variable stack as there is no variable table that exists for the whole lifetime of the compilation process.
+SymbolVariable blackHoleVariable;
+
 /*
  * @brief counts hash from given string
  *
@@ -323,6 +328,11 @@ void freeVariableTable(VariableTable* table){
 int initVariableTableStack(){
 	mainStack = NULL;
 	binStack = NULL;
+	if (strInit(&blackHoleVariable.id) == STR_ERROR || strCopyConstString(&blackHoleVariable.id,"_") == STR_ERROR){
+		strFree(&blackHoleVariable.id);
+		return INTERNAL_ERROR;
+	}
+	blackHoleVariable.type = TypeBlackHole;
 	return SUCCESS;
 }
 
@@ -385,7 +395,9 @@ int addVariable(SymbolVariable* variable){
  * @return SymbolVariable* The FIRST occurence of the variable in the stack of variable tables 
  *		or NULL if such a variable doesn't exist in mainStack.
  */
-SymbolVariable* getVariable(const char* id){
+	if (!strCmpConstStr(&blackHoleVariable.id,id))
+		return &blackHoleVariable;
+	
 	StackEl *ptr = mainStack;
 
 	while (ptr != NULL){
@@ -399,11 +411,12 @@ SymbolVariable* getVariable(const char* id){
 }
 
 /**
- * @brief Cleans up both stacks of variable tables. mainStack and binStack
+ * @brief Cleans up both stacks of variable tables, mainStack and binStack, and the smart string used in the blackHoleVariable object.
  */
 void freeVariableTableStack(){
 	freeStack(&mainStack);
 	freeStack(&binStack);
+	strFree(&blackHoleVariable.id);
 }
 
 /**
