@@ -33,7 +33,7 @@ typedef struct {
         int64_t i;
         double d;
         string s;
-        SymbolVariable* v;
+        const SymbolVariable* v;
     } value;
 } Term;
 
