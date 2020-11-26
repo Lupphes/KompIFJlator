@@ -141,7 +141,7 @@ int parseTerm(Term* term){
             break;
         case TokenIdentifier:
             term->type = TermVariable;
-            SymbolVariable* variable = getVariable(strGetStr(&curTok.attribute.s));
+            const SymbolVariable* variable = getVariable(strGetStr(&curTok.attribute.s));
             if (variable == NULL)
                 return SEMANTIC_ERROR_DEFINITION;
             term->value.v = variable;
