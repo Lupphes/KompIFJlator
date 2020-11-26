@@ -89,6 +89,10 @@ bool isInStackOperator(Stack *stack) {
     }
 }
 
+
+int ruleTranslator(Stack *stack) {
+}
+
 bool isInStackExpressionOrIdentifier(Stack *stack) {
     int lastValue = seekValueStack(stack);
     switch (lastValue) {
@@ -172,7 +176,7 @@ int evaluateExpression(Stack *stack, int *operator) {
         /* code */
         break;
     case OperatorError:
-        /* code */
+        return SYNTAX_ERROR;
         break;
     }
     return SUCCESS;

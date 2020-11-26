@@ -45,6 +45,7 @@ typedef enum {
     OperatorWholeNumber, /** int -- whole numeber */ // EXPATOM
     OperatorDecimal, /** float -- decimal number */
     OperatorStringLiteral, /** string -- text string */
+    OperationNegate,
 
     OperatorLeftAssociative,  /** [ || < */
     OperatorRightAssociative,  /** ] || > */
@@ -65,7 +66,8 @@ typedef enum {
     RuleLes, /** E->E>E */
     RuleLEq, /** E->E>=E */
     RuleEqu, /** E->E==E */
-    RuleNEq /** E->E!=E */
+    RuleNEq, /** E->E!=E */
+    RuleErr
 } _Rules;
 
 
