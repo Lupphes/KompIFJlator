@@ -29,6 +29,10 @@ char *printDataType(DataType type){
 			return "TypeFloat64"; break;
 		case (TypeString):
 			return "TypeString"; break;
+		case (TypeBlackHole):
+			return "TypeBlackHole"; break;
+		default:
+			return "Unkonwn type"; break;
 	}
 	return "";
 }
