@@ -399,11 +399,19 @@ int main(int argc, char const *argv[]) {
 	printStack(&mainStack);
 	printStack(&binStack);
 
+	printf("\nBlack-hole variable test (situation 1)\n");
+	printf("--------------------------------------\n");
+	getVariableTest("_");
+
 	printf("\nenterNewStackFrame method test\n");
 	printf("--------------------------------------\n");
 	enterNewStackFrameTest();
 	printStack(&mainStack);
 	printStack(&binStack);
+
+	printf("\nBlack-hole variable test (situation 2)\n");
+	printf("--------------------------------------\n");
+	getVariableTest("_");
 
 	printf("\nAddVariable method test #1\n");
 	printf("Add some variables to one table\n");
@@ -419,6 +427,10 @@ int main(int argc, char const *argv[]) {
 	addVariableTest(keysV[5], 2);
 	printStack(&mainStack);
 	printStack(&binStack);
+
+	printf("\nBlack-hole variable test (situation 3)\n");
+	printf("--------------------------------------\n");
+	getVariableTest("_");
 
 	printf("\nleaveStackFrame test\n");
 	printf("--------------------------------------\n");
@@ -455,6 +467,10 @@ int main(int argc, char const *argv[]) {
 	leaveStackFrame();
 	printStack(&mainStack);
 	printStack(&binStack);
+
+	printf("\nBlack-hole variable test (situation 4)\n");
+	printf("--------------------------------------\n");
+	getVariableTest("_");
 
 	printf("\nfreeStack test\n");
 	printf("--------------------------------------\n");
