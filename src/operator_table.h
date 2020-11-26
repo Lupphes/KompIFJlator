@@ -1,9 +1,6 @@
 #ifndef OPERATOR_TABLE_H
 #define OPERATOR_TABLE_H
 
-#include "expression_analysis.h"
-
-
 const int _PSATable [14][7] = {
     //                  +,-                           *,/                          (                       )                           i                   <,<=,>,>=,==,!=                 $
    /* + */  { OperatorRightAssociative,    OperatorLeftAssociative,   OperatorLeftAssociative,  OperatorRightAssociative,   OperatorLeftAssociative,  OperatorRightAssociative,   OperatorRightAssociative},

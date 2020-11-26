@@ -18,10 +18,6 @@
 #include <stdio.h>
 
 #include "expression_analysis.h"
-#include "token.h"
-#include "error.h"
-#include "str.h"
-#include "scanner.c"
 #include "parser_common.h"
 #include "operator_table.h"
 
@@ -62,7 +58,7 @@ int seekValueStack(Stack *stack) {
     return stack->values[(stack->used - 1)];
 }
 
-void freeStack(Stack *stack) {
+void freeStackExp(Stack *stack) {
     free(stack->values);
     stack->values = NULL;
     stack->used = stack->size = 0;
@@ -91,6 +87,7 @@ bool isInStackOperator(Stack *stack) {
 
 
 int ruleTranslator(Stack *stack) {
+    return SUCCESS;
 }
 
 bool isInStackExpressionOrIdentifier(Stack *stack) {
@@ -249,7 +246,7 @@ int checkIfValidToken(Token *token, Stack *stack, int *operator) {
         case TokenStringLiteral:
             if(isInStackExpressionOrIdentifier(stack)) 
                 return SYNTAX_ERROR;
-            Term* term = malloc(sizeof(term));
+            Term* term;
             if((returnCode = parseTerm(term)) == SUCCESS){
                 parseTerm(term);
                 switch (term->type) {
@@ -267,7 +264,6 @@ int checkIfValidToken(Token *token, Stack *stack, int *operator) {
                     break;
                 }
             } else {
-                free(term);
                 return returnCode;
             }
             break;
@@ -275,7 +271,6 @@ int checkIfValidToken(Token *token, Stack *stack, int *operator) {
         return ANALYSIS_END;
         break;
     }
-    evaluateExpression(stack, operator);
     // pushToStack(stack, _PSATable[seekValueStack(stack)][*operator]); // to do if < or > or =? use evaluateExpression
     // pushToStack(stack, *operator);
     return SUCCESS;
@@ -295,7 +290,7 @@ int parseExpression(Expression* expression) {
     // TODO: generateAST(); 
 
 
-    freeStack(&stack);
+    freeStackExp(&stack);
     return SUCCESS;
 }
 
