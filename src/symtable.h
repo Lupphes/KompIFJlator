@@ -84,7 +84,7 @@ void leaveStackFrame();
 
 int addVariable(SymbolVariable* variable);
 
-SymbolVariable* getVariable(const char* id);
+const SymbolVariable* getVariable(const char* id);
 
 void freeVariableTableStack();
 

@@ -395,6 +395,7 @@ int addVariable(SymbolVariable* variable){
  * @return SymbolVariable* The FIRST occurence of the variable in the stack of variable tables 
  *		or NULL if such a variable doesn't exist in mainStack.
  */
+const SymbolVariable* getVariable(const char* id){
 	if (!strCmpConstStr(&blackHoleVariable.id,id))
 		return &blackHoleVariable;
 	
