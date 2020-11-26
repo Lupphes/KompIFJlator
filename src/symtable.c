@@ -1,32 +1,27 @@
-/*File name: symtable.c ---------------------------------------------*
- |Project:    Implementace překladače imperativního jazyka IFJ20     |
- |Team:       124, varianta II                                       |
- |Authors:    Vojtěch Vlach (xvlach22)                               |
- |            hashCode function copied from IAL homework #2 2020     |
- |            	c016.c (Petr Přikryl, December 1994)                 |
- |                                                                   |
- |  _      _     _   __                   __  _        _             |
- | | |    (_)   | | /_/                  /_/ | |      | |            |
- | | |     _  __| | ___   _   _  __   ___   _| |_ __ _| |__  _   _   |
- | | |    | |/ _` |/ _ \ | | | | \ \ / / | | | __/ _` | '_ \| | | |  |
- | | |____| | (_| |  __/ | |_| |  \ V /| |_| | || (_| | | | | |_| |  |
- | |______|_|\__,_|\___|  \__,_|   \_/  \__, |\__\__,_|_| |_|\__,_|  |
- |                                       __/ |                       |
- |                                      |___/                        |
- *-------------------------------------------------------------------*/
+/*File name: symtable.c --------------------------------------------------*
+ |Project:    Implementace překladače imperativního jazyka IFJ20          |
+ |Team:       124, varianta II                                            |
+ |Authors:    Vojtěch Vlach (xvlach22)                                    |
+ |            hashCode function copied from IAL homework 2 2020 c016.c    |
+ |              Petr Přikryl (December 1994), Vaclav Topinka (2005)       |
+ |              Karel Masařík (říjen 2014) and Radek Hranický (2014-2018) |
+ |                                                                        |
+ |    _      _     _   __                   __  _        _                |
+ |   | |    (_)   | | /_/                  /_/ | |      | |               |
+ |   | |     _  __| | ___   _   _  __   ___   _| |_ __ _| |__  _   _      |
+ |   | |    | |/ _` |/ _ \ | | | | \ \ / / | | | __/ _` | '_ \| | | |     |
+ |   | |____| | (_| |  __/ | |_| |  \ V /| |_| | || (_| | | | | |_| |     |
+ |   |______|_|\__,_|\___|  \__,_|   \_/  \__, |\__\__,_|_| |_|\__,_|     |
+ |                                         __/ |                          |
+ |                                        |___/                           |
+ *------------------------------------------------------------------------*/
 
-#ifndef SYMTABLE_C
-#define SYMTABLE_C
 #include "symtable.h"
 
 /*
  * @brief counts hash from given string
  *
  * @param 	string_key	Key to count hash from.
- *
- * @TODO Copied from IAL Homework 2020 c016.c
- *		Copyright belongs to Petr Přikryl (prosinec 1994), Vaclav Topinka (2005), 
- *		Karel Masařík (říjen 2014) and Radek Hranický (2014-2018)
  */
 int hashCode (const char *string_key){
 	int retval = 0;
@@ -94,10 +89,13 @@ int deepCopyFunction(SymbolFunction* function, int hash){
 	if(newElPtr == NULL)
 		return INTERNAL_ERROR;
 
-	if(strInit(&newElPtr->FuncData.id) == STR_ERROR)
+	if(strInit(&newElPtr->FuncData.id) == STR_ERROR){
+		free(newElPtr);
 		return INTERNAL_ERROR;
+	}
 
 	if(strCopyString(&newElPtr->FuncData.id, &function->id) == STR_ERROR){
+		free(newElPtr);
 		strFree(&newElPtr->FuncData.id);
 		return INTERNAL_ERROR;
 	}
@@ -419,5 +417,3 @@ void freeStack(Stack *stack){
 		*stack = ptrNext;
 	}
 }
-
-#endif
