@@ -44,7 +44,7 @@ int strCopyConstString(string *s1, const char* s2);
 int strCmpString(const string *s1, const string *s2);
 int strCmpConstStr(const string *s1, const char *s2);
 
-char *strGetStr(string *s);
+const char *strGetStr(const string *s);
 int strGetLength(const string *s);
 
 #endif

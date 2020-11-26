@@ -54,6 +54,10 @@ dkms.conf
 # VSCODE
 .vscode
 
+# Sublime Text project files
+*.sublime-project
+*.sublime-workspace
+
 #Build folder
 build
 tests/test.txt

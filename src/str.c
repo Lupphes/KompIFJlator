@@ -106,7 +106,7 @@ int strCmpConstStr(const string *s1, const char* s2)
    return strcmp(s1->str, s2);
 }
 
-char *strGetStr(string *s)
+const char *strGetStr(const string *s)
 // vrati textovou cast retezce
 {
    return s->str;
