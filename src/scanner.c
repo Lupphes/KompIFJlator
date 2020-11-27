@@ -501,6 +501,7 @@ int getToken(Token* token) {
                     }
                     break;
                 } else {
+                    charMacro(unGetCharCheck, currChar);
                     if (sscanf(strGetStr(&bufferString),"%lf", &token->attribute.d) == EOF) {
                         strFree(&bufferString);
                         return INTERNAL_ERROR;
@@ -561,9 +562,10 @@ int getToken(Token* token) {
                         strFree(&bufferString);
                         return INTERNAL_ERROR;
                     }
-                    break;
                     state = StateCompleteExpoNbr;
+                    break;
                 } else {
+                    charMacro(unGetCharCheck, currChar);
                     if (sscanf(strGetStr(&bufferString),"%lf", &token->attribute.d) == EOF) {
                         strFree(&bufferString);
                         return INTERNAL_ERROR;
