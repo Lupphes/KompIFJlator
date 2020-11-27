@@ -41,17 +41,20 @@ typedef enum {
     OperatorIsEqual, /** == */
     OperatorNotEqual, /** != */
     OperatorEnd, /** $ */
+    
 
     OperatorWholeNumber = 15, /** int -- whole numeber */ // EXPATOM
     OperatorDecimal, /** float -- decimal number */
     OperatorStringLiteral, /** string -- text string */
     OperationNegate,
+    
 
     OperatorLeftAssociative,  /** [ || < */
     OperatorRightAssociative,  /** ] || > */
     OperatorEqualAssociative,  /** = > */
-    OperatorError,  /** = > */
-    OperatorExpression /** Exp */
+    OperatorStart, /** ^ */
+    OperatorExpression, /** Exp */
+    OperatorError  /** = > */
 } _Operators;
 
 typedef enum {
@@ -98,7 +101,7 @@ typedef struct {
 int parseExpression(Expression* expression);
 int initExpArray(ExpArray *array, int64_t initialSize);
 int pushToArray(ExpArray *array, int operator);
-int seekValueArrayValue(ExpArray *array);
+int seekValueArrayValue(ExpArray *array, int *operator);
 int popFromArray(ExpArray *array, int *returnValue);
 void freeArray(ExpArray *array);
 bool isInStackOperator(ExpArray *array);

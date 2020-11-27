@@ -24,6 +24,8 @@
 #define ANALYSIS_END -1
 
 
+/** ---------------------- Array Functions ---------------------- **/
+
 int initExpArray(ExpArray *array, int64_t initialSize) {
     array->used = 0;
     array->values = malloc(initialSize * sizeof(ExpValue));
@@ -52,24 +54,45 @@ int pushToArrayBehindEorID(ExpArray *array, int operator) {
         if (array->values == NULL)
             return INTERNAL_ERROR;
     }
-    for (int i = array->used; i > 0; i--) {
-        array->values[i+1].value = array->values[i].value;
-        if (array->values[i].value == OperatorExpression || array->values[i].value == OperatorIdentifier) {
-            array->values[i].value = operator;
-        }  
+    if (array->values[array->used - 1].value == OperatorExpression || array->values[array->used - 1].value == OperatorIdentifier) {
+        for (int i = array->used - 1; i >= 0; i--) {      
+            if (array->values[i].value == OperatorExpression || array->values[i].value == OperatorIdentifier) {
+                for (int j = i; j < array->used; j++) {
+                    array->values[j+1].value = array->values[j].value;
+                }
+                array->values[array->used-1].value = operator;
+                array->used += 1;
+                return SUCCESS;
+            }
+        }
     }
+    array->values[array->used].value = operator;
     array->used += 1;
     return SUCCESS;
 }
 
-int seekValueArrayValue(ExpArray *array) {
-    return array->values[array->used - 1].value;
+int seekValueBehindE(ExpArray *array, int *operator) {
+    if (seekValueArrayValue(array, operator) == INTERNAL_ERROR)
+        return INTERNAL_ERROR; 
+    if (*operator == OperatorExpression) {
+        *operator = array->values[array->used - 2].value;
+    }
+    return SUCCESS;
+}
+
+int seekValueArrayValue(ExpArray *array, int *operator) {
+    if (array->used != 0) {
+        *operator = array->values[array->used - 1].value;
+        return SUCCESS;
+    }    
+    return INTERNAL_ERROR; 
 }
 
 int popFromArray(ExpArray *array, int *returnValue) {
     if (array->values == NULL)
         return INTERNAL_ERROR;
-    *returnValue = seekValueArrayValue(array); 
+    if (seekValueArrayValue(array, returnValue) == INTERNAL_ERROR)
+        return INTERNAL_ERROR; 
     array->initializedSize -= 1;
     array->used -= 1;
     array->values = realloc(array->values, array->initializedSize * sizeof(ExpValue));
@@ -90,8 +113,12 @@ void printArray(ExpArray *array) {
     printf("\n");
 }
 
+/** ---------------------- Array Functions ---------------------- **/
+
 bool isInStackOperator(ExpArray *array) {
-    int lastValue = seekValueArrayValue(array);
+    int lastValue;
+    if (seekValueArrayValue(array, &lastValue) == INTERNAL_ERROR)
+        return INTERNAL_ERROR;
     switch (lastValue) {
     case OperatorAdd:
     case OperatorSubtract:
@@ -112,7 +139,9 @@ bool isInStackOperator(ExpArray *array) {
 }
 
 bool isInStackExpressionOrIdentifier(ExpArray *array) {
-    int lastValue = seekValueArrayValue(array);
+    int lastValue;
+    if (seekValueArrayValue(array, &lastValue) == INTERNAL_ERROR)
+        return INTERNAL_ERROR;
     switch (lastValue) {
     case OperatorIdentifier:
     case OperatorExpression:
@@ -130,7 +159,6 @@ bool isInStackExpressionOrIdentifier(ExpArray *array) {
 bool isBufferEmpty(ExpArray *array) {
     return array->used == 0 ? true : false;    
 }
-
 
 int rulesEvaluation(ExpArray *array) {
     int rule = RuleErr;
@@ -224,32 +252,34 @@ int rulesEvaluation(ExpArray *array) {
     default:
         break;
     }
-    if(seekValueArrayValue(array) == OperatorLeftAssociative) {
+    int foundValue;
+    if (seekValueArrayValue(array, &foundValue) == INTERNAL_ERROR)
+        return INTERNAL_ERROR;
+    if(foundValue == OperatorLeftAssociative) {
         popFromArray(array, &returnedValue);
         return rule;
     }
     return RuleErr;
 }
 
-
 int evaluateExpression(ExpArray *array, int *operator) {
-    int returned = seekValueArrayValue(array);
-    int value = _PSATable[returned][*operator];
-    int rule;
-    int operatorput;
-    printArray(array);
-    switch (value) {
+    int getLastValeFromStack;
+    int identifiedRule;
+    printArray(array); // DEBUG
+    seekValueBehindE(array, &getLastValeFromStack);
+    switch (_PSATable[getLastValeFromStack][*operator]) {
         case OperatorLeftAssociative:
-            operatorput = _PSATable[seekValueArrayValue(array)][*operator];
+            pushToArrayBehindEorID(array, _PSATable[getLastValeFromStack][*operator]);
             pushToArray(array, *operator);
-            pushToArrayBehindEorID(array, operatorput);
-            printArray(array);
+
+            printArray(array); // DEBUG
             break;
-        case OperatorError:
         case OperatorRightAssociative:
-            printArray(array);
-            rule = rulesEvaluation(array);
-            printArray(array);
+            identifiedRule = rulesEvaluation(array);
+            pushToArray(array, OperatorExpression);
+            printArray(array); // DEBUG
+            evaluateExpression(array, operator);
+            printArray(array); // DEBUG
             break;
         case OperatorEqualAssociative:
             /* code */
@@ -257,7 +287,6 @@ int evaluateExpression(ExpArray *array, int *operator) {
     }
     return SUCCESS;
 }
-
 
 int checkIfValidToken(Token *token, ExpArray *array, int *operator) {
     int returnCode;
@@ -364,6 +393,9 @@ int parseExpression(Expression* expression) {
         parseStatus = checkIfValidToken(&curTok, &expArray, &operator);
         evaluateExpression(&expArray, &operator);
     }
+    operator = OperatorEnd; 
+    evaluateExpression(&expArray, &operator);
+    printArray(&expArray); // DEBUG
     // TODO: generateAST(); 
 
     freeArray(&expArray);
