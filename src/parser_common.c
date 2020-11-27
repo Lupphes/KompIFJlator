@@ -38,7 +38,7 @@ int beginParsing(){
     initDubiousFunctionCallArray(&dubiousFunctionCalls);
     callAndHandleException_clean(nextToken()) //First read of the token.
     
-    callAndHandleException_clean(Start());
+    //callAndHandleException_clean(Start());
     
     for (int i = 0; i < countInDubiousFunctionCallArray(&dubiousFunctionCalls);i++){
         const SymbolFunction* function = getFunction(strGetStr(&dubiousFunctionCalls.arr[i].functionName));
@@ -117,7 +117,7 @@ int validateFunctionCall(const SymbolFunction* function, const SymbolVariableArr
 }
 
 int parseTerm(Term* term){
-    int returnCode;
+    // int returnCode;
     
     switch(curTok.type){
         case TokenWholeNbr:
@@ -149,7 +149,7 @@ int parseTerm(Term* term){
         default:
             return SYNTAX_ERROR;
     }
-    acceptAny();
+    // acceptAny();
     return SUCCESS;
 }
 

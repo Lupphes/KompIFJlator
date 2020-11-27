@@ -42,7 +42,7 @@ typedef enum {
     OperatorNotEqual, /** != */
     OperatorEnd, /** $ */
 
-    OperatorWholeNumber, /** int -- whole numeber */ // EXPATOM
+    OperatorWholeNumber = 15, /** int -- whole numeber */ // EXPATOM
     OperatorDecimal, /** float -- decimal number */
     OperatorStringLiteral, /** string -- text string */
     OperationNegate,
@@ -61,12 +61,14 @@ typedef enum {
     RuleDiv, /** E->E/E */
     RulePar, /** E->(E) */
     RuleVar, /** E->i */
-    RuleBth, /** E->E<E */
-    RuleBEq, /** E->E<=E */
+    RuleGth, /** E->E<E */
+    RuleGEq, /** E->E<=E */
     RuleLes, /** E->E>E */
     RuleLEq, /** E->E>=E */
     RuleEqu, /** E->E==E */
     RuleNEq, /** E->E!=E */
+    RuleBra, /** E->-(E) */
+    RuleNe2, /** E->--E */
     RuleErr
 } _Rules;
 
@@ -83,18 +85,27 @@ typedef struct {
     _ExpressionType type;
 } Expression;
 
-typedef struct {
-  int *values;
-  int64_t used;
-  int64_t size;
-} Stack;
+typedef struct  {
+  int value;
+} ExpValue;
 
-int initStack(Stack *stack, int64_t initialSize);
-int addToStack(Stack *stack, int operation);
-int popFromStack(Stack *stack, int *operation);
-void freeStackExp(Stack *stack);
-int checkIfValidToken(Token *token, Stack *stack, int *operator);
-int seekValueStack(Stack *stack);
+typedef struct {
+  int64_t used;
+  int64_t initializedSize;
+  ExpValue* values;
+} ExpArray;
+
 int parseExpression(Expression* expression);
+int initExpArray(ExpArray *array, int64_t initialSize);
+int pushToArray(ExpArray *array, int operator);
+int seekValueArrayValue(ExpArray *array);
+int popFromArray(ExpArray *array, int *returnValue);
+void freeArray(ExpArray *array);
+bool isInStackOperator(ExpArray *array);
+int ruleTranslator(ExpArray *array);
+bool isInStackExpressionOrIdentifier(ExpArray *array);
+int useRule();
+int evaluateExpression(ExpArray *array, int *operator);
+int checkIfValidToken(Token *token, ExpArray *array, int *operator);
 
 #endif

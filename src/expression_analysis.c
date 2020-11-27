@@ -23,49 +23,75 @@
 
 #define ANALYSIS_END -1
 
-int initStack(Stack *stack, int64_t initialSize) {
-    stack->values = malloc(initialSize * sizeof(int64_t));
-    if (stack->values == NULL) {
+
+int initExpArray(ExpArray *array, int64_t initialSize) {
+    array->used = 0;
+    array->values = malloc(initialSize * sizeof(ExpValue));
+    if (array->values == NULL)
         return INTERNAL_ERROR;
-    }
-    stack->used = 0;
-    stack->size = initialSize;
+    array->initializedSize = initialSize;
     return SUCCESS;
 }
 
-int pushToStack(Stack *stack, int operation) {
-    if (stack->used == stack->size) {
-        stack->size *= 2;
-        stack->values = realloc(stack->values, stack->size * sizeof(int64_t));
-        if (stack->values == NULL) {
+int pushToArray(ExpArray *array, int operator) {
+    if (array->used == array->initializedSize) {
+        array->initializedSize += 1;
+        array->values = realloc(array->values, array->initializedSize * sizeof(ExpValue));
+        if (array->values == NULL)
             return INTERNAL_ERROR;
-        }
     }
-    stack->values[stack->used++] = operation;
+    array->values[array->used].value = operator;
+    array->used += 1;
     return SUCCESS;
 }
 
-int popFromStack(Stack *stack, int *operation) {
-    if (stack->values == NULL) {
+int pushToArrayBehindEorID(ExpArray *array, int operator) {
+    if (array->used == array->initializedSize) {
+        array->initializedSize += 1;
+        array->values = realloc(array->values, array->initializedSize * sizeof(ExpValue));
+        if (array->values == NULL)
+            return INTERNAL_ERROR;
+    }
+    for (int i = array->used; i > 0; i--) {
+        array->values[i+1].value = array->values[i].value;
+        if (array->values[i].value == OperatorExpression || array->values[i].value == OperatorIdentifier) {
+            array->values[i].value = operator;
+        }  
+    }
+    array->used += 1;
+    return SUCCESS;
+}
+
+int seekValueArrayValue(ExpArray *array) {
+    return array->values[array->used - 1].value;
+}
+
+int popFromArray(ExpArray *array, int *returnValue) {
+    if (array->values == NULL)
         return INTERNAL_ERROR;
-    }
-    *operation = seekValueStack(stack);
-    stack->values = realloc(stack->values, (stack->size - 1) * sizeof(int64_t));
+    *returnValue = seekValueArrayValue(array); 
+    array->initializedSize -= 1;
+    array->used -= 1;
+    array->values = realloc(array->values, array->initializedSize * sizeof(ExpValue));
     return SUCCESS;
 }
 
-int seekValueStack(Stack *stack) {
-    return stack->values[(stack->used - 1)];
+void freeArray(ExpArray *array) {
+    free(array->values);
+    array->values = NULL;
+    array->used = 0;
+    array->initializedSize = 0;
 }
 
-void freeStackExp(Stack *stack) {
-    free(stack->values);
-    stack->values = NULL;
-    stack->used = stack->size = 0;
+void printArray(ExpArray *array) {
+    for (int i = 0; i < array->used; i++) {
+        printf("%d,", array->values[i].value);
+    }
+    printf("\n");
 }
 
-bool isInStackOperator(Stack *stack) {
-    int lastValue = seekValueStack(stack);
+bool isInStackOperator(ExpArray *array) {
+    int lastValue = seekValueArrayValue(array);
     switch (lastValue) {
     case OperatorAdd:
     case OperatorSubtract:
@@ -85,13 +111,8 @@ bool isInStackOperator(Stack *stack) {
     }
 }
 
-
-int ruleTranslator(Stack *stack) {
-    return SUCCESS;
-}
-
-bool isInStackExpressionOrIdentifier(Stack *stack) {
-    int lastValue = seekValueStack(stack);
+bool isInStackExpressionOrIdentifier(ExpArray *array) {
+    int lastValue = seekValueArrayValue(array);
     switch (lastValue) {
     case OperatorIdentifier:
     case OperatorExpression:
@@ -106,101 +127,157 @@ bool isInStackExpressionOrIdentifier(Stack *stack) {
     }
 }
 
-int useRule() {
-    return SUCCESS;
+bool isBufferEmpty(ExpArray *array) {
+    return array->used == 0 ? true : false;    
 }
 
-// int translateToPSATable(Stack *stack, int *operator) {
-//     switch (seekValueStack(stack)) {
-//     case OperatorAdd:
-//         break;
-//     case OperatorSubtract:
-//         break;
-//     case OperatorMultiply:
-//         break;
-//     case OperatorDivide:
-//         break;
-//     case OperatorLeftBracket:
-//         break;
-//      case OperatorRightBracket:
-//         break;
-//     case OperatorIsLessThan:
-//         break;
-//     case OperatorIsLessEqual:
-//         break;
-//     case OperatorIsGreaterThan:
-//         break;
-//     case OperatorIsGreaterEqual:
-//         break;
-//     case OperatorIsEqual:
-//         break;
-//     case OperatorNotEqual:
-//         break;
-//     case OperatorEnd:
-//         break;
-//     case OperatorLeftAssociative:
-         
-//         break;
-//     case OperatorRightAssociative: // use rules
-//          evaluateExpression();
-//         break;
-//     default:
-//         break;
-//     }
-//     return SUCCESS;
-// }
 
-
-int evaluateExpression(Stack *stack, int *operator) {
-    Stack expression;
-    switch (_PSATable[seekValueStack(stack)][*operator]) {
-    case OperatorLeftAssociative:
-        pushToStack(stack, _PSATable[seekValueStack(stack)][*operator]);
-        pushToStack(stack, *operator);
-        break;
-    case OperatorRightAssociative:
-        while (seekValueStack(stack) != OperatorLeftAssociative) {
-            int parsedValue;
-            popFromStack(stack, &parsedValue);
-            pushToStack(&expression, parsedValue);
-            
+int rulesEvaluation(ExpArray *array) {
+    int rule = RuleErr;
+    int returnedValue;
+    popFromArray(array, &returnedValue);
+    switch (returnedValue) {
+    case OperatorLeftBracket:
+        popFromArray(array, &returnedValue);
+        if (returnedValue == OperatorExpression) {
+            popFromArray(array, &returnedValue);
+            if (returnedValue == OperatorRightBracket) {
+                rule = RuleBra;
+            }
         }
-        useRule();
-        
-        
         break;
-    case OperatorEqualAssociative:
-        /* code */
+    case OperatorSubtract:
+        popFromArray(array, &returnedValue);
+        if (returnedValue == OperatorSubtract) {
+            popFromArray(array, &returnedValue);
+            if (returnedValue== OperatorExpression)
+                rule = RuleNe2;
+        } else if (returnedValue == OperatorLeftBracket) {
+            popFromArray(array, &returnedValue);
+            if (returnedValue == OperatorExpression) {
+                popFromArray(array, &returnedValue);
+                if (returnedValue == OperatorRightBracket)
+                    rule = RuleBra;
+            }
+        }
         break;
-    case OperatorError:
-        return SYNTAX_ERROR;
+    case OperatorExpression:
+        popFromArray(array, &returnedValue);
+        switch (returnedValue) {
+        case OperatorAdd:
+            popFromArray(array, &returnedValue);
+            if (returnedValue == OperatorExpression)
+                rule = RuleAdd;
+            break;
+        case OperatorSubtract:
+            popFromArray(array, &returnedValue);
+            if (returnedValue == OperatorExpression)
+                rule = RuleSub;
+            break;
+        case OperatorMultiply:
+            popFromArray(array, &returnedValue);
+            if (returnedValue == OperatorExpression)
+                rule = RuleMul;
+            break;
+        case OperatorDivide:
+            popFromArray(array, &returnedValue);
+            if (returnedValue == OperatorExpression)
+                rule = RuleDiv;
+            break;
+        case OperatorIsGreaterThan:
+            popFromArray(array, &returnedValue);
+            if (returnedValue == OperatorExpression)
+                rule = RuleGth;
+            break;
+        case OperatorIsGreaterEqual:
+            popFromArray(array, &returnedValue);
+            if (returnedValue == OperatorExpression)
+                rule = RuleGEq;
+            break;
+        case OperatorIsLessThan:
+            popFromArray(array, &returnedValue);
+            if (returnedValue == OperatorExpression)
+                rule = RuleLes;
+            break;
+        case OperatorIsLessEqual:
+            popFromArray(array, &returnedValue);
+            if (returnedValue == OperatorExpression)
+                rule = RuleLEq;
+            break;
+            popFromArray(array, &returnedValue);
+        case OperatorIsEqual:
+            if (returnedValue == OperatorExpression)
+                rule = RuleEqu;
+            break;
+        case OperatorNotEqual:
+            popFromArray(array, &returnedValue);
+            if (returnedValue == OperatorExpression)
+                rule = RuleNEq;
+            break;
+        default:
+            break;
+        }
         break;
+    case OperatorIdentifier:
+        rule = RuleVar;
+        break;
+    default:
+        break;
+    }
+    if(seekValueArrayValue(array) == OperatorLeftAssociative) {
+        popFromArray(array, &returnedValue);
+        return rule;
+    }
+    return RuleErr;
+}
+
+
+int evaluateExpression(ExpArray *array, int *operator) {
+    int returned = seekValueArrayValue(array);
+    int value = _PSATable[returned][*operator];
+    int rule;
+    int operatorput;
+    printArray(array);
+    switch (value) {
+        case OperatorLeftAssociative:
+            operatorput = _PSATable[seekValueArrayValue(array)][*operator];
+            pushToArray(array, *operator);
+            pushToArrayBehindEorID(array, operatorput);
+            printArray(array);
+            break;
+        case OperatorError:
+        case OperatorRightAssociative:
+            printArray(array);
+            rule = rulesEvaluation(array);
+            printArray(array);
+            break;
+        case OperatorEqualAssociative:
+            /* code */
+            break;
     }
     return SUCCESS;
 }
 
 
-int checkIfValidToken(Token *token, Stack *stack, int *operator) {
+int checkIfValidToken(Token *token, ExpArray *array, int *operator) {
     int returnCode;
     acceptAny();
     switch (token->type) {
         case TokenAdd:
-            if(isInStackOperator(stack)) 
+            if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
             *operator = OperatorAdd;
             break;
         case TokenSubtract:
-            if(isInStackOperator(stack)) 
-                return SYNTAX_ERROR;
-            break;
             *operator = OperatorSubtract;
-        case TokenMultiply:
-            if(isInStackOperator(stack)) 
-                return SYNTAX_ERROR;
             break;
+        case TokenMultiply:
+            if(isInStackOperator(array)) 
+                return SYNTAX_ERROR;
             *operator = OperatorMultiply;
+            break;
         case TokenDivide:
-            if(isInStackOperator(stack)) 
+            if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
             *operator = OperatorDivide;
             break;
@@ -211,32 +288,32 @@ int checkIfValidToken(Token *token, Stack *stack, int *operator) {
             *operator = OperatorRightBracket;
             break;
         case TokenIsLessThan:
-            if(isInStackOperator(stack)) 
+            if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
             *operator = OperatorIsLessThan;
             break;
         case TokenIsLessEqual:
-            if(isInStackOperator(stack)) 
+            if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
             *operator = OperatorIsGreaterEqual;
             break;
         case TokenIsGreaterThan:
-            if(isInStackOperator(stack)) 
+            if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
             *operator = OperatorIsGreaterThan;
             break;
         case TokenIsGreaterEqual:
-            if(isInStackOperator(stack)) 
+            if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
             *operator = OperatorIsGreaterEqual;
             break;
         case TokenIsEqual:
-            if(isInStackOperator(stack)) 
+            if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
             *operator = OperatorIsEqual;
             break;
         case TokenNotEqual:
-            if(isInStackOperator(stack)) 
+            if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
             *operator = OperatorNotEqual;
             break;
@@ -244,25 +321,25 @@ int checkIfValidToken(Token *token, Stack *stack, int *operator) {
         case TokenWholeNbr:
         case TokenDecimalNbr:
         case TokenStringLiteral:
-            if(isInStackExpressionOrIdentifier(stack)) 
+            if(isInStackExpressionOrIdentifier(array)) 
                 return SYNTAX_ERROR;
-            Term* term;
-            if((returnCode = parseTerm(term)) == SUCCESS){
-                parseTerm(term);
+            Term* term = malloc(sizeof(term));
+            if(parseTerm(term) == SUCCESS){
                 switch (term->type) {
                 case TermIntegerLiteral:
-                    *operator = OperatorWholeNumber;
+                    // *operator = OperatorWholeNumber;
                     break;
                 case TermFloatLiteral:
-                    *operator = OperatorDecimal;
+                    // *operator = OperatorDecimal;
                     break;
                 case TermStringLiteral:
-                    *operator = OperatorStringLiteral;
+                    // *operator = OperatorStringLiteral;
                     break;
                 case TermVariable:
-                    *operator = OperatorIdentifier;
+                    // *operator = OperatorIdentifier;
                     break;
                 }
+                *operator = OperatorIdentifier;
             } else {
                 return returnCode;
             }
@@ -271,26 +348,25 @@ int checkIfValidToken(Token *token, Stack *stack, int *operator) {
         return ANALYSIS_END;
         break;
     }
-    // pushToStack(stack, _PSATable[seekValueStack(stack)][*operator]); // to do if < or > or =? use evaluateExpression
-    // pushToStack(stack, *operator);
     return SUCCESS;
 }
 
 int parseExpression(Expression* expression) {
     /* Stack init */
-    Stack stack;
-    initStack(&stack, 1);
-    pushToStack(&stack, OperatorEnd);
+    ExpArray expArray;
+    initExpArray(&expArray, 0);
+    pushToArray(&expArray, OperatorEnd);
+    printArray(&expArray);
+
     int operator;
-    while (checkIfValidToken(&curTok, &stack, &operator) == SUCCESS) {
-        evaluateExpression(&stack, &operator);
-        
-        
+    int parseStatus;
+    while (parseStatus != ANALYSIS_END) {
+        parseStatus = checkIfValidToken(&curTok, &expArray, &operator);
+        evaluateExpression(&expArray, &operator);
     }
     // TODO: generateAST(); 
 
-
-    freeStackExp(&stack);
+    freeArray(&expArray);
     return SUCCESS;
 }
 

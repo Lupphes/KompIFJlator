@@ -7,4 +7,3 @@ int main(int argc, char const *argv[]) {
     int result = parseExpression(&expression);
     return result;
 }
-
