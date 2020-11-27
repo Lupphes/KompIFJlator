@@ -524,7 +524,7 @@ int TermListNext(TermArray* functionParameters){
     if(term == NULL)
         return INTERNAL_ERROR;
 
-    if((returnCode = parseTerm(term)) == SUCCESS){
+    if((returnCode = parseTerm(term,true)) == SUCCESS){
         addToTermArray(functionParameters,term);
         callAndHandleException(TermListNext(functionParameters));
         return SUCCESS;
