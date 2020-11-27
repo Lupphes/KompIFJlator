@@ -373,7 +373,7 @@ int StatementStartingWithIdentifier(){
 
     CLEAN_UP:
     strFree(&firstID);
-    if (numberOfDubiousFunctionCallsBeforeApplyingThisRule != countInDubiousFunctionCallArray(&dubiousFunctionCalls)) //If we added a dubious function call, we need a reference to its lvalues later, so we can't free them now.
+    if (numberOfDubiousFunctionCallsBeforeApplyingThisRule == countInDubiousFunctionCallArray(&dubiousFunctionCalls)) //If we added a dubious function call, we need a reference to its lvalues later, so we can't free them now.
         freeSymbolVariableArray(&lValues);
     return returnCode;
 
