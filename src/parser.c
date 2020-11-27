@@ -295,11 +295,15 @@ int FunctionReturnValues_Next(SymbolFunction* function){
 int Block(){
     int returnCode;
     
+    callAndHandleException(enterNewStackFrame());
+
     assert(TokenLeftCurlyBracket);
     EOL_Mandatory();
     NTERM(Statement);
     EOL_Optional(); //TODO: Investigate.
     assert(TokenRightCurlyBracket);
+
+    leaveStackFrame();
 
     return SUCCESS;
 }
@@ -369,7 +373,7 @@ int StatementStartingWithIdentifier(){
     CLEAN_UP:
     strFree(&firstID);
     if (numberOfDubiousFunctionCallsBeforeApplyingThisRule != countInDubiousFunctionCallArray(&dubiousFunctionCalls)) //If we added a dubious function call, we need a reference to its lvalues later, so we can't free them now.
-    freeSymbolVariableArray(&lValues);
+        freeSymbolVariableArray(&lValues);
     return returnCode;
 
 }
