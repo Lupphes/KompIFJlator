@@ -140,7 +140,8 @@ int FunctionDefinition(){
     
     callAndHandleException_clean(enterNewStackFrame());
     for (int i = 0; i < function.parameters.count;i++){
-        callAndHandleException_clean(addVariable(&function.parameters.params[i]));
+        SymbolVariable var = {.id = function.parameters.params[i].id, .type = function.parameters.params[i].type};
+        callAndHandleException_clean(addVariable(&var));
     }
 
     NTERM(Block); //Todo: attach to the AST generation later.
@@ -351,9 +352,9 @@ int StatementStartingWithIdentifier(){
 
     switch(curTok.type){
         case TokenLeftBracket:
-            if (getVariable(strGetStr(&firstID) != NULL))
+            if (getVariable(strGetStr(&firstID)) != NULL)
                 returnAndClean(SEMANTIC_ERROR_OTHER);
-            callAndHandleException_clean(FunctionCall_rule(&lValues,getFunction(&firstID),&firstID));
+            callAndHandleException_clean(FunctionCall_rule(&lValues,getFunction(strGetStr(&firstID)),&firstID));
             returnAndClean(SUCCESS);
         case TokenVarDefine:
             callAndHandleException_clean(VariableDefinition(&firstID));
@@ -383,14 +384,14 @@ int Assignment(SymbolVariableArray* lValues){
     string functionCandidate;
     callAndHandleException(strInit(&functionCandidate));
 
-    callAndHandleException_clean(IDList_Next(lValues));
+    callAndHandleException_clean(VariableList_Next(lValues));
     assert_clean(TokenAssignment);
 
     if (peek(TokenIdentifier)){
         callAndHandleException_clean(strCopyString(&functionCandidate, &curTok.attribute.s));
         acceptAny();
         if(peek(TokenLeftBracket)){ //We are dealing with a function call with assignment now.
-            if (getVariable(&functionCandidate) != NULL)
+            if (getVariable(strGetStr(&functionCandidate)) != NULL)
                 returnAndClean(SEMANTIC_ERROR_OTHER);
             const SymbolFunction* function = getFunction(strGetStr(&functionCandidate));
             callAndHandleException_clean(FunctionCall_rule(lValues, function,&functionCandidate)); //TODO: AST handling somewhere.
@@ -431,19 +432,19 @@ int ExpressionList_Next(){
     return SUCCESS;
 }
 
-int IDList_Next(SymbolVariableArray* lValues){
+int VariableList_Next(SymbolVariableArray* lValues){
     int returnCode;
     
     assertOrEpsilon(TokenComma);
     
     if (peek(TokenIdentifier)){
-        SymbolVariable* foundVariable = getVariable(strGetStr(&curTok.attribute.s));
+        const SymbolVariable* foundVariable = getVariable(strGetStr(&curTok.attribute.s));
         if (foundVariable == NULL)
             return SEMANTIC_ERROR_DEFINITION;
         callAndHandleException(addToSymbolVariableArray(lValues,foundVariable));
     } else return SYNTAX_ERROR;
     
-    callAndHandleException(IDList_Next(lValues));
+    callAndHandleException(VariableList_Next(lValues));
     
     return SUCCESS;
 }
