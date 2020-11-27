@@ -117,6 +117,8 @@ int FunctionDefinition(){
     function.returnTypes.types = NULL;
     callAndHandleException(strInit(&function.id));
 
+    //Syntactical and semantic checks.
+
     assert_clean(TokenFunc);
 
     if(peek(TokenIdentifier)){
@@ -132,10 +134,19 @@ int FunctionDefinition(){
     assert_clean(TokenRightBracket);
     callAndHandleException_clean(FunctionReturnValues(&function));
     
+    //Symtable management
+
     callAndHandleException_clean(addFunction(&function));
     
+    callAndHandleException_clean(enterNewStackFrame());
+    for (int i = 0; i < function.parameters.count;i++){
+        callAndHandleException_clean(addVariable(&function.parameters.params[i]));
+    }
+
     NTERM(Block); //Todo: attach to the AST generation later.
     
+    leaveStackFrame();
+
     CLEAN_UP:
     strFree(&function.id);
     for (int i = 0; i < function.parameters.count;i++)
