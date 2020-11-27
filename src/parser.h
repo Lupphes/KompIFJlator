@@ -40,7 +40,7 @@ int ExpressionList_Start();
 int ExpressionList_Next();
 int IDList_Next(SymbolVariableArray* lValues);
 int VariableDefinition(string* id_name);
-int FunctionCall_rule(SymbolVariableArray* lValues, const SymbolFunction* function, string* functionName);
+int FunctionCall_rule(SymbolVariableArray* lValues, const SymbolFunction* function, const string* functionName);
 int TermList(TermArray* functionParameters);
 int TermListNext(TermArray* functionParameters);
 int If();

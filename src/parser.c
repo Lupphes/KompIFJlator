@@ -322,6 +322,7 @@ int Statement(){
 int StatementStartingWithIdentifier(){
     int returnCode = SUCCESS;
     
+    const int numberOfDubiousFunctionCallsBeforeApplyingThisRule = countInDubiousFunctionCallArray(&dubiousFunctionCalls);
     string firstID;
     SymbolVariableArray lValues;
     const SymbolVariable* firstVariable;
@@ -335,8 +336,10 @@ int StatementStartingWithIdentifier(){
 
     switch(curTok.type){
         case TokenLeftBracket:
-            //NTERM(FunctionCall_rule);
-            return SUCCESS;
+            if (getVariable(strGetStr(&firstID) != NULL))
+                returnAndClean(SEMANTIC_ERROR_OTHER);
+            callAndHandleException_clean(FunctionCall_rule(&lValues,getFunction(&firstID),&firstID));
+            returnAndClean(SUCCESS);
         case TokenVarDefine:
             callAndHandleException_clean(VariableDefinition(&firstID));
             returnAndClean(SUCCESS);
@@ -349,11 +352,12 @@ int StatementStartingWithIdentifier(){
             callAndHandleException_clean(Assignment(&lValues));
             returnAndClean(SUCCESS);
         default:
-            return SYNTAX_ERROR;
+            returnAndClean(SYNTAX_ERROR);
     }
 
     CLEAN_UP:
     strFree(&firstID);
+    if (numberOfDubiousFunctionCallsBeforeApplyingThisRule != countInDubiousFunctionCallArray(&dubiousFunctionCalls)) //If we added a dubious function call, we need a reference to its lvalues later, so we can't free them now.
     freeSymbolVariableArray(&lValues);
     return returnCode;
 
@@ -371,6 +375,8 @@ int Assignment(SymbolVariableArray* lValues){
         callAndHandleException_clean(strCopyString(&functionCandidate, &curTok.attribute.s));
         acceptAny();
         if(peek(TokenLeftBracket)){ //We are dealing with a function call with assignment now.
+            if (getVariable(&functionCandidate) != NULL)
+                returnAndClean(SEMANTIC_ERROR_OTHER);
             const SymbolFunction* function = getFunction(strGetStr(&functionCandidate));
             callAndHandleException_clean(FunctionCall_rule(lValues, function,&functionCandidate)); //TODO: AST handling somewhere.
         }
@@ -419,7 +425,7 @@ int IDList_Next(SymbolVariableArray* lValues){
         SymbolVariable* foundVariable = getVariable(strGetStr(&curTok.attribute.s));
         if (foundVariable == NULL)
             return SEMANTIC_ERROR_DEFINITION;
-        addToSymbolVariableArray(lValues,foundVariable);
+        callAndHandleException(addToSymbolVariableArray(lValues,foundVariable));
     } else return SYNTAX_ERROR;
     
     callAndHandleException(IDList_Next(lValues));
@@ -445,7 +451,7 @@ int VariableDefinition(string* idName){
     return SUCCESS;
 }
 
-int FunctionCall_rule(SymbolVariableArray* lValues, const SymbolFunction* function, string* functionName){
+int FunctionCall_rule(SymbolVariableArray* lValues, const SymbolFunction* function, const string* functionName){
     int returnCode = SUCCESS;
     TermArray* functionParameters = malloc(sizeof(TermArray));
     if(functionParameters == NULL)
@@ -457,7 +463,7 @@ int FunctionCall_rule(SymbolVariableArray* lValues, const SymbolFunction* functi
     callAndHandleException_clean(TermList(functionParameters));    
     assert_clean(TokenRightBracket);
 
-    if (function != NULL){ //We are dealing with an already definied function.
+    if (function != NULL){ //We are dealing with an already defined function.
         callAndHandleException_clean(validateFunctionCall(function,lValues,functionParameters));
     }
     else{ //We cannot determine the semantic correctness of the function call yet; we instead save this occurence for later investigation.
@@ -480,8 +486,11 @@ int TermList(TermArray* functionParameters){
     if(term == NULL)
         return INTERNAL_ERROR;
     
-    if(parseTerm(term) == SUCCESS){
-        addToTermArray(functionParameters,term);
+    if(parseTerm(term,true) == SUCCESS){
+        if(addToTermArray(functionParameters,term) != SUCCESS){
+            free(term);
+            return INTERNAL_ERROR;
+        }
         callAndHandleException(TermListNext(functionParameters));
         return SUCCESS;
     }
