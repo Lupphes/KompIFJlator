@@ -40,9 +40,10 @@ void initStringArray(StringArray* arr){
 int addToStringArray(StringArray* arr, string* str){
     int returnCode;
     
-    int newCount = ++arr->count;
+    int newCount = arr->count + 1;
     if ((arr->arr = realloc(arr->arr,sizeof(string)*newCount)) == NULL)
         return INTERNAL_ERROR;
+    newCount++;
     callAndHandleException(strInit(&arr->arr[newCount-1]));
     callAndHandleException(strCopyString(&arr->arr[newCount-1],str));
 
@@ -90,10 +91,11 @@ void initSymbolVariableArray(SymbolVariableArray* arr){
  * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
  */
 int addToSymbolVariableArray(SymbolVariableArray* arr, const SymbolVariable* var){
-    int newCount = ++arr->count;
+    int newCount = arr->count + 1;
     if ((arr->arr = realloc(arr->arr,sizeof(SymbolVariable)*newCount)) == NULL)
         return INTERNAL_ERROR;
     arr->arr[newCount-1] = var;
+    arr->count++;
 
     return SUCCESS;
 }
@@ -136,10 +138,11 @@ void initTermArray(TermArray* arr){
  * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
  */
 int addToTermArray(TermArray* arr, Term* term){
-    int newCount = ++arr->count;
+    int newCount = arr->count + 1;
     if ((arr->arr = realloc(arr->arr,sizeof(Term)*newCount)) == NULL)
         return INTERNAL_ERROR;
     arr->arr[newCount-1] = term;
+    arr->count++;
 
     return SUCCESS;
 }
@@ -187,10 +190,11 @@ void initDubiousFunctionCallArray(DubiousFunctionCallArray* arr){
  * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
  */
 int addToDubiousFunctionCallArray(DubiousFunctionCallArray* arr, DubiousFunctionCall* functionCall){
-    int newCount = ++arr->count;
+    int newCount = arr->count + 1;
     if ((arr->arr = realloc(arr->arr,sizeof(DubiousFunctionCall)*newCount)) == NULL)
         return INTERNAL_ERROR;
     arr->arr[newCount-1] = *functionCall;
+    arr->count++;
 
     return SUCCESS;
 }
