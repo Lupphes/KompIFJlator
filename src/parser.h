@@ -32,7 +32,7 @@ int FunctionDefinitionParameters_Next(SymbolFunction* function);
 int FunctionReturnValues(SymbolFunction* function);
 int FunctionReturnValues_First(SymbolFunction* function);
 int FunctionReturnValues_Next(SymbolFunction* function);
-int Block();
+int Block(bool generateNewStackFrame);
 int Statement();
 int StatementStartingWithIdentifier();
 int Assignment(SymbolVariableArray* lValues);

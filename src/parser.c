@@ -144,7 +144,7 @@ int FunctionDefinition(){
         callAndHandleException_clean(addVariable(&var));
     }
 
-    NTERM(Block); //Todo: attach to the AST generation later.
+    callAndHandleException_clean(Block(false)); //Todo: attach to the AST generation later.
     
     leaveStackFrame();
 
@@ -171,7 +171,7 @@ int addFunctionParameter(SymbolFunction* function, const string* id, DataType ty
     int returnCode;
     
     for(int i = 0;i < function->parameters.count;i++)
-        if(strCmpString(&function->parameters.params[i].id,id) != 0)
+        if(strCmpString(&function->parameters.params[i].id,id) == 0)
             return SEMANTIC_ERROR_OTHER;
     
     int newCount = ++function->parameters.count;
@@ -207,6 +207,7 @@ int processFunctionDefinitionParameter(SymbolFunction* function){
     acceptAny();
     if (peek(TokenDataType)){
         callAndHandleException(addFunctionParameter(function,&id,curTok.attribute.t));
+        acceptAny();
     } else {
         strFree(&id);
         return SYNTAX_ERROR;
@@ -275,6 +276,7 @@ int FunctionReturnValues_First(SymbolFunction* function){
         return SUCCESS;
 
     callAndHandleException(addFunctionReturnType(function,curTok.attribute.t));
+    acceptAny();
     callAndHandleException(FunctionReturnValues_Next(function));
 
     return SUCCESS;
@@ -288,15 +290,17 @@ int FunctionReturnValues_Next(SymbolFunction* function){
         return SYNTAX_ERROR;
     
     callAndHandleException(addFunctionReturnType(function, curTok.attribute.t));
+    acceptAny();
     callAndHandleException(FunctionReturnValues_Next(function));
 
     return SUCCESS;
 }
 
-int Block(){
+int Block(bool newStackFrame){
     int returnCode;
     
-    callAndHandleException(enterNewStackFrame());
+    if (newStackFrame)
+        callAndHandleException(enterNewStackFrame());
 
     assert(TokenLeftCurlyBracket);
     EOL_Mandatory();
@@ -304,7 +308,8 @@ int Block(){
     EOL_Optional(); //TODO: Investigate.
     assert(TokenRightCurlyBracket);
 
-    leaveStackFrame();
+    if (newStackFrame)
+        leaveStackFrame();
 
     return SUCCESS;
 }
@@ -340,10 +345,12 @@ int StatementStartingWithIdentifier(){
     
     const int numberOfDubiousFunctionCallsBeforeApplyingThisRule = countInDubiousFunctionCallArray(&dubiousFunctionCalls);
     string firstID;
-    SymbolVariableArray lValues;
+    SymbolVariableArray* lValues = malloc(sizeof(SymbolVariableArray));
+    if (lValues == NULL)
+        return INTERNAL_ERROR;
+    initSymbolVariableArray(lValues);
+    callAndHandleException_clean(strInit(&firstID));
     const SymbolVariable* firstVariable;
-    callAndHandleException(strInit(&firstID));
-    initSymbolVariableArray(&lValues);
 
     if(peek(TokenIdentifier)){ //Unnecessary check since we already know that we are dealing with an identifier as the current token, but for good measure I check here as well.
         callAndHandleException_clean(strCopyString(&firstID, &curTok.attribute.s));
@@ -354,7 +361,7 @@ int StatementStartingWithIdentifier(){
         case TokenLeftBracket:
             if (getVariable(strGetStr(&firstID)) != NULL)
                 returnAndClean(SEMANTIC_ERROR_OTHER);
-            callAndHandleException_clean(FunctionCall_rule(&lValues,getFunction(strGetStr(&firstID)),&firstID));
+            callAndHandleException_clean(FunctionCall_rule(lValues,getFunction(strGetStr(&firstID)),&firstID));
             returnAndClean(SUCCESS);
         case TokenVarDefine:
             callAndHandleException_clean(VariableDefinition(&firstID));
@@ -364,8 +371,8 @@ int StatementStartingWithIdentifier(){
             firstVariable = getVariable(strGetStr(&firstID));
             if (firstVariable == NULL) //No variable with the given name exists in the current context.
                 returnAndClean(SEMANTIC_ERROR_DEFINITION);
-            callAndHandleException_clean(addToSymbolVariableArray(&lValues,firstVariable));
-            callAndHandleException_clean(Assignment(&lValues));
+            callAndHandleException_clean(addToSymbolVariableArray(lValues,firstVariable));
+            callAndHandleException_clean(Assignment(lValues));
             returnAndClean(SUCCESS);
         default:
             returnAndClean(SYNTAX_ERROR);
@@ -373,8 +380,10 @@ int StatementStartingWithIdentifier(){
 
     CLEAN_UP:
     strFree(&firstID);
-    if (numberOfDubiousFunctionCallsBeforeApplyingThisRule == countInDubiousFunctionCallArray(&dubiousFunctionCalls)) //If we added a dubious function call, we need a reference to its lvalues later, so we can't free them now.
-        freeSymbolVariableArray(&lValues);
+    if (numberOfDubiousFunctionCallsBeforeApplyingThisRule == countInDubiousFunctionCallArray(&dubiousFunctionCalls)){ //If we added a dubious function call, we need a reference to its lvalues later, so we can't free them now.
+        freeSymbolVariableArray(lValues);
+        free(lValues);
+    }
     return returnCode;
 
 }
@@ -442,6 +451,7 @@ int VariableList_Next(SymbolVariableArray* lValues){
         if (foundVariable == NULL)
             return SEMANTIC_ERROR_DEFINITION;
         callAndHandleException(addToSymbolVariableArray(lValues,foundVariable));
+        acceptAny();
     } else return SYNTAX_ERROR;
     
     callAndHandleException(VariableList_Next(lValues));
@@ -452,17 +462,33 @@ int VariableList_Next(SymbolVariableArray* lValues){
 int VariableDefinition(string* idName){
     int returnCode;
     SymbolVariable newVariable;
+    callAndHandleException(strInit(&newVariable.id));
 
     assert(TokenVarDefine);
-    NTERM(parseExpression_Dummy); //TODO: Waiting for expression team.
-    
-    callAndHandleException(strInit(&newVariable.id));
+    Term term;
+    if((returnCode = parseTerm(&term,true)) != SUCCESS){
+        strFree(&newVariable.id);
+        return returnCode;
+    }
+
     if (strCopyString(&newVariable.id,idName) != SUCCESS){
         strFree(&newVariable.id);
+        if (term.type == TermStringLiteral)
+            strFree(&term.value.s);
         return INTERNAL_ERROR;
     }
-    newVariable.type = TypeInt; //Todo: Waiting for expression team.
-    //Todo: Add the initial assignment to the AST later.
+    newVariable.type = termType(&term); //Todo: Waiting for expression team.
+    
+    if((returnCode = addVariable(&newVariable)) != SUCCESS){
+        strFree(&newVariable.id);
+        if (term.type == TermStringLiteral)
+            strFree(&term.value.s);
+        return returnCode;
+    }
+
+    strFree(&newVariable.id);
+    if (term.type == TermStringLiteral)
+        strFree(&term.value.s);
 
     return SUCCESS;
 }
@@ -498,7 +524,7 @@ int FunctionCall_rule(SymbolVariableArray* lValues, const SymbolFunction* functi
 
 int TermList(TermArray* functionParameters){
     int returnCode;
-    Term* term = malloc(sizeof(term));
+    Term* term = malloc(sizeof(Term));
     if(term == NULL)
         return INTERNAL_ERROR;
     
@@ -521,7 +547,7 @@ int TermListNext(TermArray* functionParameters){
 
     assertOrEpsilon(TokenComma);
 
-    Term* term = malloc(sizeof(term));
+    Term* term = malloc(sizeof(Term));
     if(term == NULL)
         return INTERNAL_ERROR;
 
@@ -541,9 +567,9 @@ int If(){
     
     assert(TokenIf);
     NTERM(parseExpression_Dummy);
-    NTERM(Block);
+    callAndHandleException(Block(true));
     assert(TokenElse);
-    NTERM(Block);
+    callAndHandleException(Block(true));
 
     return SUCCESS;
 }
@@ -566,7 +592,7 @@ int For(){
     NTERM(parseExpression_Dummy);
     assert(TokenSemicolon);
     NTERM(For_Assignment);
-    NTERM(Block);
+    callAndHandleException(Block(true));
 
     return SUCCESS;
 
