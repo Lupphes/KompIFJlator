@@ -393,7 +393,7 @@ int getToken(Token* token) {
                 charMacro(getCharCheck, &currChar);       
             } 
             charMacro(unGetCharCheck, currChar);
-            for (int i = 0; i < sizeof(_keywords)/sizeof(keywordEntry); i++) {
+            for (unsigned long i = 0; i < sizeof(_keywords)/sizeof(keywordEntry); i++) {
                 if(strCmpConstStr(&bufferString, _keywords[i].key) == 0) {
                     *token = _keywords[i].value;
                     strFree(&bufferString);

@@ -3,7 +3,7 @@
 #include "./../../src/error.h"
 #include <stdlib.h>
 
-int main(int argc, char const *argv[]) {
+int main() {
     Token token;
     int result;
     while (token.type != TokenEOF)
