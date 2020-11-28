@@ -36,8 +36,10 @@ DubiousFunctionCallArray dubiousFunctionCalls;
 int beginParsing(){
     int returnCode = SUCCESS;
     initDubiousFunctionCallArray(&dubiousFunctionCalls);
+    callAndHandleException_clean(initFunctionTable());
+    callAndHandleException_clean(initVariableTableStack());
     callAndHandleException_clean(nextToken()) //First read of the token.
-    
+
     callAndHandleException_clean(Start());
     
     for (int i = 0; i < countInDubiousFunctionCallArray(&dubiousFunctionCalls);i++){
@@ -51,6 +53,8 @@ int beginParsing(){
 
     CLEAN_UP:
     freeDubiousFunctionCallArray(&dubiousFunctionCalls);
+    freeFunctionTable();
+    freeVariableTableStack();
     return returnCode;
         
 }
