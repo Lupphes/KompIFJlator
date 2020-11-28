@@ -48,7 +48,7 @@ bool peek(_TokenType type);
 int nextToken();
 int beginParsing();
 int validateFunctionCall(const SymbolFunction* function, const SymbolVariableArray* lValues, const TermArray* functionParameters);
-int parseTerm(Term* term);
+int parseTerm(Term* term, bool autoForward);
 DataType termType(Term* term);
 
 #endif
