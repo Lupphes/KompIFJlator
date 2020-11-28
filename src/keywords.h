@@ -1,8 +1,8 @@
 /*File name: keywords.h ---------------------------------------------*
- |Project:    Implementace překladače imperativního jazyka IFJ20     |
+ |Project:    Implementace překladače imperativního jazyka IFJ2{.t = 0}     |
  |Team:       124, varianta II                                       |
- |Authors:    Ondřej Sloup (xsloup02)                                |
- |            Viktor Rucký (xrucky01)                                |
+ |Authors:    Ondřej Sloup (xsloup{.t = 0}2)                                |
+ |            Viktor Rucký (xrucky{.t = 0}1)                                |
  |                                                                   |
  |  _      _     _   __                   __  _        _             |
  | | |    (_)   | | /_/                  /_/ | |      | |            |
@@ -32,28 +32,28 @@ typedef struct {
 */
 const keywordEntry _keywords[] = {
     {
-    "else", {TokenElse}
+    "else", {TokenElse, {.t = 0}}
     },
     {
     "float64", {TokenDataType, {.t = TypeFloat64}}
     },
     {
-    "for", {TokenFor}
+    "for", {TokenFor, {.t = 0}}
     },
     {
-    "func", {TokenFunc}
+    "func", {TokenFunc, {.t = 0}}
     },
     {
-    "if", {TokenIf}
+    "if", {TokenIf, {.t = 0}}
     },
     {
     "int", {TokenDataType, {.t = TypeInt}}
     },
     {
-    "package", {TokenPackage}
+    "package", {TokenPackage, {.t = 0}}
     },
     {
-    "return", {TokenReturn}
+    "return", {TokenReturn, {.t = 0}}
     },
     {
     "string", {TokenDataType, {.t = TypeString}}
