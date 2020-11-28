@@ -20,10 +20,10 @@
 #include "term.h"
 
 //Short hand. Process the "call" (usually a function call, but can technically be any expression in C) and returns its return code if is non-zero (i.e. the function returned unsuccesfully.)
-#define callAndHandleException(call) if ((returnCode = (call))) return returnCode;
+#define callAndHandleException(call) {if ((returnCode = (call))) return returnCode;}
 
 //Short hand. Process the "call" (usually a function call, but can technically be any expression in C). If the call resulted in a failure, sets the returnCode variable to whatever the call returned and goes to the CLEAN_UP label.
-#define callAndHandleException_clean(call) if ((returnCode = (call))) goto CLEAN_UP;
+#define callAndHandleException_clean(call) {if ((returnCode = (call))) goto CLEAN_UP;}
 
 //Short hand. Sets the returnCode variable to the provided code and goes to the CLEAN_UP label. 
 #define returnAndClean(code) {returnCode = code; goto CLEAN_UP;}

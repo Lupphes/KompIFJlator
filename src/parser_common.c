@@ -42,13 +42,21 @@ int beginParsing(){
 
     callAndHandleException_clean(Start());
     
+    //Checking for existence and proper form of main function.
+    const SymbolFunction* mainFunction = getFunction("main");
+    if (mainFunction == NULL)
+        returnAndClean(SEMANTIC_ERROR_DEFINITION);
+    if (mainFunction->parameters.count != 0 || mainFunction->returnTypes.count != 0)
+        returnAndClean(SEMANTIC_ERROR_TYPE_FUNCTION);
+    
+    //Evaluating dubious function calls
     for (int i = 0; i < countInDubiousFunctionCallArray(&dubiousFunctionCalls);i++){
         const SymbolFunction* function = getFunction(strGetStr(&dubiousFunctionCalls.arr[i].functionName));
         if (function == NULL)
             returnAndClean(SEMANTIC_ERROR_DEFINITION);
         callAndHandleException_clean(validateFunctionCall(function,dubiousFunctionCalls.arr[i].lValues,dubiousFunctionCalls.arr[i].functionParameters));
     }
-
+    
     //TODO: Start code generation here.
 
     CLEAN_UP:
