@@ -1,8 +1,8 @@
 /*File name: keywords.h ---------------------------------------------*
- |Project:    Implementace překladače imperativního jazyka IFJ2{.t = -1}     |
+ |Project:    Implementace překladače imperativního jazyka IFJ20     |
  |Team:       124, varianta II                                       |
- |Authors:    Ondřej Sloup (xsloup{.t = -1}2)                                |
- |            Viktor Rucký (xrucky{.t = -1}1)                                |
+ |Authors:    Ondřej Sloup (xsloup02)                                |
+ |            Viktor Rucký (xrucky01)                                |
  |                                                                   |
  |  _      _     _   __                   __  _        _             |
  | | |    (_)   | | /_/                  /_/ | |      | |            |
