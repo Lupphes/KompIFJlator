@@ -353,7 +353,7 @@ int checkIfValidToken(Token *token, ExpArray *array, int *operator) {
             if(isInStackExpressionOrIdentifier(array)) 
                 return SYNTAX_ERROR;
             Term* term = malloc(sizeof(term));
-            if(parseTerm(term) == SUCCESS){
+            if(parseTerm(term, false) == SUCCESS){
                 switch (term->type) {
                 case TermIntegerLiteral:
                     // *operator = OperatorWholeNumber;

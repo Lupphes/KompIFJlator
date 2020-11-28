@@ -160,13 +160,9 @@ int parseTerm(Term* term, bool autoAdvance){
         default:
             return SYNTAX_ERROR;
     }
-<<<<<<< HEAD
-    // acceptAny();
-=======
     if (autoAdvance){
         acceptAny();
     }
->>>>>>> origin/master
     return SUCCESS;
 }
 
