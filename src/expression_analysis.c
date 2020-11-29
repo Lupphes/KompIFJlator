@@ -108,7 +108,7 @@ void freeArray(ExpArray *array) {
 
 void printArray(ExpArray *array) {
     for (int i = 0; i < array->used; i++) {
-        printf("%d,", array->values[i].value);
+        printf("%s,", enumOperatorTranslate[array->values[i].value]);
     }
     printf("\n");
 }
@@ -165,12 +165,16 @@ int rulesEvaluation(ExpArray *array) {
     int returnedValue;
     popFromArray(array, &returnedValue);
     switch (returnedValue) {
-    case OperatorLeftBracket:
+    case OperatorRightBracket:
         popFromArray(array, &returnedValue);
         if (returnedValue == OperatorExpression) {
             popFromArray(array, &returnedValue);
-            if (returnedValue == OperatorRightBracket) {
-                rule = RuleBra;
+            if (returnedValue == OperatorLeftBracket) {
+                rule = RulePar;
+                if (seekValueArrayValue(array, &returnedValue) == OperatorSubtract) {
+                    popFromArray(array, &returnedValue);
+                    rule = RuleBra;
+                }
             }
         }
         break;
@@ -241,7 +245,6 @@ int rulesEvaluation(ExpArray *array) {
             popFromArray(array, &returnedValue);
             if (returnedValue == OperatorExpression)
                 rule = RuleNEq;
-            break;
         default:
             break;
         }
@@ -282,7 +285,10 @@ int evaluateExpression(ExpArray *array, int *operator) {
             printArray(array); // DEBUG
             break;
         case OperatorEqualAssociative:
-            /* code */
+            pushToArray(array, *operator);
+            identifiedRule = rulesEvaluation(array);
+            pushToArray(array, OperatorExpression);
+            printArray(array); // DEBUG
             break;
     }
     return SUCCESS;

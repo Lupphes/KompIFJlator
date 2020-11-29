@@ -42,7 +42,7 @@ typedef enum {
     OperatorNotEqual, /** != */
     OperatorEnd, /** $ */
     
-
+    /* this need redo */
     OperatorWholeNumber = 15, /** int -- whole numeber */ // EXPATOM
     OperatorDecimal, /** float -- decimal number */
     OperatorStringLiteral, /** string -- text string */
@@ -97,6 +97,39 @@ typedef struct {
   int64_t initializedSize;
   ExpValue* values;
 } ExpArray;
+
+static const char* enumOperatorTranslate[] = {
+    "+", /** + */
+    "-", /** - */
+    "*", /** * */
+    "/", /** / */
+
+    "(", /** ( */
+    ")", /** ) */
+    "id", /** id */
+
+    "<", /** < */
+    "<=", /** <= */
+    ">", /** > */
+    ">=", /** >= */
+    "==", /** == */
+    "!=", /** != */
+    "$", /** $ */
+    "lalala",
+    /* this need redo */
+    "OperatorWholeNumber", /** int -- whole numeber */ // EXPATOM
+    "OperatorDecimal", /** float -- decimal number */
+    "OperatorStringLiteral", /** string -- text string */
+    "OperationNegate",
+    
+
+    "<",  /** [ || < */
+    ">",  /** ] || > */
+    "=",  /** = > */
+    "OperatorStart", /** ^ */
+    "E", /** Exp */
+    "OperatorError"  /** = > */
+ };
 
 int parseExpression(Expression* expression);
 int initExpArray(ExpArray *array, int64_t initialSize);
