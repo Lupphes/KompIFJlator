@@ -216,8 +216,9 @@ int countInDubiousFunctionCallArray(const DubiousFunctionCallArray* arr){
  */
 void freeDubiousFunctionCallArray(DubiousFunctionCallArray* arr){
     for(int i = 0; i < arr->count;i++){
-        for (int j = 0; i < arr->arr[i].functionParameters->count;j++)
-            free(arr->arr[i].functionParameters->arr[j]);
+        freeSymbolVariableArray(arr->arr[i].lValues);
+        freeTermArray(arr->arr[i].functionParameters);
+        free(arr->arr[i].lValues);
         free(arr->arr[i].functionParameters);
         strFree(&arr->arr[i].functionName);
     }
