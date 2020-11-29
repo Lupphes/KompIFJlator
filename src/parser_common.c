@@ -178,9 +178,25 @@ int parseTerm(Term* term, bool autoAdvance){
     return SUCCESS;
 }
 
+/**
+ * @brief Returns the data type of a term.
+ * 
+ * @param term The term to get its data type of.
+ * @return DataType The data type of the given term.
+ */
 DataType termType(Term* term){
     if (term->type != TermVariable)
         return term->type; //The TermType enum has equivalent enum values for all types except TermVariable.
     else
         return term->value.v->type;
+}
+
+/**
+ * @brief Frees the memory used by a term.
+ * 
+ * @param term The term to free its memory.
+ */
+void freeTerm(Term* term){
+    if (term->type == TermStringLiteral)
+        strFree(&term->value.s);
 }
