@@ -238,6 +238,7 @@ int rulesEvaluation(ExpArray *array) {
             break;
             popFromArray(array, &returnedValue);
         case OperatorIsEqual:
+            popFromArray(array, &returnedValue);
             if (returnedValue == OperatorExpression)
                 rule = RuleEqu;
             break;
@@ -407,6 +408,3 @@ int parseExpression(Expression* expression) {
     freeArray(&expArray);
     return SUCCESS;
 }
-
-
-
