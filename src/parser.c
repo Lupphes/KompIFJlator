@@ -406,11 +406,11 @@ int Assignment(SymbolVariableArray* lValues){
             callAndHandleException_clean(FunctionCall_rule(lValues, function,&functionCandidate)); //TODO: AST handling somewhere.
         }
         else{
-            NTERM(ExpressionList_Start);
+            callAndHandleException_clean(AssignmentOfExpressions(lValues));
         }
     }
     else{
-        NTERM(ExpressionList_Start);
+        callAndHandleException_clean(AssignmentOfExpressions(lValues));
     }
     
     CLEAN_UP:
@@ -418,27 +418,63 @@ int Assignment(SymbolVariableArray* lValues){
     return returnCode;
 }
 
-int ExpressionList_Start(){
-    int returnCode;
+int AssignmentOfExpressions(const SymbolVariableArray* lValues){
+    int returnCode = SUCCESS;
+    
+    TermArray expressionList; //TODO: Waiting for expression team.
+    initTermArray(&expressionList);
 
-    if ((returnCode = parseExpression_Dummy()) != SUCCESS && returnCode != TEMP_NO_EXPRESSION) //TODO: Adjust once work on expression parser is begun.
-        return returnCode; //If there is an error while parsing the expression
-    else if (returnCode == TEMP_NO_EXPRESSION)
-        return SUCCESS; //Epsilon rule.
-        
-    NTERM(ExpressionList_Next);
+    callAndHandleException_clean(ExpressionList_Start(&expressionList));
 
-    return SUCCESS;
+    if (countInSymbolVariableArray(lValues) != countInTermArray(&expressionList))
+        returnAndClean(SEMANTIC_ERROR_OTHER);
+    for(int i = 0;i < countInSymbolVariableArray(lValues);i++)
+        if(lValues->arr[i]->type != TypeBlackHole && lValues->arr[i]->type != termType(expressionList.arr[i]))
+            returnAndClean(SEMANTIC_ERROR_OTHER);
+
+    CLEAN_UP:
+    freeTermArray(&expressionList);
+    return returnCode;
 }
 
-int ExpressionList_Next(){
-    int returnCode;
+int ExpressionList_Start(TermArray* expressionList){
+    int returnCode = SUCCESS;
+    Term* expression = malloc(sizeof(Term));
+    if (expression == NULL)
+        return INTERNAL_ERROR;
 
-    assertOrEpsilon(TokenComma);
-    NTERM(parseExpression_Dummy);
-    NTERM(ExpressionList_Next);
+    if ((returnCode = parseTerm(expression,true)) != SUCCESS && returnCode != SYNTAX_ERROR) //TODO: Adjust once work on expression parser is begun.
+        return returnCode; //If there is an error while parsing the expression
+    else if (returnCode == SYNTAX_ERROR)
+        return SUCCESS; //Epsilon rule.
+    
+    callAndHandleException_clean(addToTermArray(expressionList,expression));
+    callAndHandleException(ExpressionList_Next(expressionList));
 
-    return SUCCESS;
+    return returnCode;
+    CLEAN_UP:
+    freeTerm(expression);
+    free(expression);
+    return returnCode;
+}
+
+int ExpressionList_Next(TermArray* expressionList){
+    int returnCode = SUCCESS;
+    Term* expression = malloc(sizeof(Term));
+    if (expression == NULL)
+        return INTERNAL_ERROR;
+
+    assertOrEpsilon_clean(TokenComma);
+    
+    callAndHandleException_clean(parseTerm(expression,true));
+    callAndHandleException_clean(addToTermArray(expressionList,expression));
+    callAndHandleException(ExpressionList_Next(expressionList));
+
+    return returnCode;
+    CLEAN_UP:
+    freeTerm(expression);
+    free(expression);
+    return returnCode;
 }
 
 int VariableList_Next(SymbolVariableArray* lValues){
@@ -473,22 +509,19 @@ int VariableDefinition(string* idName){
 
     if (strCopyString(&newVariable.id,idName) != SUCCESS){
         strFree(&newVariable.id);
-        if (term.type == TermStringLiteral)
-            strFree(&term.value.s);
+        freeTerm(&term);
         return INTERNAL_ERROR;
     }
     newVariable.type = termType(&term); //Todo: Waiting for expression team.
     
     if((returnCode = addVariable(&newVariable)) != SUCCESS){
         strFree(&newVariable.id);
-        if (term.type == TermStringLiteral)
-            strFree(&term.value.s);
+        freeTerm(&term);
         return returnCode;
     }
 
     strFree(&newVariable.id);
-    if (term.type == TermStringLiteral)
-        strFree(&term.value.s);
+    freeTerm(&term);
 
     return SUCCESS;
 }
@@ -528,8 +561,9 @@ int TermList(TermArray* functionParameters){
     if(term == NULL)
         return INTERNAL_ERROR;
     
-    if(parseTerm(term,true) == SUCCESS){
+    if((returnCode = parseTerm(term,true)) == SUCCESS){
         if(addToTermArray(functionParameters,term) != SUCCESS){
+            freeTerm(term);
             free(term);
             return INTERNAL_ERROR;
         }
@@ -538,7 +572,7 @@ int TermList(TermArray* functionParameters){
     }
     else{
         free(term);
-        return SUCCESS; //Epsilon rule
+        return returnCode == SYNTAX_ERROR ? SUCCESS : returnCode; //Epsilon rule
     }
 }
 
@@ -576,10 +610,13 @@ int If(){
 
 int Return(){
     int returnCode;
+    TermArray expressions;
+    initTermArray(&expressions);
 
     assert(TokenReturn);
-    NTERM(ExpressionList_Start);
+    callAndHandleException(ExpressionList_Start(&expressions));
 
+    freeTermArray(&expressions);
     return SUCCESS;
 }
 
