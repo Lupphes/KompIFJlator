@@ -25,6 +25,9 @@
 #include "helper.h"
 #include "term.h"
 
+const SymbolFunction* currentFunction = NULL;
+bool currentFunctionContainsReturnStatement;
+
 //Short hand. Processes the function of the specified nonterminal and returns its failure code if it finds issues; otherwise the control flow will resume.
 #define NTERM(nt) callAndHandleException(nt())
 
@@ -144,9 +147,15 @@ int FunctionDefinition(){
         callAndHandleException_clean(addVariable(&var));
     }
 
+    currentFunction = getFunction(strGetStr(&function.id));
+    currentFunctionContainsReturnStatement = false;
+
     callAndHandleException_clean(Block(false)); //Todo: attach to the AST generation later.
     
     leaveStackFrame();
+
+    if (function.returnTypes.count != 0 && !currentFunctionContainsReturnStatement)
+        returnAndClean(SEMANTIC_ERROR_TYPE_FUNCTION);
 
     CLEAN_UP:
     strFree(&function.id);
@@ -611,15 +620,24 @@ int If(){
 }
 
 int Return(){
-    int returnCode;
+    int returnCode = SUCCESS;
     TermArray expressions;
     initTermArray(&expressions);
 
-    assert(TokenReturn);
-    callAndHandleException(ExpressionList_Start(&expressions));
+    currentFunctionContainsReturnStatement = true;
 
+    assert(TokenReturn);
+    callAndHandleException_clean(ExpressionList_Start(&expressions));
+
+    if (countInTermArray(&expressions) != currentFunction->returnTypes.count)
+        returnAndClean(SEMANTIC_ERROR_TYPE_FUNCTION);
+    for (int i = 0; i < currentFunction->returnTypes.count;i++)
+        if (termType(expressions.arr[i]) != currentFunction->returnTypes.types[i])
+            returnAndClean(SEMANTIC_ERROR_TYPE_FUNCTION);
+
+    CLEAN_UP:
     freeTermArray(&expressions);
-    return SUCCESS;
+    return returnCode;
 }
 
 int For(){
