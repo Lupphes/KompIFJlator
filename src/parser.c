@@ -164,7 +164,7 @@ int FunctionDefinition(){
  * @param id The name of the parameter.
  * @param type The type of the paramter.
  * @return SUCCESS The function added the paramter to the given function.
- * @return SEMANTIC_ERROR_OTHER A parameter with the given id was already given to the function.
+ * @return SEMANTIC_ERROR_DEFINITION A parameter with the given id was already given to the function.
  * @return INTERNAL_ERROR The function encountered an unrecoverable error.
  */
 int addFunctionParameter(SymbolFunction* function, const string* id, DataType type){
@@ -172,7 +172,7 @@ int addFunctionParameter(SymbolFunction* function, const string* id, DataType ty
     
     for(int i = 0;i < function->parameters.count;i++)
         if(strCmpString(&function->parameters.params[i].id,id) == 0)
-            return SEMANTIC_ERROR_OTHER;
+            return SEMANTIC_ERROR_DEFINITION;
     
     int newCount = ++function->parameters.count;
     if ((function->parameters.params = realloc(function->parameters.params,sizeof(SymbolFunctionParameter)*newCount)) == NULL)
@@ -191,7 +191,7 @@ int addFunctionParameter(SymbolFunction* function, const string* id, DataType ty
  * @param function 
  * @return int SUCCESS If everthing was succesful.
  * @return int SYNTAX_ERROR If the second token wasn't of type TokenDataType
- * @return int SEMANTIC_ERROR_OTHER If the function already has a parameter with the given id.
+ * @return int SEMANTIC_ERROR_DEFINITION If the function already has a parameter with the given id.
  * @return int INTERNAL_ERROR There was fatal problem with memory allocation.
  */
 int processFunctionDefinitionParameter(SymbolFunction* function){
@@ -426,6 +426,8 @@ int AssignmentOfExpressions(const SymbolVariableArray* lValues){
 
     callAndHandleException_clean(ExpressionList_Start(&expressionList));
 
+    if (countInTermArray(&expressionList) == 0)
+        returnAndClean(SYNTAX_ERROR);
     if (countInSymbolVariableArray(lValues) != countInTermArray(&expressionList))
         returnAndClean(SEMANTIC_ERROR_OTHER);
     for(int i = 0;i < countInSymbolVariableArray(lValues);i++)
