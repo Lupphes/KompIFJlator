@@ -415,11 +415,11 @@ int Assignment(SymbolVariableArray* lValues){
             callAndHandleException_clean(FunctionCall_rule(lValues, function,&functionCandidate)); //TODO: AST handling somewhere.
         }
         else{
-            callAndHandleException_clean(AssignmentOfExpressions(lValues));
+            callAndHandleException_clean(AssignmentOfExpressions(lValues,&functionCandidate));
         }
     }
     else{
-        callAndHandleException_clean(AssignmentOfExpressions(lValues));
+        callAndHandleException_clean(AssignmentOfExpressions(lValues,NULL));
     }
     
     CLEAN_UP:
@@ -427,7 +427,7 @@ int Assignment(SymbolVariableArray* lValues){
     return returnCode;
 }
 
-int AssignmentOfExpressions(const SymbolVariableArray* lValues){
+int AssignmentOfExpressions(const SymbolVariableArray* lValues, const string* lostIdentifier){
     int returnCode = SUCCESS;
     
     TermArray expressionList; //TODO: Waiting for expression team.
@@ -646,32 +646,60 @@ int Return(){
 int For(){
     int returnCode;
     
+    callAndHandleException(enterNewStackFrame());
+
     assert(TokenFor);
     NTERM(For_Definition);
     assert(TokenSemicolon);
-    NTERM(parseExpression_Dummy);
+    if((returnCode = parseExpression_Dummy()) == TEMP_NO_EXPRESSION)
+        return SYNTAX_ERROR;
     assert(TokenSemicolon);
     NTERM(For_Assignment);
     callAndHandleException(Block(true));
+
+    leaveStackFrame();
 
     return SUCCESS;
 
 }
 
 int For_Definition(){
-    int returnCode;
-    
-    assertOrEpsilon(TokenIdentifier);
-    //NTERM(VariableDefinition);
+    int returnCode = SUCCESS;
+    string id;
 
-    return SUCCESS;
+    if(!peek(TokenIdentifier))
+        return SUCCESS; //Epsilon rule
+
+    callAndHandleException_clean(strInit(&id));
+    callAndHandleException_clean(strCopyString(&id,&curTok.attribute.s));
+
+    acceptAny();
+
+    callAndHandleException_clean(VariableDefinition(&id));
+
+    CLEAN_UP:
+    strFree(&id);
+    return returnCode;
 }
 
 int For_Assignment(){
-    int returnCode;
-    
-    assertOrEpsilon(TokenIdentifier);
-    //NTERM(Assignment);
+    int returnCode = SUCCESS;
+    SymbolVariableArray lValues;
+    const SymbolVariable* firstVariable;
+    initSymbolVariableArray(&lValues);
 
-    return SUCCESS;
+    if (!peek(TokenIdentifier))
+        return SUCCESS;
+    firstVariable = getVariable(strGetStr(&curTok.attribute.s));
+    if (firstVariable == NULL)
+        return SEMANTIC_ERROR_DEFINITION;
+    acceptAny();
+    callAndHandleException(addToSymbolVariableArray(&lValues,firstVariable));
+    callAndHandleException_clean(VariableList_Next(&lValues));
+    assert_clean(TokenAssignment);
+    callAndHandleException_clean(AssignmentOfExpressions(&lValues));
+
+    CLEAN_UP:
+    freeSymbolVariableArray(&lValues);
+    return returnCode;
 }
