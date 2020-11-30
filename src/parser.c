@@ -611,7 +611,10 @@ int If(){
     int returnCode;
     
     assert(TokenIf);
-    NTERM(parseExpression_Dummy);
+    if ((returnCode = parseExpression_Dummy()) == TEMP_NO_EXPRESSION)
+        return SYNTAX_ERROR;
+    else if (returnCode != SUCCESS)
+        return returnCode;
     callAndHandleException(Block(true));
     assert(TokenElse);
     callAndHandleException(Block(true));
