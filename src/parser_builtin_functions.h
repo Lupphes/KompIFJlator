@@ -1,4 +1,4 @@
-/*File name: symbol.h -----------------------------------------------*
+/*File name: parser_builtin_functions.h -----------------------------*
  |Project:    Implementace překladače imperativního jazyka IFJ20     |
  |Team:       124, varianta II                                       |
  |Authors:    Viktor Rucký (xrucky01)                                |
@@ -13,34 +13,9 @@
  |                                      |___/                        |
  *-------------------------------------------------------------------*/
 
-#ifndef SYMBOL_H
-#define SYMBOL_H
-#include "str.h"
-#include "data_type.h"
-#include <stdbool.h>
+#ifndef PARSER_BUILTIN_FUNCTIONS_H
+#define PARSER_BUILTIN_FUNCTIONS_H
 
-typedef struct {
-    string id;
-    DataType type; 
-} SymbolFunctionParameter;
-
-typedef struct _SymbolFunction{
-    string id;
-    struct _parameters {
-        SymbolFunctionParameter* params;
-        int count;
-        bool variadic;
-    } parameters;
-    struct _returnTypes{
-        DataType* types;
-        int count;
-    } returnTypes;
-    bool builtIn;
-} SymbolFunction;
-
-typedef struct _SymbolVariable {
-    string id;
-    DataType type;
-} SymbolVariable;
+int initBuiltInFunctions();
 
 #endif
