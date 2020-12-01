@@ -25,6 +25,8 @@
 #include "scanner.h"
 
 Token curTok = {TokenEOF}; //We initialise the current token so that the function nextToken works properly.
+Token cacheTok = {TokenEOF};
+bool historicCurTok = false;
 
 DubiousFunctionCallArray dubiousFunctionCalls;
 
@@ -63,6 +65,7 @@ int beginParsing(){
     freeDubiousFunctionCallArray(&dubiousFunctionCalls);
     freeFunctionTable();
     freeVariableTableStack();
+    freeCurTok();
     return returnCode;
         
 }
@@ -92,14 +95,55 @@ bool peek(_TokenType type){
 }
 
 /**
- * @brief Asks the scanner for the next token and stores it in the curTok variable. The function FREES the string stored in curTok if it needs to.
+ * @brief Sets curTok to the next token. If prevToken hasn't been called, this asks the scanner for the next token and frees the memory used by the PREVIOUS token. If prevToken has been called, this restores the state to before prevToken was called.
  * 
- * @return int The return code of the getToken function.
+ * @retval SUCCESS The operation completed successfully.
+ * @retval LEXICAL_ERROR The scanner encountered a lexical error while getting the next token.
+ * @retval INTERNAL_ERROR There was an unrecoverable error with memory operations.
  */
 int nextToken(){
-    if (curTok.type == TokenIdentifier || curTok.type == TokenStringLiteral) //Checks whether we need to free the smart string if the token used it.
+    if (!historicCurTok){
+        if (cacheTok.type == TokenIdentifier || cacheTok.type == TokenStringLiteral) //Checks whether we need to free the smart string if the token used it.
+            strFree(&cacheTok.attribute.s);
+        cacheTok = curTok;
+        return getToken(&curTok);
+    }
+    else {
+        Token tmp = cacheTok;
+        cacheTok = curTok;
+        curTok = tmp;
+        historicCurTok = false;
+        return SUCCESS;
+    }
+}
+
+/**
+ * @brief "Goes back one token." Sets the currentToken to its previous value. This function can be used to only go one step back; multiple successive calls result in failure.
+ * 
+ * @retval SUCCESS The operation completed successfully.
+ * @retval INTERNAL_ERROR An attempt was made to go back more than one token in the past. This feature is not supported.
+ */
+int prevToken(){
+    if (historicCurTok)
+        return INTERNAL_ERROR;
+    else{
+        Token tmp = cacheTok;
+        cacheTok = curTok;
+        curTok = tmp;
+        historicCurTok = true;
+        return SUCCESS;
+    }
+}
+
+/**
+ * @brief Frees the memory used by the variables used for handling the current token, i.e. curTok and cacheTok.
+ * 
+ */
+void freeCurTok(){
+    if (cacheTok.type == TokenIdentifier || cacheTok.type == TokenStringLiteral)
+        strFree(&cacheTok.attribute.s);
+    if (curTok.type == TokenIdentifier || curTok.type == TokenStringLiteral)
         strFree(&curTok.attribute.s);
-    return getToken(&curTok);
 }
 
 int validateFunctionCall(const SymbolFunction* function, const SymbolVariableArray* lValues, const TermArray* functionParameters){

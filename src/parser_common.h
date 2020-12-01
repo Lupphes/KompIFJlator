@@ -49,6 +49,8 @@ extern DubiousFunctionCallArray dubiousFunctionCalls;
 int accept(_TokenType type);
 bool peek(_TokenType type);
 int nextToken();
+int prevToken();
+void freeCurTok();
 int beginParsing();
 int validateFunctionCall(const SymbolFunction* function, const SymbolVariableArray* lValues, const TermArray* functionParameters);
 int parseTerm(Term* term, bool autoForward);
