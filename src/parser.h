@@ -36,7 +36,7 @@ int Block(bool generateNewStackFrame);
 int Statement();
 int StatementStartingWithIdentifier();
 int Assignment(SymbolVariableArray* lValues);
-int AssignmentOfExpressions(const SymbolVariableArray* lValues,const string* lostIdentifier);
+int AssignmentOfExpressions(const SymbolVariableArray* lValues);
 int ExpressionList_Start(TermArray* expressionList);
 int ExpressionList_Next(TermArray* expressionList);
 int VariableList_Next(SymbolVariableArray* lValues);

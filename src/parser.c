@@ -415,11 +415,12 @@ int Assignment(SymbolVariableArray* lValues){
             callAndHandleException_clean(FunctionCall_rule(lValues, function,&functionCandidate)); //TODO: AST handling somewhere.
         }
         else{
-            callAndHandleException_clean(AssignmentOfExpressions(lValues,&functionCandidate));
+            callAndHandleException_clean(prevToken());
+            callAndHandleException_clean(AssignmentOfExpressions(lValues));
         }
     }
     else{
-        callAndHandleException_clean(AssignmentOfExpressions(lValues,NULL));
+        callAndHandleException_clean(AssignmentOfExpressions(lValues));
     }
     
     CLEAN_UP:
@@ -427,7 +428,7 @@ int Assignment(SymbolVariableArray* lValues){
     return returnCode;
 }
 
-int AssignmentOfExpressions(const SymbolVariableArray* lValues, const string* lostIdentifier){
+int AssignmentOfExpressions(const SymbolVariableArray* lValues){
     int returnCode = SUCCESS;
     
     TermArray expressionList; //TODO: Waiting for expression team.
@@ -454,10 +455,14 @@ int ExpressionList_Start(TermArray* expressionList){
     if (expression == NULL)
         return INTERNAL_ERROR;
 
-    if ((returnCode = parseTerm(expression,true)) != SUCCESS && returnCode != SYNTAX_ERROR) //TODO: Adjust once work on expression parser is begun.
+    if ((returnCode = parseTerm(expression,true)) != SUCCESS && returnCode != SYNTAX_ERROR){ //TODO: Adjust once work on expression parser is begun.
+        free(expression);
         return returnCode; //If there is an error while parsing the expression
-    else if (returnCode == SYNTAX_ERROR)
+    }
+    else if (returnCode == SYNTAX_ERROR){
+        free(expression);
         return SUCCESS; //Epsilon rule.
+    }
     
     callAndHandleException_clean(addToTermArray(expressionList,expression));
     callAndHandleException(ExpressionList_Next(expressionList));
@@ -474,6 +479,7 @@ int ExpressionList_Next(TermArray* expressionList){
     Term* expression = malloc(sizeof(Term));
     if (expression == NULL)
         return INTERNAL_ERROR;
+    expression->type = TermIntegerLiteral; //We set the expression type to something safe so that in case of freeing... this will be changed, so whatever. Not commenting this line.
 
     assertOrEpsilon_clean(TokenComma);
     
@@ -597,7 +603,11 @@ int TermListNext(TermArray* functionParameters){
         return INTERNAL_ERROR;
 
     if((returnCode = parseTerm(term,true)) == SUCCESS){
-        addToTermArray(functionParameters,term);
+        if(addToTermArray(functionParameters,term) != SUCCESS){
+            freeTerm(term);
+            free(term);
+            return INTERNAL_ERROR;
+        }
         callAndHandleException(TermListNext(functionParameters));
         return SUCCESS;
     }
