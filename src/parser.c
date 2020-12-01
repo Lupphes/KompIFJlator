@@ -116,8 +116,10 @@ int FunctionDefinition(){
     SymbolFunction function;
     function.parameters.count = 0;
     function.parameters.params = NULL;
+    function.parameters.variadic = false;
     function.returnTypes.count = 0;
     function.returnTypes.types = NULL;
+    function.builtIn = false;
     callAndHandleException(strInit(&function.id));
 
     //Syntactical and semantic checks.
