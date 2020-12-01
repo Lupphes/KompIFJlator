@@ -144,6 +144,9 @@ int deepCopyFunction(const SymbolFunction* function, int hash){
 	}
 	newElPtr->FuncData.returnTypes.count = function->returnTypes.count;
 
+	newElPtr->FuncData.builtIn = function->builtIn;
+	newElPtr->FuncData.parameters.variadic = function->parameters.variadic;
+
 	// Join new function to the linked list of synonyms
 	newElPtr->ptrNext = FuncTab[hash];
 	FuncTab[hash] = newElPtr;

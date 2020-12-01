@@ -23,6 +23,7 @@
 #include "helper.h"
 #include "error.h"
 #include "scanner.h"
+#include "parser_builtin_functions.h"
 
 Token curTok = {TokenEOF}; //We initialise the current token so that the function nextToken works properly.
 Token cacheTok = {TokenEOF};
@@ -41,6 +42,7 @@ int beginParsing(){
     callAndHandleException_clean(initFunctionTable());
     callAndHandleException_clean(initVariableTableStack());
     callAndHandleException_clean(nextToken()) //First read of the token.
+    callAndHandleException_clean(initBuiltInFunctions());
 
     callAndHandleException_clean(Start());
     
@@ -148,14 +150,16 @@ void freeCurTok(){
 
 int validateFunctionCall(const SymbolFunction* function, const SymbolVariableArray* lValues, const TermArray* functionParameters){
     //Paremer count check
-    if(countInTermArray(functionParameters) != function->parameters.count){
+    if(!function->parameters.variadic && countInTermArray(functionParameters) != function->parameters.count){
         return SEMANTIC_ERROR_TYPE_FUNCTION;
     }
     
     //Parameter type check
-    for(int i = 0;i < function->parameters.count;i++){
-        if(function->parameters.params[i].type != termType(functionParameters->arr[i]))
-            return SEMANTIC_ERROR_TYPE_FUNCTION;
+    if (!function->parameters.variadic){
+        for(int i = 0;i < function->parameters.count;i++){
+            if(function->parameters.params[i].type != termType(functionParameters->arr[i]))
+                return SEMANTIC_ERROR_TYPE_FUNCTION;
+        }
     }
 
     //Return value count check
