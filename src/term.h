@@ -24,6 +24,7 @@ typedef enum {
     TermIntegerLiteral = TypeInt,
     TermFloatLiteral = TypeFloat64,
     TermStringLiteral = TypeString,
+    TermTypeBool,
     TermVariable
 } TermType;
 

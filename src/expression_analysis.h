@@ -22,6 +22,10 @@
 
 #include "str.h"
 #include "token.h"
+#include "term.h"
+
+
+
 
 
 typedef enum {
@@ -90,14 +94,41 @@ typedef struct {
 
 typedef struct  {
   int value;
+  union {
+    Term literal;
+    // TODO: Asi tady ještě budu něco potrebovat
+  } ExpProperties;
 } ExpValue;
 
 typedef struct {
   int64_t used;
   int64_t initializedSize;
-  ExpValue* values;
+  ExpValue *values;
 } ExpArray;
 
+typedef struct {
+  ExpValue first;
+} UnaryOperation;
+
+typedef struct {
+  ExpValue first;
+  ExpValue second;
+} BinaryOperation;
+
+typedef struct {
+  int ruleType;
+  union {
+    BinaryOperation binary;
+    UnaryOperation unary;
+  } Operation;
+  ExpValue newExp;
+} Rule;
+
+/**
+ * @brief This is debug array and will not be included in final project
+ * It is used in print array for normalizing the outputs
+ * 
+ */
 static const char* enumOperatorTranslate[] = {
     "+", /** + */
     "-", /** - */
@@ -130,18 +161,46 @@ static const char* enumOperatorTranslate[] = {
     "E", /** Exp */
     "OperatorError"  /** = > */
  };
-
+/**
+ * @brief This function retuns Expression to the parser and therfore parser can validate the output type
+ * 
+ * @param expression 
+ * @return int 
+ */
 int parseExpression(Expression* expression);
+/**
+ * @brief This function validates if recived token fits into already read expression, probably will be depricated as the rules can verify it more easily
+ * Also, It is used to correctly parse the IDs
+ * 
+ * @param token 
+ * @param array 
+ * @param operator 
+ * @return int 
+ */
+int checkIfValidToken(Token *token, ExpArray *array, ExpValue *operator);
+/**
+ * @brief 
+ * 
+ * @param array 
+ * @param operator 
+ * @return int 
+ */
+int evaluateExpression(ExpArray *array, ExpValue *operator);
+/**
+ * @brief Final state machine which checks for rules and then applies them
+ * 
+ * @param array 
+ * @return int 
+ */
+int rulesEvaluation(ExpArray *array, Rule *generatedRule);
 int initExpArray(ExpArray *array, int64_t initialSize);
-int pushToArray(ExpArray *array, int operator);
+int pushToArray(ExpArray *array, ExpValue operator);
 int seekValueArrayValue(ExpArray *array, int *operator);
-int popFromArray(ExpArray *array, int *returnValue);
+int popFromArray(ExpArray *array, ExpValue *returnValue);
 void freeArray(ExpArray *array);
 bool isInStackOperator(ExpArray *array);
-int ruleTranslator(ExpArray *array);
 bool isInStackExpressionOrIdentifier(ExpArray *array);
-int useRule();
-int evaluateExpression(ExpArray *array, int *operator);
-int checkIfValidToken(Token *token, ExpArray *array, int *operator);
+int evaluateExpression(ExpArray *array, ExpValue *operator);
+
 
 #endif

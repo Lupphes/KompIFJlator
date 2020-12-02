@@ -22,6 +22,8 @@
 #include "operator_table.h"
 
 #define ANALYSIS_END -1
+ExpValue endStartOperator = {.value = OperatorEnd };
+ExpValue newExpression = {.value = OperatorExpression };
 
 
 /** ---------------------- Array Functions ---------------------- **/
@@ -35,14 +37,14 @@ int initExpArray(ExpArray *array, int64_t initialSize) {
     return SUCCESS;
 }
 
-int pushToArray(ExpArray *array, int operator) {
+int pushToArray(ExpArray *array, ExpValue operator) {
     if (array->used == array->initializedSize) {
         array->initializedSize += 1;
         array->values = realloc(array->values, array->initializedSize * sizeof(ExpValue));
         if (array->values == NULL)
             return INTERNAL_ERROR;
     }
-    array->values[array->used].value = operator;
+    array->values[array->used].value = operator.value;
     array->used += 1;
     return SUCCESS;
 }
@@ -88,10 +90,10 @@ int seekValueArrayValue(ExpArray *array, int *operator) {
     return INTERNAL_ERROR; 
 }
 
-int popFromArray(ExpArray *array, int *returnValue) {
+int popFromArray(ExpArray *array, ExpValue *returnValue) {
     if (array->values == NULL)
         return INTERNAL_ERROR;
-    if (seekValueArrayValue(array, returnValue) == INTERNAL_ERROR)
+    if (seekValueArrayValue(array, &returnValue->value) == INTERNAL_ERROR)
         return INTERNAL_ERROR; 
     array->initializedSize -= 1;
     array->used -= 1;
@@ -160,198 +162,272 @@ bool isBufferEmpty(ExpArray *array) {
     return array->used == 0 ? true : false;    
 }
 
-int rulesEvaluation(ExpArray *array) {
-    int rule = RuleErr;
-    int returnedValue;
+int evaluateTypeOfExpressions(Rule *generatedRule) {
+    generatedRule->newExp = newExpression;   
+    switch (generatedRule->ruleType) {
+        case RuleMul:
+        // TODO: Divide 0 check
+        // intentionally not breaking
+        case RuleSub:
+        case RuleDiv:
+        case RulePar:
+        case RuleGth:
+        case RuleGEq:
+        case RuleLes:
+        case RuleLEq:
+        case RuleEqu:
+        case RuleNEq:
+            if (generatedRule->Operation.binary.first.ExpProperties.literal.type != generatedRule->Operation.binary.second.ExpProperties.literal.type) {
+                return SEMANTIC_ERROR_TYPE_EXPRESION;
+            } else if (generatedRule->Operation.binary.first.ExpProperties.literal.type == TermStringLiteral || generatedRule->Operation.binary.second.ExpProperties.literal.type == TermStringLiteral) {
+                return SEMANTIC_ERROR_TYPE_EXPRESION;
+            }
+        break;
+        case RuleAdd:
+        if (generatedRule->Operation.binary.first.ExpProperties.literal.type != generatedRule->Operation.binary.second.ExpProperties.literal.type) {
+            return SEMANTIC_ERROR_TYPE_EXPRESION;
+        } 
+        generatedRule->newExp.ExpProperties.literal.type = generatedRule->Operation.binary.first.ExpProperties.literal.type;
+        break;
+    }
+    if (generatedRule->Operation.binary.first.ExpProperties.literal.type == TermTypeBool || generatedRule->Operation.binary.second.ExpProperties.literal.type == TermTypeBool) {
+        return SEMANTIC_ERROR_TYPE_EXPRESION;
+    }
+    return SUCCESS;
+}
+
+
+int rulesEvaluation(ExpArray *array, Rule *generatedRule) {
+    // Rule generatedRule
+    ExpValue returnedValue;
     popFromArray(array, &returnedValue);
-    switch (returnedValue) {
-    case OperatorRightBracket:
-        popFromArray(array, &returnedValue);
-        if (returnedValue == OperatorExpression) {
+    switch (returnedValue.value) {
+        case OperatorRightBracket:
             popFromArray(array, &returnedValue);
-            if (returnedValue == OperatorLeftBracket) {
-                rule = RulePar;
-                if (seekValueArrayValue(array, &returnedValue) == OperatorSubtract) {
-                    popFromArray(array, &returnedValue);
-                    rule = RuleBra;
+            if (returnedValue.value == OperatorExpression) {
+                (*generatedRule).Operation.unary.first = returnedValue;
+                popFromArray(array, &returnedValue);
+                if (returnedValue.value == OperatorLeftBracket) {
+                    (*generatedRule).ruleType = RulePar;
+                    if (seekValueArrayValue(array, &returnedValue.value) == OperatorSubtract) {
+                        popFromArray(array, &returnedValue);
+                        (*generatedRule).ruleType = RuleBra;
+                    }
                 }
             }
-        }
-        break;
-    case OperatorSubtract:
-        popFromArray(array, &returnedValue);
-        if (returnedValue == OperatorSubtract) {
-            popFromArray(array, &returnedValue);
-            if (returnedValue== OperatorExpression)
-                rule = RuleNe2;
-        } else if (returnedValue == OperatorLeftBracket) {
-            popFromArray(array, &returnedValue);
-            if (returnedValue == OperatorExpression) {
-                popFromArray(array, &returnedValue);
-                if (returnedValue == OperatorRightBracket)
-                    rule = RuleBra;
-            }
-        }
-        break;
-    case OperatorExpression:
-        popFromArray(array, &returnedValue);
-        switch (returnedValue) {
-        case OperatorAdd:
-            popFromArray(array, &returnedValue);
-            if (returnedValue == OperatorExpression)
-                rule = RuleAdd;
             break;
         case OperatorSubtract:
             popFromArray(array, &returnedValue);
-            if (returnedValue == OperatorExpression)
-                rule = RuleSub;
+            if (returnedValue.value == OperatorSubtract) {
+                popFromArray(array, &returnedValue);
+                if (returnedValue.value== OperatorExpression) {
+                    // rule = RuleNe2;
+                }
+            } else if (returnedValue.value == OperatorLeftBracket) {
+                popFromArray(array, &returnedValue);
+                if (returnedValue.value == OperatorExpression) {
+                    popFromArray(array, &returnedValue);
+                    if (returnedValue.value == OperatorRightBracket) {
+                        // rule = RuleBra;
+                    }
+                }
+            }
             break;
-        case OperatorMultiply:
+        case OperatorExpression:
+            (*generatedRule).Operation.binary.second = returnedValue;
             popFromArray(array, &returnedValue);
-            if (returnedValue == OperatorExpression)
-                rule = RuleMul;
+            switch (returnedValue.value) {
+            case OperatorAdd:
+                popFromArray(array, &returnedValue);
+                if (returnedValue.value == OperatorExpression) {
+                    (*generatedRule).ruleType = RuleAdd;
+                    (*generatedRule).Operation.binary.first = returnedValue;
+                }
+                break;
+            case OperatorSubtract:
+                popFromArray(array, &returnedValue);
+                if (returnedValue.value == OperatorExpression) {
+                    (*generatedRule).ruleType = RuleSub;
+                    (*generatedRule).Operation.binary.first = returnedValue;
+                }
+                break;
+            case OperatorMultiply:
+                popFromArray(array, &returnedValue);
+                if (returnedValue.value == OperatorExpression) {
+                    (*generatedRule).ruleType = RuleMul;
+                    (*generatedRule).Operation.binary.first = returnedValue;
+                }
+                break;
+            case OperatorDivide:
+                popFromArray(array, &returnedValue);
+                if (returnedValue.value == OperatorExpression) {
+                    (*generatedRule).ruleType = RuleDiv;
+                    (*generatedRule).Operation.binary.first = returnedValue;
+                }
+                break;
+            case OperatorIsGreaterThan:
+                popFromArray(array, &returnedValue);
+                if (returnedValue.value == OperatorExpression) {
+                    (*generatedRule).ruleType = RuleGth;
+                    (*generatedRule).Operation.binary.first = returnedValue;
+                }
+                break;
+            case OperatorIsGreaterEqual:
+                popFromArray(array, &returnedValue);
+                if (returnedValue.value == OperatorExpression) {
+                    (*generatedRule).ruleType = RuleGEq;
+                    (*generatedRule).Operation.binary.first = returnedValue;
+                }
+                break;
+            case OperatorIsLessThan:
+                popFromArray(array, &returnedValue);
+                if (returnedValue.value == OperatorExpression) {
+                    (*generatedRule).ruleType = RuleLes;
+                    (*generatedRule).Operation.binary.first = returnedValue;
+                }
+                break;
+            case OperatorIsLessEqual:
+                popFromArray(array, &returnedValue);
+                if (returnedValue.value == OperatorExpression) {
+                    (*generatedRule).ruleType = RuleLEq;
+                    (*generatedRule).Operation.binary.first = returnedValue;
+                }
+                break;
+            case OperatorIsEqual:
+                popFromArray(array, &returnedValue);
+                if (returnedValue.value == OperatorExpression) {
+                    (*generatedRule).ruleType = RuleEqu;
+                    (*generatedRule).Operation.binary.first = returnedValue;
+                }
+                break;
+            case OperatorNotEqual:
+                popFromArray(array, &returnedValue);
+                if (returnedValue.value == OperatorExpression) {
+                    (*generatedRule).ruleType = RuleNEq;
+                    (*generatedRule).Operation.binary.first = returnedValue;
+                }
+                break;
+            default:
+                break;
+            }
             break;
-        case OperatorDivide:
-            popFromArray(array, &returnedValue);
-            if (returnedValue == OperatorExpression)
-                rule = RuleDiv;
+        case OperatorIdentifier:
+            (*generatedRule).Operation.unary.first = returnedValue;
+            (*generatedRule).ruleType = RuleNEq;
             break;
-        case OperatorIsGreaterThan:
-            popFromArray(array, &returnedValue);
-            if (returnedValue == OperatorExpression)
-                rule = RuleGth;
-            break;
-        case OperatorIsGreaterEqual:
-            popFromArray(array, &returnedValue);
-            if (returnedValue == OperatorExpression)
-                rule = RuleGEq;
-            break;
-        case OperatorIsLessThan:
-            popFromArray(array, &returnedValue);
-            if (returnedValue == OperatorExpression)
-                rule = RuleLes;
-            break;
-        case OperatorIsLessEqual:
-            popFromArray(array, &returnedValue);
-            if (returnedValue == OperatorExpression)
-                rule = RuleLEq;
-            break;
-            popFromArray(array, &returnedValue);
-        case OperatorIsEqual:
-            popFromArray(array, &returnedValue);
-            if (returnedValue == OperatorExpression)
-                rule = RuleEqu;
-            break;
-        case OperatorNotEqual:
-            popFromArray(array, &returnedValue);
-            if (returnedValue == OperatorExpression)
-                rule = RuleNEq;
         default:
             break;
-        }
-        break;
-    case OperatorIdentifier:
-        rule = RuleVar;
-        break;
-    default:
-        break;
     }
     int foundValue;
     if (seekValueArrayValue(array, &foundValue) == INTERNAL_ERROR)
         return INTERNAL_ERROR;
     if(foundValue == OperatorLeftAssociative) {
         popFromArray(array, &returnedValue);
-        return rule;
+        return SUCCESS;
     }
-    return RuleErr;
+    return SYNTAX_ERROR;
 }
 
-int evaluateExpression(ExpArray *array, int *operator) {
+int evaluateExpression(ExpArray *array, ExpValue *operator) {
     int getLastValeFromStack;
-    int identifiedRule;
+    Rule generatedRules;
+    int returnCode;
+    
     printArray(array); // DEBUG
     seekValueBehindE(array, &getLastValeFromStack);
-    switch (_PSATable[getLastValeFromStack][*operator]) {
+    switch (_PSATable[getLastValeFromStack][operator->value]) {
         case OperatorLeftAssociative:
-            pushToArrayBehindEorID(array, _PSATable[getLastValeFromStack][*operator]);
+            pushToArrayBehindEorID(array, _PSATable[getLastValeFromStack][operator->value]);
             pushToArray(array, *operator);
 
             printArray(array); // DEBUG
             break;
         case OperatorRightAssociative:
-            identifiedRule = rulesEvaluation(array);
-            pushToArray(array, OperatorExpression);
+            if ((returnCode = rulesEvaluation(array, &generatedRules)) != SUCCESS) {
+                return returnCode;
+            } 
+            evaluateTypeOfExpressions(&generatedRules);
+            // TODO: generateAST(); 
+            pushToArray(array, generatedRules.newExp);
             printArray(array); // DEBUG
             evaluateExpression(array, operator);
             printArray(array); // DEBUG
             break;
         case OperatorEqualAssociative:
             pushToArray(array, *operator);
-            identifiedRule = rulesEvaluation(array);
-            pushToArray(array, OperatorExpression);
+            if ((returnCode = rulesEvaluation(array, &generatedRules)) != SUCCESS) {
+                return returnCode;
+            }
+            evaluateTypeOfExpressions(&generatedRules); 
+            // TODO: generateAST(); 
+            pushToArray(array, generatedRules.newExp);
             printArray(array); // DEBUG
             break;
+        case OperatorError:
+            return SYNTAX_ERROR;
     }
     return SUCCESS;
 }
 
-int checkIfValidToken(Token *token, ExpArray *array, int *operator) {
+int checkIfValidToken(Token *token, ExpArray *array, ExpValue *operator) {
     int returnCode;
     acceptAny();
     switch (token->type) {
         case TokenAdd:
             if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
-            *operator = OperatorAdd;
+            operator->value = OperatorAdd;
             break;
         case TokenSubtract:
-            *operator = OperatorSubtract;
+            operator->value = OperatorSubtract;
             break;
         case TokenMultiply:
             if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
-            *operator = OperatorMultiply;
+            operator->value = OperatorMultiply;
             break;
         case TokenDivide:
             if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
-            *operator = OperatorDivide;
+            operator->value = OperatorDivide;
             break;
         case TokenLeftBracket:
-            *operator = OperatorLeftBracket;
+            if(isInStackExpressionOrIdentifier(array)) 
+                return SYNTAX_ERROR;
+            operator->value = OperatorLeftBracket;
             break;
         case TokenRightBracket:
-            *operator = OperatorRightBracket;
+            operator->value = OperatorRightBracket;
             break;
         case TokenIsLessThan:
             if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
-            *operator = OperatorIsLessThan;
+            operator->value = OperatorIsLessThan;
             break;
         case TokenIsLessEqual:
             if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
-            *operator = OperatorIsGreaterEqual;
+            operator->value = OperatorIsGreaterEqual;
             break;
         case TokenIsGreaterThan:
             if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
-            *operator = OperatorIsGreaterThan;
+            operator->value = OperatorIsGreaterThan;
             break;
         case TokenIsGreaterEqual:
             if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
-            *operator = OperatorIsGreaterEqual;
+            operator->value = OperatorIsGreaterEqual;
             break;
         case TokenIsEqual:
             if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
-            *operator = OperatorIsEqual;
+            operator->value = OperatorIsEqual;
             break;
         case TokenNotEqual:
             if(isInStackOperator(array)) 
                 return SYNTAX_ERROR;
-            *operator = OperatorNotEqual;
+            operator->value = OperatorNotEqual;
             break;
         case TokenIdentifier:
         case TokenWholeNbr:
@@ -359,23 +435,13 @@ int checkIfValidToken(Token *token, ExpArray *array, int *operator) {
         case TokenStringLiteral:
             if(isInStackExpressionOrIdentifier(array)) 
                 return SYNTAX_ERROR;
-            Term* term = malloc(sizeof(term));
-            if(parseTerm(term, false) == SUCCESS){
-                switch (term->type) {
-                case TermIntegerLiteral:
-                    // *operator = OperatorWholeNumber;
-                    break;
-                case TermFloatLiteral:
-                    // *operator = OperatorDecimal;
-                    break;
-                case TermStringLiteral:
-                    // *operator = OperatorStringLiteral;
-                    break;
-                case TermVariable:
-                    // *operator = OperatorIdentifier;
-                    break;
+            Term term;
+            if(parseTerm(&term, false) == SUCCESS){
+                if ((&term)->type == TermVariable) {
+                    // TODO: Remebember variable from symtable
                 }
-                *operator = OperatorIdentifier;
+                operator->value = OperatorIdentifier;
+                operator->ExpProperties.literal = term;
             } else {
                 return returnCode;
             }
@@ -388,23 +454,26 @@ int checkIfValidToken(Token *token, ExpArray *array, int *operator) {
 }
 
 int parseExpression(Expression* expression) {
-    /* Stack init */
+    /* Stack initialization */
     ExpArray expArray;
     initExpArray(&expArray, 0);
-    pushToArray(&expArray, OperatorEnd);
-    printArray(&expArray);
-
-    int operator;
-    int parseStatus;
-    while (parseStatus != ANALYSIS_END) {
-        parseStatus = checkIfValidToken(&curTok, &expArray, &operator);
-        evaluateExpression(&expArray, &operator);
-    }
-    operator = OperatorEnd; 
-    evaluateExpression(&expArray, &operator);
+    pushToArray(&expArray, endStartOperator);
     printArray(&expArray); // DEBUG
-    // TODO: generateAST(); 
+    ExpValue operator;
+    int parseStatus;
+    parseStatus = checkIfValidToken(&curTok, &expArray, &operator);
+    while (parseStatus == SUCCESS) {
+        if (evaluateExpression(&expArray, &operator) == SYNTAX_ERROR) 
+            return SYNTAX_ERROR;
+        parseStatus = checkIfValidToken(&curTok, &expArray, &operator);
+    }
+    if (parseStatus != ANALYSIS_END)
+        return parseStatus;
+    /* Validate the Expression until is only E*/
+    if (evaluateExpression(&expArray, &endStartOperator) == SYNTAX_ERROR) 
+        return SYNTAX_ERROR;
 
+    printArray(&expArray); // DEBUG
     freeArray(&expArray);
     return SUCCESS;
 }
