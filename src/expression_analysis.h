@@ -57,11 +57,11 @@ typedef enum {
     OperatorExpression, /** Exp */
     OperatorNotScreaming,
     OperatorError  /** = > */
-} _Operators;
+} Operators;
 
 typedef enum {
   neco
-} _VelkyZobacek;
+} Associativity;
 
 typedef enum {
 
@@ -79,49 +79,49 @@ typedef enum {
     RuleEqu, /** E->E==E */
     RuleNEq, /** E->E!=E */
     RuleErr
-} _Rules;
+} OperationType;
 
-struct RuledValue;
-
-typedef struct {
-  RuledValue first;
-} UnaryOperation;
+struct _ExpExp;
 
 typedef struct {
-  RuledValue first;
-  RuledValue second;
-} BinaryOperation;
+  struct _ExpExp *first;
+} OperandUnary;
 
 typedef struct {
-  _Rules type; // operation
+  struct _ExpExp *first;
+  struct _ExpExp *second;
+} OperandsBinary;
+
+typedef struct {
+  OperationType type; // operation
   union {
-    BinaryOperation binary;
-    UnaryOperation unary;
+    OperandsBinary binary;
+    OperandUnary unary;
   } value;
-} Rule;
+} Operation;
 
-typedef struct  {
+typedef struct _ExpExp {
   enum {
-    atom,
-    operation
+    ExpExpAtom,
+    ExpExpOperation
   } type;
   union {
     Term atom;
-    Rule operation; 
+    Operation operation; 
   } ExpProperties;
-} RuledValue; // Ecko
+} ExpExp; // Ecko
 
 typedef struct {
   enum {
-    operator, //Enum
-    expression, //Ruled value
-    zobacek, // Enum
-    endSymb // just value
+    ExpItemOperator, //Enum
+    ExpItemExpression, //Ruled value
+    ExpItemAssociativity, // Enum
+    ExpItemEnd // just value
   } type;
   union {
-    _Operators op;
-    RuledValue ex; // maybe ukazatel, bude to bordel
-    _VelkyZobacek zb;
+    Operators op;
+    ExpExp ee; // maybe ukazatel, bude to bordel
+    Associativity as;
   } value;
 } ExpItem;
 
@@ -129,7 +129,7 @@ typedef struct {
   int64_t used;
   int64_t initializedSize;
   ExpItem *values;
-} ExpArray; //Todo: Stack
+} ExpStack; //Todo: Stack
 
 /**
  * @brief This function retuns Expression to the parser and therfore parser can validate the output type
@@ -137,7 +137,7 @@ typedef struct {
  * @param expression 
  * @return int 
  */
-int parseExpression(RuledValue* expression, _Operators operator, SymbolVariable *symbol);
+int parseExpression(ExpExp* expression, Operators operator, SymbolVariable *symbol);
 /**
  * @brief This function validates if recived token fits into already read expression, probably will be depricated as the rules can verify it more easily
  * Also, It is used to correctly parse the IDs
@@ -147,7 +147,7 @@ int parseExpression(RuledValue* expression, _Operators operator, SymbolVariable 
  * @param operator 
  * @return int 
  */
-int checkIfValidToken(Token *token, ExpArray *array, RuledValue *operator);
+int checkIfValidToken(Token *token, ExpStack *array, ExpExp *operator);
 /**
  * @brief 
  * 
@@ -155,22 +155,22 @@ int checkIfValidToken(Token *token, ExpArray *array, RuledValue *operator);
  * @param operator 
  * @return int 
  */
-int evaluateExpression(ExpArray *array, RuledValue *operator);
+int evaluateExpression(ExpStack *array, ExpExp *operator);
 /**
  * @brief Final state machine which checks for rules and then applies them
  * 
  * @param array 
  * @return int 
  */
-int rulesEvaluation(ExpArray *array, Rule *generatedRule);
-int initExpArray(ExpArray *array, int64_t initialSize);
-int pushToArray(ExpArray *array, RuledValue operator);
-int seekValueArrayValue(ExpArray *array, int *operator);
-int popFromArray(ExpArray *array, RuledValue *returnValue);
-void freeArray(ExpArray *array);
-bool isInStackOperator(ExpArray *array);
-bool isInStackExpressionOrIdentifier(ExpArray *array);
-int evaluateExpression(ExpArray *array, RuledValue *operator);
-DataType getDataTypeOfExpression(RuledValue *value);
+int rulesEvaluation(ExpStack *array, Operation *generatedRule);
+int initExpArray(ExpStack *array, int64_t initialSize);
+int pushToArray(ExpStack *array, ExpExp operator);
+int seekValueArrayValue(ExpStack *array, int *operator);
+int popFromArray(ExpStack *array, ExpExp *returnValue);
+void freeArray(ExpStack *array);
+bool isInStackOperator(ExpStack *array);
+bool isInStackExpressionOrIdentifier(ExpStack *array);
+int evaluateExpression(ExpStack *array, ExpExp *operator);
+DataType getDataTypeOfExpression(ExpExp *value);
 
 #endif

@@ -22,22 +22,22 @@
 #include "operator_table.h"
 
 #define ANALYSIS_END -1
-ExpValue endStartOperator = {.value = OperatorEnd };
-ExpValue newExpression = {.value = OperatorExpression };
+ExpExp endStartOperator = {.value = OperatorEnd };
+ExpExp newExpression = {.value = OperatorExpression };
 
 
 /** ---------------------- Array Functions ---------------------- **/
 
-int initExpArray(ExpArray *array, int64_t initialSize) {
+int initExpArray(ExpStack *array, int64_t initialSize) {
     array->used = 0;
-    array->values = malloc(initialSize * sizeof(ExpValue));
+    array->values = malloc(initialSize * sizeof(ExpExp));
     if (array->values == NULL)
         return INTERNAL_ERROR;
     array->initializedSize = initialSize;
     return SUCCESS;
 }
 
-int pushToArray(ExpArray *array, ExpValue operator) {
+int pushToArray(ExpStack *array, ExpExp operator) {
     if (array->used == array->initializedSize) {
         array->initializedSize += 1;
         array->values = realloc(array->values, array->initializedSize * sizeof(ExpValue));
@@ -49,7 +49,7 @@ int pushToArray(ExpArray *array, ExpValue operator) {
     return SUCCESS;
 }
 
-int pushToArrayBehindEorID(ExpArray *array, int operator) {
+int pushToArrayBehindEorID(ExpStack *array, int operator) {
     if (array->used == array->initializedSize) {
         array->initializedSize += 1;
         array->values = realloc(array->values, array->initializedSize * sizeof(ExpValue));
@@ -73,7 +73,7 @@ int pushToArrayBehindEorID(ExpArray *array, int operator) {
     return SUCCESS;
 }
 
-int seekValueBehindE(ExpArray *array, int *operator) {
+int seekValueBehindE(ExpStack *array, int *operator) {
     if (seekValueArrayValue(array, operator) == INTERNAL_ERROR)
         return INTERNAL_ERROR; 
     if (*operator == OperatorExpression) {
@@ -82,7 +82,7 @@ int seekValueBehindE(ExpArray *array, int *operator) {
     return SUCCESS;
 }
 
-int seekValueArrayValue(ExpArray *array, int *operator) {
+int seekValueArrayValue(ExpStack *array, int *operator) {
     if (array->used != 0) {
         *operator = array->values[array->used - 1].value;
         return SUCCESS;
@@ -90,7 +90,7 @@ int seekValueArrayValue(ExpArray *array, int *operator) {
     return INTERNAL_ERROR; 
 }
 
-int popFromArray(ExpArray *array, ExpValue *returnValue) {
+int popFromArray(ExpStack *array, ExpExp *returnValue) {
     if (array->values == NULL)
         return INTERNAL_ERROR;
     if (seekValueArrayValue(array, &returnValue->value) == INTERNAL_ERROR)
@@ -101,14 +101,14 @@ int popFromArray(ExpArray *array, ExpValue *returnValue) {
     return SUCCESS;
 }
 
-void freeArray(ExpArray *array) {
+void freeArray(ExpStack *array) {
     free(array->values);
     array->values = NULL;
     array->used = 0;
     array->initializedSize = 0;
 }
 
-void printArray(ExpArray *array) {
+void printArray(ExpStack *array) {
     for (int i = 0; i < array->used; i++) {
         printf("%s,", enumOperatorTranslate[array->values[i].value]);
     }
