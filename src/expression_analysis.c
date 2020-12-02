@@ -163,7 +163,10 @@ bool isBufferEmpty(ExpArray *array) {
 }
 
 int evaluateTypeOfExpressions(Rule *generatedRule) {
-    generatedRule->newExp = newExpression;   
+    generatedRule->newExp = newExpression;  
+    if (termType(&generatedRule->Operation.binary.first.ExpProperties.literal) == TypeBool || termType(&generatedRule->Operation.binary.second.ExpProperties.literal) == TypeBool) {
+        return SEMANTIC_ERROR_TYPE_EXPRESION;
+    } 
     switch (generatedRule->ruleType) {
         case RuleMul:
         // TODO: Divide 0 check
@@ -177,28 +180,22 @@ int evaluateTypeOfExpressions(Rule *generatedRule) {
         case RuleLEq:
         case RuleEqu:
         case RuleNEq:
-            if (generatedRule->Operation.binary.first.ExpProperties.literal.type != generatedRule->Operation.binary.second.ExpProperties.literal.type) {
-                return SEMANTIC_ERROR_TYPE_EXPRESION;
-            } else if (generatedRule->Operation.binary.first.ExpProperties.literal.type == TermStringLiteral || generatedRule->Operation.binary.second.ExpProperties.literal.type == TermStringLiteral) {
+            if (termType(&generatedRule->Operation.binary.first.ExpProperties.literal) != termType(&generatedRule->Operation.binary.second.ExpProperties.literal)) {
                 return SEMANTIC_ERROR_TYPE_EXPRESION;
             }
-        break;
+        // intentionally not breaking
         case RuleAdd:
-        if (generatedRule->Operation.binary.first.ExpProperties.literal.type != generatedRule->Operation.binary.second.ExpProperties.literal.type) {
-            return SEMANTIC_ERROR_TYPE_EXPRESION;
-        } 
+             if (termType(&generatedRule->Operation.binary.first.ExpProperties.literal) == TypeString || termType(&generatedRule->Operation.binary.second.ExpProperties.literal) == TypeString) {
+                return SEMANTIC_ERROR_TYPE_EXPRESION;
+            }        
         generatedRule->newExp.ExpProperties.literal.type = generatedRule->Operation.binary.first.ExpProperties.literal.type;
         break;
-    }
-    if (generatedRule->Operation.binary.first.ExpProperties.literal.type == TermTypeBool || generatedRule->Operation.binary.second.ExpProperties.literal.type == TermTypeBool) {
-        return SEMANTIC_ERROR_TYPE_EXPRESION;
     }
     return SUCCESS;
 }
 
 
 int rulesEvaluation(ExpArray *array, Rule *generatedRule) {
-    // Rule generatedRule
     ExpValue returnedValue;
     popFromArray(array, &returnedValue);
     switch (returnedValue.value) {
@@ -453,7 +450,7 @@ int checkIfValidToken(Token *token, ExpArray *array, ExpValue *operator) {
     return SUCCESS;
 }
 
-int parseExpression(Expression* expression) {
+int parseExpression(ExpValue* expression, _Operators assingmentOperation, SymbolVariable *symbol) {
     /* Stack initialization */
     ExpArray expArray;
     initExpArray(&expArray, 0);
@@ -477,3 +474,4 @@ int parseExpression(Expression* expression) {
     freeArray(&expArray);
     return SUCCESS;
 }
+

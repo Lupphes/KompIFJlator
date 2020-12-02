@@ -20,4 +20,42 @@ const int _PSATable [14][14] = {
 };
 // Mozna sjednoceni i a ( a +-, */, a relacni
 
+/**
+ * @brief This is debug array and will not be included in final project
+ * It is used in print array for normalizing the outputs
+ * 
+ */
+const char* enumOperatorTranslate[] = {
+    "+", /** + */
+    "-", /** - */
+    "*", /** * */
+    "/", /** / */
+
+    "(", /** ( */
+    ")", /** ) */
+    "id", /** id */
+
+    "<", /** < */
+    "<=", /** <= */
+    ">", /** > */
+    ">=", /** >= */
+    "==", /** == */
+    "!=", /** != */
+    "$", /** $ */
+    "lalala",
+    /* this need redo */
+    "OperatorWholeNumber", /** int -- whole numeber */ // EXPATOM
+    "OperatorDecimal", /** float -- decimal number */
+    "OperatorStringLiteral", /** string -- text string */
+    "OperationNegate",
+    
+    "<",  /** [ || < */
+    ">",  /** ] || > */
+    "=",  /** = > */
+    "OperatorStart", /** ^ */
+    "E", /** Exp */
+    "OperatorNotScreaming",
+    "OperatorError"  /** = > */
+ };
+
 #endif

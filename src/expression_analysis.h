@@ -24,9 +24,7 @@
 #include "token.h"
 #include "term.h"
 
-
-
-
+#define PLAIN_ASSIGEMENT OperatorNotScreaming
 
 typedef enum {
     OperatorAdd = 0, /** + */
@@ -52,16 +50,22 @@ typedef enum {
     OperatorStringLiteral, /** string -- text string */
     OperationNegate,
     
-
     OperatorLeftAssociative,  /** [ || < */
     OperatorRightAssociative,  /** ] || > */
     OperatorEqualAssociative,  /** = > */
     OperatorStart, /** ^ */
     OperatorExpression, /** Exp */
+    OperatorNotScreaming,
     OperatorError  /** = > */
 } _Operators;
 
 typedef enum {
+  neco
+} _VelkyZobacek;
+
+typedef enum {
+
+  
     RuleAdd, /** E->E+E */
     RuleSub = 34, /** E->E-E */
     RuleMul, /** E->E*E */
@@ -74,100 +78,66 @@ typedef enum {
     RuleLEq, /** E->E>=E */
     RuleEqu, /** E->E==E */
     RuleNEq, /** E->E!=E */
-    RuleBra, /** E->-(E) */
-    RuleNe2, /** E->--E */
     RuleErr
 } _Rules;
 
-
-typedef enum {
-  ExpressionTypeInt,
-  ExpressionTypeFloat64,
-  ExpressionTypeString,
-  ExpressionTypeBool,
-  ExpressionTypeNotDefined
-} _ExpressionType;
+struct RuledValue;
 
 typedef struct {
-    _ExpressionType type;
-} Expression;
+  RuledValue first;
+} UnaryOperation;
+
+typedef struct {
+  RuledValue first;
+  RuledValue second;
+} BinaryOperation;
+
+typedef struct {
+  _Rules type; // operation
+  union {
+    BinaryOperation binary;
+    UnaryOperation unary;
+  } value;
+} Rule;
 
 typedef struct  {
-  int value;
+  enum {
+    atom,
+    operation
+  } type;
   union {
-    Term literal;
-    // TODO: Asi tady ještě budu něco potrebovat
+    Term atom;
+    Rule operation; 
   } ExpProperties;
-} ExpValue;
+} RuledValue; // Ecko
+
+typedef struct {
+  enum {
+    operator, //Enum
+    expression, //Ruled value
+    zobacek, // Enum
+    endSymb // just value
+  } type;
+  union {
+    _Operators op;
+    RuledValue ex; // maybe ukazatel, bude to bordel
+    _VelkyZobacek zb;
+  } value;
+} ExpItem;
 
 typedef struct {
   int64_t used;
   int64_t initializedSize;
-  ExpValue *values;
-} ExpArray;
+  ExpItem *values;
+} ExpArray; //Todo: Stack
 
-typedef struct {
-  ExpValue first;
-} UnaryOperation;
-
-typedef struct {
-  ExpValue first;
-  ExpValue second;
-} BinaryOperation;
-
-typedef struct {
-  int ruleType;
-  union {
-    BinaryOperation binary;
-    UnaryOperation unary;
-  } Operation;
-  ExpValue newExp;
-} Rule;
-
-/**
- * @brief This is debug array and will not be included in final project
- * It is used in print array for normalizing the outputs
- * 
- */
-static const char* enumOperatorTranslate[] = {
-    "+", /** + */
-    "-", /** - */
-    "*", /** * */
-    "/", /** / */
-
-    "(", /** ( */
-    ")", /** ) */
-    "id", /** id */
-
-    "<", /** < */
-    "<=", /** <= */
-    ">", /** > */
-    ">=", /** >= */
-    "==", /** == */
-    "!=", /** != */
-    "$", /** $ */
-    "lalala",
-    /* this need redo */
-    "OperatorWholeNumber", /** int -- whole numeber */ // EXPATOM
-    "OperatorDecimal", /** float -- decimal number */
-    "OperatorStringLiteral", /** string -- text string */
-    "OperationNegate",
-    
-
-    "<",  /** [ || < */
-    ">",  /** ] || > */
-    "=",  /** = > */
-    "OperatorStart", /** ^ */
-    "E", /** Exp */
-    "OperatorError"  /** = > */
- };
 /**
  * @brief This function retuns Expression to the parser and therfore parser can validate the output type
  * 
  * @param expression 
  * @return int 
  */
-int parseExpression(Expression* expression);
+int parseExpression(RuledValue* expression, _Operators operator, SymbolVariable *symbol);
 /**
  * @brief This function validates if recived token fits into already read expression, probably will be depricated as the rules can verify it more easily
  * Also, It is used to correctly parse the IDs
@@ -177,7 +147,7 @@ int parseExpression(Expression* expression);
  * @param operator 
  * @return int 
  */
-int checkIfValidToken(Token *token, ExpArray *array, ExpValue *operator);
+int checkIfValidToken(Token *token, ExpArray *array, RuledValue *operator);
 /**
  * @brief 
  * 
@@ -185,7 +155,7 @@ int checkIfValidToken(Token *token, ExpArray *array, ExpValue *operator);
  * @param operator 
  * @return int 
  */
-int evaluateExpression(ExpArray *array, ExpValue *operator);
+int evaluateExpression(ExpArray *array, RuledValue *operator);
 /**
  * @brief Final state machine which checks for rules and then applies them
  * 
@@ -194,13 +164,13 @@ int evaluateExpression(ExpArray *array, ExpValue *operator);
  */
 int rulesEvaluation(ExpArray *array, Rule *generatedRule);
 int initExpArray(ExpArray *array, int64_t initialSize);
-int pushToArray(ExpArray *array, ExpValue operator);
+int pushToArray(ExpArray *array, RuledValue operator);
 int seekValueArrayValue(ExpArray *array, int *operator);
-int popFromArray(ExpArray *array, ExpValue *returnValue);
+int popFromArray(ExpArray *array, RuledValue *returnValue);
 void freeArray(ExpArray *array);
 bool isInStackOperator(ExpArray *array);
 bool isInStackExpressionOrIdentifier(ExpArray *array);
-int evaluateExpression(ExpArray *array, ExpValue *operator);
-
+int evaluateExpression(ExpArray *array, RuledValue *operator);
+DataType getDataTypeOfExpression(RuledValue *value);
 
 #endif

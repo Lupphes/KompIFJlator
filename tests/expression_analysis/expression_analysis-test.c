@@ -3,7 +3,9 @@
 #include "expression_analysis-test.h"
 
 int main(int argc, char const *argv[]) {
-    Expression expression;
-    int result = parseExpression(&expression);
+    ExpValue expression;
+    _Operators assingmentOperation = PLAIN_ASSIGEMENT;
+    SymbolVariable *symbol = NULL;
+    int result = parseExpression(&expression, assingmentOperation, symbol);
     return result;
 }
