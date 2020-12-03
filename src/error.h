@@ -28,6 +28,8 @@
 #define SEMANTIC_ERROR_DIV_ZERO 9
 #define INTERNAL_ERROR 99
 
+#define NO_EXPRESSION 42
+
 typedef int make_iso_compilers_happy;
 
 #endif
