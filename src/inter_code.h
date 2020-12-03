@@ -15,16 +15,34 @@
 
 #ifndef INTER_CODE_H
 #define INTER_CODE_H
+#include "error.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 typedef struct _instruction{
-	Operation operation;
-	Operand operand1;
-	Operand operand2;
-	Result result;
-	struct _instruction * next;
+	struct _instruction *ptrNext;
+	/*Operation *operation;
+	ExpExp *operand1;
+	ExpExp *operand2;
+	Result *result;*/
+	int data;	/* TOD */
 } Instruction;
 
+Instruction *InstrListFirst;
+Instruction *InstrListLast;
 
+// Initialize inctruction list
+void initInstructionList();
 
+// Add instruction to instruction list, copy operands and result pointers (or creates deep copy, idk)
+// return SUCCESS or INTERNAL_ERROR
+int addInstruction(/* TODO */);
+
+Instruction *GetFrist();
+
+void deleteFirst();
+
+void freeList();
 
 #endif
+

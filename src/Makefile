@@ -15,12 +15,13 @@ VERBOSE = TRUE
 PRJ=scanner
 SCANNEROBJ=$(PRJ)-test $(PRJ)-test2 $(PRJ)-test3
 
-# Symtable
+# Symtable + inter_code
 SYMTABLE=symtable
+INTER_CODE=inter_code
 
 .PHONY: directories
 
-all: directories $(SCANNEROBJ) symtable-test
+all: directories $(SCANNEROBJ) $(SYMTABLE)-test $(INTER_CODE)-test
 
 directories: ${BUILDDIR}
 ${BUILDDIR}:
@@ -37,6 +38,9 @@ $(PRJ)-test3: $(LIBDIR)/*.h $(LIBDIR)/$(PRJ).h $(TESTSDIR)/$(PRJ)/*.h $(LIBDIR)/
 
 $(SYMTABLE)-test:	$(TESTSDIR)/$(SYMTABLE)/*.c $(LIBDIR)/$(SYMTABLE).h $(LIBDIR)/$(SYMTABLE).c $(LIBDIR)/*.h $(LIBDIR)/*.c
 	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/$(SYMTABLE)/*.c $(LIBDIR)/$(SYMTABLE).c $(LIBDIR)/str.c
+
+$(INTER_CODE)-test:	$(TESTSDIR)/$(INTER_CODE)/*.c $(LIBDIR)/*.c $(LIBDIR)/*.h
+	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/$(INTER_CODE)/*.c $(LIBDIR)/$(INTER_CODE).c
 
 clean:
 	rm -rf $(BUILDDIR)
