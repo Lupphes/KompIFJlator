@@ -410,7 +410,7 @@ int AssignmentOfExpressions(const SymbolVariableArray* lValues){
     if (countInSymbolVariableArray(lValues) != countInExpressionArray(&expressionList))
         returnAndClean(SEMANTIC_ERROR_OTHER);
     for(int i = 0;i < countInSymbolVariableArray(lValues);i++)
-        if(lValues->arr[i]->type != TypeBlackHole && lValues->arr[i]->type != getDataTypeOfExpression(lValues->arr[i]))
+        if(lValues->arr[i]->type != TypeBlackHole && lValues->arr[i]->type != getDataTypeOfExpression(expressionList.arr[i]))
             returnAndClean(SEMANTIC_ERROR_OTHER);
 
     //Send to AST here.
@@ -422,41 +422,41 @@ int AssignmentOfExpressions(const SymbolVariableArray* lValues){
 }
 
 int ExpressionList_Start(ExpressionArray* expressionList){
-    int returnCode = SUCCESS;
+    int returnCode;
     ExpExp* expression;
 
-    if ((returnCode = parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)) != SUCCESS && returnCode != SYNTAX_ERROR){ //TODO: Handle no expression. 
+    if ((returnCode = parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)) != SUCCESS && returnCode != NO_EXPRESSION){
         return returnCode; //If there is an error while parsing the expression
     }
-    else if (returnCode == SYNTAX_ERROR){
+    else if (returnCode == NO_EXPRESSION){
         return SUCCESS; //Epsilon rule.
     }
     
     callAndHandleException_clean(addToExpressionArray(expressionList,expression));
     callAndHandleException(ExpressionList_Next(expressionList));
 
-    return returnCode;
+    return SUCCESS;
     CLEAN_UP:
-    //TODO: free expression here
+    freeExpExp(expression);
     free(expression);
     return returnCode;
 }
 
 int ExpressionList_Next(ExpressionArray* expressionList){
-    int returnCode = SUCCESS;
+    int returnCode;
     ExpExp* expression;
 
     assertOrEpsilon(TokenComma);
     
-    callAndHandleException(parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)); //TODO: Handle empty expression later.
+    callAndHandleException(parseExpression(&expression,PLAIN_ASSIGEMENT,NULL));
     callAndHandleException_clean(addToExpressionArray(expressionList,expression));
     callAndHandleException(ExpressionList_Next(expressionList));
 
-    return returnCode;
+    return SUCCESS;
     CLEAN_UP:
-    //TODO: free expression here
+    freeExpExp(expression);
     free(expression);
-    return returnCode;
+    return returnCode == NO_EXPRESSION ? SYNTAX_ERROR : returnCode;
 }
 
 int VariableList_Next(SymbolVariableArray* lValues){
@@ -491,7 +491,7 @@ int VariableDefinition(string* idName){
 
     if (strCopyString(&newVariable.id,idName) != SUCCESS){
         strFree(&newVariable.id);
-        //TODO: free expression here
+        freeExpExp(expression);
         free(expression);
         return INTERNAL_ERROR;
     }
@@ -499,7 +499,7 @@ int VariableDefinition(string* idName){
     
     if((returnCode = addVariable(&newVariable)) != SUCCESS){
         strFree(&newVariable.id);
-        //TODO: free expression here
+        freeExpExp(expression);
         free(expression);
         return returnCode;
     }
@@ -590,7 +590,7 @@ int If(){
     ExpExp* expression;
 
     assert(TokenIf);
-    if ((returnCode = parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)) == SYNTAX_ERROR) //TODO: handling of no expression
+    if ((returnCode = parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)) == NO_EXPRESSION)
         return SYNTAX_ERROR;
     else if (returnCode != SUCCESS)
         return returnCode;
@@ -602,29 +602,30 @@ int If(){
 
     return SUCCESS;
     CLEAN_UP:
-    //TODO: freeExpression
+    freeExpExp(expression);
     free(expression);
     return returnCode;
 }
 
 int Return(){
-    int returnCode = SUCCESS;
-    TermArray expressions;
-    initTermArray(&expressions);
+    int returnCode;
+    ExpressionArray expressions;
+    initExpressionArray(&expressions);
 
     currentFunctionContainsReturnStatement = true;
 
     assert(TokenReturn);
     callAndHandleException_clean(ExpressionList_Start(&expressions));
 
-    if (countInTermArray(&expressions) != currentFunction->returnTypes.count)
+    if (countInExpressionArray(&expressions) != currentFunction->returnTypes.count)
         returnAndClean(SEMANTIC_ERROR_TYPE_FUNCTION);
     for (int i = 0; i < currentFunction->returnTypes.count;i++)
-        if (termType(expressions.arr[i]) != currentFunction->returnTypes.types[i])
+        if (getDataTypeOfExpression(expressions.arr[i]) != currentFunction->returnTypes.types[i])
             returnAndClean(SEMANTIC_ERROR_TYPE_FUNCTION);
 
+    return SUCCESS;
     CLEAN_UP:
-    freeTermArray(&expressions);
+    freeExpressionArray(&expressions);
     return returnCode;
 }
 
@@ -636,7 +637,7 @@ int For(){
     assert(TokenFor);
     NTERM(For_Definition);
     assert(TokenSemicolon);
-    if((returnCode = parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)) == SYNTAX_ERROR) //TODO: handle no expression
+    if((returnCode = parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)) == NO_EXPRESSION)
         return SYNTAX_ERROR;
     else if (returnCode != SUCCESS)
         return returnCode;
@@ -650,7 +651,7 @@ int For(){
 
     return SUCCESS;
     CLEAN_UP:
-    //TODO: Free expression.
+    freeExpExp(expression);
     free(expression);
     return returnCode;
 
