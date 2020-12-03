@@ -17,19 +17,52 @@
 #include <stdio.h>
 #include "../../src/inter_code.h"
 
-void printListData(){
-	if(InstrListFirst == NULL){
-		printf("List is empty\n");
-		return;
-	}
+#define EMPTY 0
+#define NONEMPTY 1
+
+int printListDataFor(){
+	if(InstrListFirst == NULL)
+		return EMPTY;
 
 	Instruction *ptr = InstrListFirst;
 	printf("\t");
 	while (ptr != NULL){
-		printf("%d, ", ptr->data);
+		printf("%d", ptr->data);
+		if(ptr == InstrListFirst)
+			printf("(F)");
+		if(ptr == InstrListLast)
+			printf("(L)");
+		printf(", ");
 		ptr = ptr->ptrNext;
 	}
 	printf("\n");
+	return NONEMPTY;
+}
+
+int printListDataBack(){
+	if(InstrListLast == NULL)
+		return EMPTY;
+
+	Instruction *ptr = InstrListLast;
+	printf("\t");
+	while (ptr != NULL){
+		printf("%d", ptr->data);
+		if(ptr == InstrListFirst)
+			printf("(F)");
+		if(ptr == InstrListLast)
+			printf("(L)");
+		printf(", ");
+		ptr = ptr->ptrPrev;
+	}
+	printf("\n");
+	return NONEMPTY;
+}
+
+void printListData(){
+	int result = printListDataFor();
+	result += printListDataBack();
+	if(result == EMPTY)
+		printf("List is empty\n");
 }
 
 void addInstructionTest(int data){

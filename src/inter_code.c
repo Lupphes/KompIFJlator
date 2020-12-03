@@ -42,6 +42,7 @@ int addInstruction(/* TODO */ int data){
 
 	// copy all parametrs to new instruction
 	newInstruction->ptrNext = NULL;
+	newInstruction->ptrPrev = InstrListLast;
 	/* TODO */
 	newInstruction->data = data;
 
@@ -79,6 +80,7 @@ void deleteFirst(){
 	else{
 		Instruction *deleteInstr = InstrListFirst;
 		InstrListFirst = InstrListFirst->ptrNext;
+		InstrListFirst->ptrPrev = NULL;
 		free(deleteInstr);
 	}
 }

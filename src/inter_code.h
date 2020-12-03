@@ -21,6 +21,7 @@
 
 typedef struct _instruction{
 	struct _instruction *ptrNext;
+	struct _instruction * ptrPrev;
 	/*Operation *operation;
 	ExpExp *operand1;
 	ExpExp *operand2;
