@@ -29,6 +29,7 @@
 #define INTERNAL_ERROR 99
 
 #define NO_EXPRESSION 42
+#define MORE_RVALUES_THAN_LVALUES 43
 
 typedef int make_iso_compilers_happy;
 

@@ -20,6 +20,7 @@
 #include "term.h"
 #include "str.h"
 #include "helper.h"
+#include "expression_analysis.h"
 
 int parseExpression_Dummy();
 
@@ -36,9 +37,9 @@ int Block(bool generateNewStackFrame);
 int Statement();
 int StatementStartingWithIdentifier();
 int Assignment(SymbolVariableArray* lValues);
-int AssignmentOfExpressions(const SymbolVariableArray* lValues);
-int ExpressionList_Start(ExpressionArray* expressionList);
-int ExpressionList_Next(ExpressionArray* expressionList);
+int AssignmentOfExpressions(const SymbolVariableArray* lValues, Operators bonusOperation);
+int ExpressionList_Start(ExpressionArray* expressionList, Operators bonusOperation, const SymbolVariableArray* lValues);
+int ExpressionList_Next(ExpressionArray* expressionList,  Operators bonusOperation, const SymbolVariableArray* lValues, int i);
 int VariableList_Next(SymbolVariableArray* lValues);
 int VariableDefinition(string* id_name);
 int FunctionCall_rule(SymbolVariableArray* lValues, const SymbolFunction* function, const string* functionName);
