@@ -137,7 +137,7 @@ typedef struct {
  * @param expression 
  * @return int 
  */
-int parseExpression(ExpExp* expression, Operators operator, SymbolVariable *symbol);
+int parseExpression(ExpExp** expression, Operator assingmentOperation, const SymbolVariable *symbol);
 /**
  * @brief This function validates if recived token fits into already read expression, probably will be depricated as the rules can verify it more easily
  * Also, It is used to correctly parse the IDs
@@ -172,5 +172,6 @@ bool isInStackOperator(ExpStack *array);
 bool isInStackExpressionOrIdentifier(ExpStack *array);
 int evaluateExpression(ExpStack *array, ExpExp *operator);
 DataType getDataTypeOfExpression(ExpExp *value);
+void freeExpExp(ExpExp *expExp);
 
 #endif
