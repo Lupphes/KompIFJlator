@@ -225,3 +225,50 @@ void freeDubiousFunctionCallArray(DubiousFunctionCallArray* arr){
     free(arr->arr);
     arr->count = -1;
 }
+
+/**
+ * @brief Initalises the expression array for use. This function must be called before any other on an uninitialised expression array.
+ * 
+ * @param arr The expression array to initialise.
+ */
+void initExpressionArray(ExpressionArray* arr){
+    arr->count = 0;
+    arr->arr = NULL;
+}
+
+/**
+ * @brief Adds an expression to the specified expression array (by performing a shallow copy).
+ * 
+ * @param arr The array to insert the expression into.
+ * @param str The expression to insert into the array.
+ * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
+ */
+int addToexpressionArray(ExpressionArray* arr, ExpExp* expression){
+    int newCount = arr->count + 1;
+    if ((arr->arr = realloc(arr->arr,sizeof(ExpExp)*newCount)) == NULL)
+        return INTERNAL_ERROR;
+    arr->arr[newCount-1] = expression;
+    arr->count++;
+
+    return SUCCESS;
+}
+
+/**
+ * @brief Return the number of elements in the specified expression array.
+ * 
+ * @param arr The array to get the number of elements of.
+ * @return int The number of elements in the specified array.
+ */
+int countInExpressionArray(const ExpressionArray* arr){
+    return arr->count;
+}
+
+/**
+ * @brief Frees the memory used by the expression array.
+ * 
+ * @param arr The array to free its memory.
+ */
+void freeExpressionArray(ExpressionArray* arr){
+    free(arr->arr);
+    arr->count = -1;
+}
