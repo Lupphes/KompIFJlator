@@ -1,22 +1,22 @@
 #ifndef OPERATOR_TABLE_H
 #define OPERATOR_TABLE_H
 
-const int _PSATable [14][14] = {
-    //                  +                              -                           *                            /                          (                       )                           i                            <                       <=                          >                           >=                              ==                          !=                          $
-   /* + */  { OperatorRightAssociative,    OperatorRightAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,  OperatorRightAssociative,   OperatorLeftAssociative,  OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,    OperatorRightAssociative},
-   /* - */  { OperatorRightAssociative,    OperatorRightAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,  OperatorRightAssociative,   OperatorLeftAssociative,  OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,    OperatorRightAssociative},
-   /* * */  { OperatorRightAssociative,    OperatorRightAssociative,    OperatorRightAssociative,   OperatorRightAssociative,   OperatorLeftAssociative,  OperatorRightAssociative,   OperatorLeftAssociative,  OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,    OperatorRightAssociative},
-   /* / */  { OperatorRightAssociative,    OperatorRightAssociative,    OperatorRightAssociative,   OperatorRightAssociative,   OperatorLeftAssociative,  OperatorRightAssociative,   OperatorLeftAssociative,  OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,    OperatorRightAssociative},
-   /* ( */  { OperatorLeftAssociative,     OperatorLeftAssociative,     OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,  OperatorEqualAssociative,   OperatorLeftAssociative,  OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,     OperatorError},
-   /* ) */  { OperatorRightAssociative,    OperatorRightAssociative,    OperatorRightAssociative,   OperatorRightAssociative,   OperatorError,            OperatorRightAssociative,   OperatorError,            OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,    OperatorRightAssociative},
-   /* i */  { OperatorRightAssociative,    OperatorRightAssociative,    OperatorRightAssociative,   OperatorRightAssociative,   OperatorError,            OperatorRightAssociative,   OperatorError,            OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,   OperatorRightAssociative,    OperatorRightAssociative},
-   /* < */  { OperatorLeftAssociative,     OperatorLeftAssociative,     OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,  OperatorRightAssociative,   OperatorLeftAssociative,  OperatorError,              OperatorError,              OperatorError,              OperatorError,              OperatorError,              OperatorError,               OperatorRightAssociative},
-   /* <= */ { OperatorLeftAssociative,     OperatorLeftAssociative,     OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,  OperatorRightAssociative,   OperatorLeftAssociative,  OperatorError,              OperatorError,              OperatorError,              OperatorError,              OperatorError,              OperatorError,               OperatorRightAssociative},
-   /* > */  { OperatorLeftAssociative,     OperatorLeftAssociative,     OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,  OperatorRightAssociative,   OperatorLeftAssociative,  OperatorError,              OperatorError,              OperatorError,              OperatorError,              OperatorError,              OperatorError,               OperatorRightAssociative},
-   /* >= */ { OperatorLeftAssociative,     OperatorLeftAssociative,     OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,  OperatorRightAssociative,   OperatorLeftAssociative,  OperatorError,              OperatorError,              OperatorError,              OperatorError,              OperatorError,              OperatorError,               OperatorRightAssociative},
-   /* == */ { OperatorLeftAssociative,     OperatorLeftAssociative,     OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,  OperatorRightAssociative,   OperatorLeftAssociative,  OperatorError,              OperatorError,              OperatorError,              OperatorError,              OperatorError,              OperatorError,               OperatorRightAssociative},
-   /* != */ { OperatorLeftAssociative,     OperatorLeftAssociative,     OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,  OperatorRightAssociative,   OperatorLeftAssociative,  OperatorError,              OperatorError,              OperatorError,              OperatorError,              OperatorError,              OperatorError,               OperatorRightAssociative},
-   /* $ */  { OperatorLeftAssociative,     OperatorLeftAssociative,     OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,  OperatorError,              OperatorLeftAssociative,  OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,    OperatorLeftAssociative,     OperatorError}
+const int PSATable [14][14] = {
+    //                +                       -                      *                     /                     (                    )                     i                   <                      <=                    >                     >=                   ==                    !=                      $
+   /* + */  { AssociativityRight,    AssociativityRight,    AssociativityLeft,    AssociativityLeft,    AssociativityLeft,  AssociativityRight,   AssociativityLeft,    AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,    AssociativityRight},
+   /* - */  { AssociativityRight,    AssociativityRight,    AssociativityLeft,    AssociativityLeft,    AssociativityLeft,  AssociativityRight,   AssociativityLeft,    AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,    AssociativityRight},
+   /* * */  { AssociativityRight,    AssociativityRight,    AssociativityRight,   AssociativityRight,   AssociativityLeft,  AssociativityRight,   AssociativityLeft,    AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,    AssociativityRight},
+   /* / */  { AssociativityRight,    AssociativityRight,    AssociativityRight,   AssociativityRight,   AssociativityLeft,  AssociativityRight,   AssociativityLeft,    AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,    AssociativityRight},
+   /* ( */  { AssociativityLeft,     AssociativityLeft,     AssociativityLeft,    AssociativityLeft,    AssociativityLeft,  AssociativityEqual,   AssociativityLeft,    AssociativityLeft,    AssociativityLeft,    AssociativityLeft,    AssociativityLeft,    AssociativityLeft,    AssociativityLeft,     AssociativityError},
+   /* ) */  { AssociativityRight,    AssociativityRight,    AssociativityRight,   AssociativityRight,   AssociativityError, AssociativityRight,   AssociativityError,   AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,    AssociativityRight},
+   /* i */  { AssociativityRight,    AssociativityRight,    AssociativityRight,   AssociativityRight,   AssociativityError, AssociativityRight,   AssociativityError,   AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,   AssociativityRight,    AssociativityRight},
+   /* < */  { AssociativityLeft,     AssociativityLeft,     AssociativityLeft,    AssociativityLeft,    AssociativityLeft,  AssociativityRight,   AssociativityLeft,    AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,    AssociativityRight},
+   /* <= */ { AssociativityLeft,     AssociativityLeft,     AssociativityLeft,    AssociativityLeft,    AssociativityLeft,  AssociativityRight,   AssociativityLeft,    AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,    AssociativityRight},
+   /* > */  { AssociativityLeft,     AssociativityLeft,     AssociativityLeft,    AssociativityLeft,    AssociativityLeft,  AssociativityRight,   AssociativityLeft,    AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,    AssociativityRight},
+   /* >= */ { AssociativityLeft,     AssociativityLeft,     AssociativityLeft,    AssociativityLeft,    AssociativityLeft,  AssociativityRight,   AssociativityLeft,    AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,    AssociativityRight},
+   /* == */ { AssociativityLeft,     AssociativityLeft,     AssociativityLeft,    AssociativityLeft,    AssociativityLeft,  AssociativityRight,   AssociativityLeft,    AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,    AssociativityRight},
+   /* != */ { AssociativityLeft,     AssociativityLeft,     AssociativityLeft,    AssociativityLeft,    AssociativityLeft,  AssociativityRight,   AssociativityLeft,    AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,   AssociativityError,    AssociativityRight},
+   /* $ */  { AssociativityLeft,     AssociativityLeft,     AssociativityLeft,    AssociativityLeft,    AssociativityLeft,  AssociativityError,   AssociativityLeft,    AssociativityLeft,    AssociativityLeft,    AssociativityLeft,    AssociativityLeft,    AssociativityLeft,    AssociativityLeft,     AssociativityError}
 };
 // Mozna sjednoceni i a ( a +-, */, a relacni
 
@@ -26,36 +26,55 @@ const int _PSATable [14][14] = {
  * 
  */
 const char* enumOperatorTranslate[] = {
-    "+", /** + */
-    "-", /** - */
-    "*", /** * */
-    "/", /** / */
+    "+",    /** + */
+    "-",    /** - */
+    "*",    /** * */
+    "/",    /** / */
 
-    "(", /** ( */
-    ")", /** ) */
-    "id", /** id */
+    "(",    /** ( */
+    ")",    /** ) */
+    "id",   /** id */
 
-    "<", /** < */
-    "<=", /** <= */
-    ">", /** > */
-    ">=", /** >= */
-    "==", /** == */
-    "!=", /** != */
-    "$", /** $ */
-    "lalala",
-    /* this need redo */
-    "OperatorWholeNumber", /** int -- whole numeber */ // EXPATOM
-    "OperatorDecimal", /** float -- decimal number */
-    "OperatorStringLiteral", /** string -- text string */
+    "<",    /** < */
+    "<=",   /** <= */
+    ">",    /** > */
+    ">=",   /** >= */
+    "==",   /** == */
+    "!=",   /** != */
+
     "OperationNegate",
-    
-    "<",  /** [ || < */
-    ">",  /** ] || > */
-    "=",  /** = > */
-    "OperatorStart", /** ^ */
-    "E", /** Exp */
     "OperatorNotScreaming",
-    "OperatorError"  /** = > */
+    "Err"   /** = > */
+ };
+
+const char* enumAssociativityTranslate[] = {
+    "[",    /** [ || < */
+    "]",    /** ] || > */
+    "≈",    /** = > */
+	"Err"
+ };
+
+const char* enumAtomTermTranslate[] = {
+    "int",
+    "float64",
+    "\"string\"",
+    "var"
+ };
+
+ const char* enumOperationTranslate[] = {
+    "+",    /** E->E+E */
+    "-",    /** E->E-E */
+    "*",    /** E->E*E */
+    "/",    /** E->E/E */
+    "()",   /** E->(E) */
+    "id",   /** E->i */
+    "<",    /** E->E<E */
+    "<=",   /** E->E<=E */
+    ">",    /** E->E>E */
+    ">=",   /** E->E>=E */
+    "==",   /** E->E==E */
+    "!=",   /** E->E!=E */
+    "E"
  };
 
 #endif

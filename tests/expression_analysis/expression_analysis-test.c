@@ -2,9 +2,9 @@
 #include "./../../src/scanner.h"
 #include "expression_analysis-test.h"
 
-int main(int argc, char const *argv[]) {
+int main() {
     ExpExp expression;
-    Operators assingmentOperation = PLAIN_ASSIGEMENT;
+    Operator assingmentOperation = PLAIN_ASSIGEMENT;
     SymbolVariable *symbol = NULL;
     int result = parseExpression(&expression, assingmentOperation, symbol);
     return result;

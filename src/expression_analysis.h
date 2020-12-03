@@ -42,44 +42,50 @@ typedef enum {
     OperatorIsGreaterEqual, /** >= */
     OperatorIsEqual, /** == */
     OperatorNotEqual, /** != */
-    OperatorEnd, /** $ */
-    
-    /* this need redo */
-    OperatorWholeNumber = 15, /** int -- whole numeber */ // EXPATOM
-    OperatorDecimal, /** float -- decimal number */
-    OperatorStringLiteral, /** string -- text string */
+	OperatorEnd, /** $ */
+
     OperationNegate,
-    
-    OperatorLeftAssociative,  /** [ || < */
-    OperatorRightAssociative,  /** ] || > */
-    OperatorEqualAssociative,  /** = > */
-    OperatorStart, /** ^ */
-    OperatorExpression, /** Exp */
     OperatorNotScreaming,
     OperatorError  /** = > */
-} Operators;
+} Operator;
 
 typedef enum {
-  neco
+    AssociativityLeft,  /** [ || < */
+    AssociativityRight,  /** ] || > */
+    AssociativityEqual,  /** = > */
+	AssociativityError
 } Associativity;
 
 typedef enum {
+	OperatorWholeNumber, /** int -- whole numeber */ // EXPATOM
+    OperatorDecimal, /** float -- decimal number */
+    OperatorStringLiteral /** string -- text string */
+} AtomTerm;
 
-  
-    RuleAdd, /** E->E+E */
-    RuleSub = 34, /** E->E-E */
-    RuleMul, /** E->E*E */
-    RuleDiv, /** E->E/E */
-    RulePar, /** E->(E) */
-    RuleVar, /** E->i */
-    RuleGth, /** E->E<E */
-    RuleGEq, /** E->E<=E */
-    RuleLes, /** E->E>E */
-    RuleLEq, /** E->E>=E */
-    RuleEqu, /** E->E==E */
-    RuleNEq, /** E->E!=E */
-    RuleErr
+typedef enum {
+    OperationAdd, /** E->E+E */
+    OperationSub, /** E->E-E */
+    OperationMul, /** E->E*E */
+    OperationDiv, /** E->E/E */
+    OperationPar, /** E->(E) */
+    OperationVar, /** E->i */
+    OperationGth, /** E->E>E */
+    OperationGEq, /** E->E>=E */
+    OperationLes, /** E->E<E */
+    OperationLEq, /** E->E<=E */
+    OperationEqu, /** E->E==E */
+    OperationNEq, /** E->E!=E */
+	OperationUnk,
+    OperationErr
 } OperationType;
+
+typedef enum {
+	OperationStateStart,
+	StateBracketExpression,
+	OperationStateBracketRight,
+	OperationStateExpression,
+	OperationStateCompleteExpression
+} OperationState;
 
 struct _ExpExp;
 
@@ -93,7 +99,7 @@ typedef struct {
 } OperandsBinary;
 
 typedef struct {
-  OperationType type; // operation
+  OperationType type;
   union {
     OperandsBinary binary;
     OperandUnary unary;
@@ -113,14 +119,14 @@ typedef struct _ExpExp {
 
 typedef struct {
   enum {
-    ExpItemOperator, //Enum
-    ExpItemExpression, //Ruled value
-    ExpItemAssociativity, // Enum
-    ExpItemEnd // just value
+    ExpItemOperator,
+    ExpItemExpression,
+    ExpItemAssociativity,
+    ExpItemEnd
   } type;
   union {
-    Operators op;
-    ExpExp ee; // maybe ukazatel, bude to bordel
+    Operator op;
+    ExpExp ee;
     Associativity as;
   } value;
 } ExpItem;
@@ -129,7 +135,7 @@ typedef struct {
   int64_t used;
   int64_t initializedSize;
   ExpItem *values;
-} ExpStack; //Todo: Stack
+} ExpStack;
 
 /**
  * @brief This function retuns Expression to the parser and therfore parser can validate the output type
@@ -137,7 +143,7 @@ typedef struct {
  * @param expression 
  * @return int 
  */
-int parseExpression(ExpExp* expression, Operators operator, SymbolVariable *symbol);
+int parseExpression(ExpExp* expression, Operator operator, SymbolVariable *symbol);
 /**
  * @brief This function validates if recived token fits into already read expression, probably will be depricated as the rules can verify it more easily
  * Also, It is used to correctly parse the IDs
@@ -147,7 +153,7 @@ int parseExpression(ExpExp* expression, Operators operator, SymbolVariable *symb
  * @param operator 
  * @return int 
  */
-int checkIfValidToken(Token *token, ExpStack *array, ExpExp *operator);
+int checkIfValidToken(Token *token, ExpStack *array, ExpItem *operator);
 /**
  * @brief 
  * 
@@ -155,22 +161,23 @@ int checkIfValidToken(Token *token, ExpStack *array, ExpExp *operator);
  * @param operator 
  * @return int 
  */
-int evaluateExpression(ExpStack *array, ExpExp *operator);
+int evaluateExpression(ExpStack *expStack, ExpItem *expItem);
 /**
  * @brief Final state machine which checks for rules and then applies them
  * 
  * @param array 
  * @return int 
  */
-int rulesEvaluation(ExpStack *array, Operation *generatedRule);
-int initExpArray(ExpStack *array, int64_t initialSize);
-int pushToArray(ExpStack *array, ExpExp operator);
-int seekValueArrayValue(ExpStack *array, int *operator);
-int popFromArray(ExpStack *array, ExpExp *returnValue);
-void freeArray(ExpStack *array);
-bool isInStackOperator(ExpStack *array);
-bool isInStackExpressionOrIdentifier(ExpStack *array);
-int evaluateExpression(ExpStack *array, ExpExp *operator);
+int rulesEvaluation(ExpStack *expStack, Operation *assignetOperation);
+int initExpStack(ExpStack *expStack, int64_t initialSize);
+int pushToStack(ExpStack *expStack, ExpItem stackItem);
+int seekValueStackValue(ExpStack *expStack, ExpItem *expItem);
+int popFromStack(ExpStack *expStack, ExpItem *expItem);
+void freeExpStack(ExpStack *expStack);
+void printStack(ExpStack *expStack);
+bool isInStackOperator(ExpStack *expStack);
+bool isInStackExpression(ExpStack *expStack);
 DataType getDataTypeOfExpression(ExpExp *value);
+int evaluateTypeOfExpressions(Operation *assignedOperation);
 
 #endif

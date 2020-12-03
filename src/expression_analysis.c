@@ -22,423 +22,416 @@
 #include "operator_table.h"
 
 #define ANALYSIS_END -1
-ExpExp endStartOperator = {.value = OperatorEnd };
-ExpExp newExpression = {.value = OperatorExpression };
+ExpItem endStartOperator = {.type = ExpItemEnd };
+ExpItem newExpression = {.type = ExpItemExpression};
+ExpItem assocExpItem = {.type = ExpItemAssociativity};
 
 
-/** ---------------------- Array Functions ---------------------- **/
+/** ---------------------- Stack Functions ---------------------- **/
 
-int initExpArray(ExpStack *array, int64_t initialSize) {
-    array->used = 0;
-    array->values = malloc(initialSize * sizeof(ExpExp));
-    if (array->values == NULL)
+int initExpStack(ExpStack *expStack, int64_t initialSize) {
+    expStack->used = 0;
+    expStack->values = malloc(initialSize * sizeof(ExpItem));
+    if (expStack->values == NULL)
         return INTERNAL_ERROR;
-    array->initializedSize = initialSize;
+    expStack->initializedSize = initialSize;
     return SUCCESS;
 }
 
-int pushToArray(ExpStack *array, ExpExp operator) {
-    if (array->used == array->initializedSize) {
-        array->initializedSize += 1;
-        array->values = realloc(array->values, array->initializedSize * sizeof(ExpValue));
-        if (array->values == NULL)
+int pushToStack(ExpStack *expStack, ExpItem stackItem) {
+    if (expStack->used == expStack->initializedSize) {
+        expStack->initializedSize += 1;
+        expStack->values = realloc(expStack->values, expStack->initializedSize * sizeof(ExpItem));
+        if (expStack->values == NULL)
             return INTERNAL_ERROR;
     }
-    array->values[array->used].value = operator.value;
-    array->used += 1;
+    expStack->values[expStack->used].type = stackItem.type;
+    expStack->values[expStack->used].value = stackItem.value;
+    expStack->used += 1;
     return SUCCESS;
 }
 
-int pushToArrayBehindEorID(ExpStack *array, int operator) {
-    if (array->used == array->initializedSize) {
-        array->initializedSize += 1;
-        array->values = realloc(array->values, array->initializedSize * sizeof(ExpValue));
-        if (array->values == NULL)
+int pushToArrayBehindEorID(ExpStack *expStack, ExpItem expItem) {
+    if (expStack->used == expStack->initializedSize) {
+        expStack->initializedSize += 1;
+        expStack->values = realloc(expStack->values, expStack->initializedSize * sizeof(ExpItem));
+        if (expStack->values == NULL)
             return INTERNAL_ERROR;
     }
-    if (array->values[array->used - 1].value == OperatorExpression || array->values[array->used - 1].value == OperatorIdentifier) {
-        for (int i = array->used - 1; i >= 0; i--) {      
-            if (array->values[i].value == OperatorExpression || array->values[i].value == OperatorIdentifier) {
-                for (int j = i; j < array->used; j++) {
-                    array->values[j+1].value = array->values[j].value;
+    if (expStack->values[expStack->used - 1].type == ExpItemExpression) {
+        for (int i = expStack->used - 1; i >= 0; i--) {      
+            if (expStack->values[i].type == ExpItemExpression) {
+                for (int j = i; j < expStack->used; j++) {
+                    expStack->values[j+1].value = expStack->values[j].value;
                 }
-                array->values[array->used-1].value = operator;
-                array->used += 1;
+                expStack->values[expStack->used-1] = expItem;
+                expStack->used += 1;
                 return SUCCESS;
             }
         }
     }
-    array->values[array->used].value = operator;
-    array->used += 1;
+    expStack->values[expStack->used] = expItem;
+    expStack->used += 1;
     return SUCCESS;
 }
 
-int seekValueBehindE(ExpStack *array, int *operator) {
-    if (seekValueArrayValue(array, operator) == INTERNAL_ERROR)
+int seekValueBehindE(ExpStack *expStack, ExpItem *expItem) {
+    if (seekValueStackValue(expStack, expItem) == INTERNAL_ERROR)
         return INTERNAL_ERROR; 
-    if (*operator == OperatorExpression) {
-        *operator = array->values[array->used - 2].value;
+    if (expItem->type == ExpItemExpression) {
+        *expItem = expStack->values[expStack->used - 2];
     }
     return SUCCESS;
 }
 
-int seekValueArrayValue(ExpStack *array, int *operator) {
-    if (array->used != 0) {
-        *operator = array->values[array->used - 1].value;
+int seekValueStackValue(ExpStack *expStack, ExpItem *expItem) {
+    if (expStack->used != 0) {
+        *expItem = expStack->values[expStack->used - 1];
         return SUCCESS;
     }    
     return INTERNAL_ERROR; 
 }
 
-int popFromArray(ExpStack *array, ExpExp *returnValue) {
-    if (array->values == NULL)
+int popFromStack(ExpStack *expStack, ExpItem *expItem) {
+    if (expStack->values == NULL)
         return INTERNAL_ERROR;
-    if (seekValueArrayValue(array, &returnValue->value) == INTERNAL_ERROR)
+    if (seekValueStackValue(expStack, expItem) == INTERNAL_ERROR)
         return INTERNAL_ERROR; 
-    array->initializedSize -= 1;
-    array->used -= 1;
-    array->values = realloc(array->values, array->initializedSize * sizeof(ExpValue));
+    expStack->initializedSize -= 1;
+    expStack->used -= 1;
+    expStack->values = realloc(expStack->values, expStack->initializedSize * sizeof(ExpItem));
     return SUCCESS;
 }
 
-void freeArray(ExpStack *array) {
-    free(array->values);
-    array->values = NULL;
-    array->used = 0;
-    array->initializedSize = 0;
+void freeExpStack(ExpStack *expStack) {
+    free(expStack->values);
+    expStack->values = NULL;
+    expStack->used = 0;
+    expStack->initializedSize = 0;
 }
 
-void printArray(ExpStack *array) {
-    for (int i = 0; i < array->used; i++) {
-        printf("%s,", enumOperatorTranslate[array->values[i].value]);
+void printStack(ExpStack *expStack) {
+    for (int i = 0; i < expStack->used; i++) {
+        switch (expStack->values[i].type) {
+        case ExpItemOperator:
+            printf("%s,", enumOperatorTranslate[expStack->values[i].value.op]);
+            break;
+        case ExpItemExpression:
+            switch (expStack->values[i].value.ee.type) {
+            case ExpExpAtom:
+                printf("%s,", enumAtomTermTranslate[expStack->values[i].value.ee.ExpProperties.atom.type]);
+                break;
+            case ExpExpOperation:
+                // printf("%s,", enumOperationTranslate[expStack->values[i].value.ee.ExpProperties.operation.type]);
+                printf("—");
+                break;
+            }
+            break;
+        case ExpItemAssociativity:
+            printf("%s,", enumAssociativityTranslate[expStack->values[i].value.as]);
+            break;
+        case ExpItemEnd:
+            printf("$,");
+            break;
+        }
     }
     printf("\n");
 }
 
-/** ---------------------- Array Functions ---------------------- **/
+/** ---------------------- Stack Functions ---------------------- **/
 
-bool isInStackOperator(ExpArray *array) {
-    int lastValue;
-    if (seekValueArrayValue(array, &lastValue) == INTERNAL_ERROR)
-        return INTERNAL_ERROR;
-    switch (lastValue) {
-    case OperatorAdd:
-    case OperatorSubtract:
-    case OperatorMultiply:
-    case OperatorDivide:
-    case OperatorIsLessThan:
-    case OperatorIsLessEqual:
-    case OperatorIsGreaterThan:
-    case OperatorIsGreaterEqual:
-    case OperatorIsEqual:
-    case OperatorNotEqual:
+/** ------------------------ Short-Hands ------------------------ **/
+
+bool isInStackOperator(ExpStack *expStack) {
+    ExpItem lastStackItem;
+    seekValueStackValue(expStack, &lastStackItem);
+    if (lastStackItem.type == ExpItemOperator)
         return true;
-        break;
-    default:
-        return false;
-        break;
-    }
+    return false;
 }
 
-bool isInStackExpressionOrIdentifier(ExpArray *array) {
-    int lastValue;
-    if (seekValueArrayValue(array, &lastValue) == INTERNAL_ERROR)
-        return INTERNAL_ERROR;
-    switch (lastValue) {
-    case OperatorIdentifier:
-    case OperatorExpression:
-    case OperatorWholeNumber:
-    case OperatorDecimal:
-    case OperatorStringLiteral:
+bool isInStackExpression(ExpStack *expStack) {
+    ExpItem lastStackItem;
+    seekValueStackValue(expStack, &lastStackItem);
+    if (lastStackItem.type == ExpItemExpression)
         return true;
-        break;
-    default:
-        return false;
-        break;
-    }
+    return false;
 }
 
-bool isBufferEmpty(ExpArray *array) {
+bool isBufferEmpty(ExpStack *array) {
     return array->used == 0 ? true : false;    
 }
 
-int evaluateTypeOfExpressions(Rule *generatedRule) {
-    generatedRule->newExp = newExpression;  
-    if (termType(&generatedRule->Operation.binary.first.ExpProperties.literal) == TypeBool || termType(&generatedRule->Operation.binary.second.ExpProperties.literal) == TypeBool) {
+/** ------------------------ Short-Hands ------------------------ **/
+
+int evaluateTypeOfExpressions(Operation *assignedOperation) {
+      
+    if (termType(&assignedOperation->value.binary.first->ExpProperties.atom) == TypeBool || termType(&assignedOperation->value.binary.second->ExpProperties.atom) == TypeBool) {
         return SEMANTIC_ERROR_TYPE_EXPRESION;
     } 
-    switch (generatedRule->ruleType) {
-        case RuleMul:
+    switch (assignedOperation->type) {
+        case OperationDiv:
         // TODO: Divide 0 check
         // intentionally not breaking
-        case RuleSub:
-        case RuleDiv:
-        case RulePar:
-        case RuleGth:
-        case RuleGEq:
-        case RuleLes:
-        case RuleLEq:
-        case RuleEqu:
-        case RuleNEq:
-            if (termType(&generatedRule->Operation.binary.first.ExpProperties.literal) != termType(&generatedRule->Operation.binary.second.ExpProperties.literal)) {
+        case OperationSub:
+        case OperationMul:
+        case OperationGth:
+        case OperationGEq:
+        case OperationLes:
+        case OperationLEq:
+        case OperationEqu:
+        case OperationNEq:
+            if (termType(&assignedOperation->value.binary.first->ExpProperties.atom) == TypeString || termType(&assignedOperation->value.binary.first->ExpProperties.atom) == TypeString) {
+                return SEMANTIC_ERROR_TYPE_EXPRESION;
+            } 
+        // intentionally not breaking
+        case OperationAdd:
+            if (termType(&assignedOperation->value.binary.first->ExpProperties.atom) != termType(&assignedOperation->value.binary.second->ExpProperties.atom)) {
                 return SEMANTIC_ERROR_TYPE_EXPRESION;
             }
-        // intentionally not breaking
-        case RuleAdd:
-             if (termType(&generatedRule->Operation.binary.first.ExpProperties.literal) == TypeString || termType(&generatedRule->Operation.binary.second.ExpProperties.literal) == TypeString) {
-                return SEMANTIC_ERROR_TYPE_EXPRESION;
-            }        
-        generatedRule->newExp.ExpProperties.literal.type = generatedRule->Operation.binary.first.ExpProperties.literal.type;
+        default:
+            break;
         break;
     }
     return SUCCESS;
 }
 
 
-int rulesEvaluation(ExpArray *array, Rule *generatedRule) {
-    ExpValue returnedValue;
-    popFromArray(array, &returnedValue);
-    switch (returnedValue.value) {
-        case OperatorRightBracket:
-            popFromArray(array, &returnedValue);
-            if (returnedValue.value == OperatorExpression) {
-                (*generatedRule).Operation.unary.first = returnedValue;
-                popFromArray(array, &returnedValue);
-                if (returnedValue.value == OperatorLeftBracket) {
-                    (*generatedRule).ruleType = RulePar;
-                    if (seekValueArrayValue(array, &returnedValue.value) == OperatorSubtract) {
-                        popFromArray(array, &returnedValue);
-                        (*generatedRule).ruleType = RuleBra;
+int rulesEvaluation(ExpStack *expStack, Operation *assignedOperation) {
+    ExpItem previousExpItem;
+    OperationState state = OperationStateStart;
+    assignedOperation->type = OperationUnk;
+    while (assignedOperation->type == OperationUnk) {
+        popFromStack(expStack, &previousExpItem);
+        switch (state) {
+            case OperationStateStart:
+                switch (previousExpItem.type) {
+                    case ExpItemExpression:
+                        assignedOperation->value.binary.second = &previousExpItem.value.ee;
+                        state = OperationStateExpression;
+                        break;
+                    case ExpItemOperator:
+                        switch (previousExpItem.value.op) {
+                            case OperatorIdentifier:
+                                assignedOperation->value.unary.first = &previousExpItem.value.ee;
+                                assignedOperation->type = OperationVar;
+                                // TODO: Locate values from symtable
+                                break;
+                            case OperatorLeftBracket:
+                                state = StateBracketExpression;
+                                break;                        
+                            default:
+                                break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case StateBracketExpression:
+                if (previousExpItem.type == ExpItemExpression) {
+                    assignedOperation->value.unary.first = &previousExpItem.value.ee;
+                    state = OperationStateBracketRight;
+                }
+                break;
+            case OperationStateBracketRight:
+                if (previousExpItem.type == ExpItemOperator) {
+                    if (previousExpItem.value.op == OperatorRightBracket) {
+                        assignedOperation->type = OperationPar;
+                        //TODO: Return expression bracket
                     }
                 }
-            }
-            break;
-        case OperatorSubtract:
-            popFromArray(array, &returnedValue);
-            if (returnedValue.value == OperatorSubtract) {
-                popFromArray(array, &returnedValue);
-                if (returnedValue.value== OperatorExpression) {
-                    // rule = RuleNe2;
-                }
-            } else if (returnedValue.value == OperatorLeftBracket) {
-                popFromArray(array, &returnedValue);
-                if (returnedValue.value == OperatorExpression) {
-                    popFromArray(array, &returnedValue);
-                    if (returnedValue.value == OperatorRightBracket) {
-                        // rule = RuleBra;
+                break;
+            case OperationStateExpression:
+                switch (previousExpItem.type) {
+                    case ExpItemOperator:
+                        switch (previousExpItem.value.op) {
+                        case OperatorAdd:
+                            assignedOperation->type = OperationAdd;
+                            break;
+                        case OperatorSubtract:
+                            assignedOperation->type = OperationSub;
+                            break;
+                        case OperatorMultiply:
+                            assignedOperation->type = OperationMul;
+                            break;
+                        case OperatorDivide:
+                            assignedOperation->type = OperationDiv;
+                            break;
+                        case OperatorIsLessThan:
+                            assignedOperation->type = OperationLes;
+                            break;
+                        case OperatorIsLessEqual:
+                            assignedOperation->type = OperationLEq;
+                            break;
+                        case OperatorIsGreaterThan:
+                            assignedOperation->type = OperationGth;
+                            break;
+                        case OperatorIsGreaterEqual:
+                            assignedOperation->type = OperationGEq;
+                            break;
+                        case OperatorIsEqual:
+                            assignedOperation->type = OperationEqu;
+                            break;
+                        case OperatorNotEqual:
+                            assignedOperation->type = OperationNEq;
+                            break;
+                        default:
+                            break;
+                        }
+                        state = OperationStateCompleteExpression;
+                        break;
+                    default:
+                        break;
                     }
-                }
-            }
-            break;
-        case OperatorExpression:
-            (*generatedRule).Operation.binary.second = returnedValue;
-            popFromArray(array, &returnedValue);
-            switch (returnedValue.value) {
-            case OperatorAdd:
-                popFromArray(array, &returnedValue);
-                if (returnedValue.value == OperatorExpression) {
-                    (*generatedRule).ruleType = RuleAdd;
-                    (*generatedRule).Operation.binary.first = returnedValue;
+                break;
+            case OperationStateCompleteExpression:
+                if (previousExpItem.type == ExpItemExpression) {
+                    assignedOperation->value.binary.first = &previousExpItem.value.ee;
                 }
                 break;
-            case OperatorSubtract:
-                popFromArray(array, &returnedValue);
-                if (returnedValue.value == OperatorExpression) {
-                    (*generatedRule).ruleType = RuleSub;
-                    (*generatedRule).Operation.binary.first = returnedValue;
-                }
-                break;
-            case OperatorMultiply:
-                popFromArray(array, &returnedValue);
-                if (returnedValue.value == OperatorExpression) {
-                    (*generatedRule).ruleType = RuleMul;
-                    (*generatedRule).Operation.binary.first = returnedValue;
-                }
-                break;
-            case OperatorDivide:
-                popFromArray(array, &returnedValue);
-                if (returnedValue.value == OperatorExpression) {
-                    (*generatedRule).ruleType = RuleDiv;
-                    (*generatedRule).Operation.binary.first = returnedValue;
-                }
-                break;
-            case OperatorIsGreaterThan:
-                popFromArray(array, &returnedValue);
-                if (returnedValue.value == OperatorExpression) {
-                    (*generatedRule).ruleType = RuleGth;
-                    (*generatedRule).Operation.binary.first = returnedValue;
-                }
-                break;
-            case OperatorIsGreaterEqual:
-                popFromArray(array, &returnedValue);
-                if (returnedValue.value == OperatorExpression) {
-                    (*generatedRule).ruleType = RuleGEq;
-                    (*generatedRule).Operation.binary.first = returnedValue;
-                }
-                break;
-            case OperatorIsLessThan:
-                popFromArray(array, &returnedValue);
-                if (returnedValue.value == OperatorExpression) {
-                    (*generatedRule).ruleType = RuleLes;
-                    (*generatedRule).Operation.binary.first = returnedValue;
-                }
-                break;
-            case OperatorIsLessEqual:
-                popFromArray(array, &returnedValue);
-                if (returnedValue.value == OperatorExpression) {
-                    (*generatedRule).ruleType = RuleLEq;
-                    (*generatedRule).Operation.binary.first = returnedValue;
-                }
-                break;
-            case OperatorIsEqual:
-                popFromArray(array, &returnedValue);
-                if (returnedValue.value == OperatorExpression) {
-                    (*generatedRule).ruleType = RuleEqu;
-                    (*generatedRule).Operation.binary.first = returnedValue;
-                }
-                break;
-            case OperatorNotEqual:
-                popFromArray(array, &returnedValue);
-                if (returnedValue.value == OperatorExpression) {
-                    (*generatedRule).ruleType = RuleNEq;
-                    (*generatedRule).Operation.binary.first = returnedValue;
-                }
-                break;
-            default:
-                break;
-            }
-            break;
-        case OperatorIdentifier:
-            (*generatedRule).Operation.unary.first = returnedValue;
-            (*generatedRule).ruleType = RuleNEq;
-            break;
-        default:
-            break;
+        }
     }
-    int foundValue;
-    if (seekValueArrayValue(array, &foundValue) == INTERNAL_ERROR)
+    ExpItem lastExpItem;
+    if (seekValueStackValue(expStack, &lastExpItem) == INTERNAL_ERROR)
         return INTERNAL_ERROR;
-    if(foundValue == OperatorLeftAssociative) {
-        popFromArray(array, &returnedValue);
-        return SUCCESS;
+    if(lastExpItem.type == ExpItemAssociativity) {
+        if (&lastExpItem.value == AssociativityLeft) {
+            popFromStack(expStack, &previousExpItem);
+            return SUCCESS;
+        }
     }
     return SYNTAX_ERROR;
 }
 
-int evaluateExpression(ExpArray *array, ExpValue *operator) {
-    int getLastValeFromStack;
-    Rule generatedRules;
+int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
+    Operation assignedOperation;
+    ExpItem previousExpItem;
     int returnCode;
-    
-    printArray(array); // DEBUG
-    seekValueBehindE(array, &getLastValeFromStack);
-    switch (_PSATable[getLastValeFromStack][operator->value]) {
-        case OperatorLeftAssociative:
-            pushToArrayBehindEorID(array, _PSATable[getLastValeFromStack][operator->value]);
-            pushToArray(array, *operator);
+    int foundValue;
 
-            printArray(array); // DEBUG
+    printStack(expStack); // DEBUG
+    seekValueBehindE(expStack, &previousExpItem);
+    switch (previousExpItem.type) {
+    case ExpItemOperator:
+        foundValue = previousExpItem.value.op;
+        break;
+    case ExpItemEnd:
+        foundValue = OperatorEnd;
+        break;
+    default:
+        return SYNTAX_ERROR;
+        break;
+    }
+    switch (PSATable[foundValue][expItem->value.op]) {
+        case AssociativityLeft:
+            assocExpItem.value.as = PSATable[foundValue][expItem->value.op];
+            pushToArrayBehindEorID(expStack, assocExpItem);
+            pushToStack(expStack, *expItem);
+
+            printStack(expStack); // DEBUG
             break;
-        case OperatorRightAssociative:
-            if ((returnCode = rulesEvaluation(array, &generatedRules)) != SUCCESS) {
+        case AssociativityRight:
+            if ((returnCode = rulesEvaluation(expStack, &assignedOperation)) != SUCCESS) {
                 return returnCode;
             } 
-            evaluateTypeOfExpressions(&generatedRules);
-            // TODO: generateAST(); 
-            pushToArray(array, generatedRules.newExp);
-            printArray(array); // DEBUG
-            evaluateExpression(array, operator);
-            printArray(array); // DEBUG
+            evaluateTypeOfExpressions(&assignedOperation);
+            newExpression.value.ee.type = ExpExpOperation;
+            newExpression.value.ee.ExpProperties.operation = assignedOperation;
+            pushToStack(expStack, newExpression);
+            printStack(expStack); // DEBUG
+            evaluateExpression(expStack, expItem);
+            printStack(expStack); // DEBUG
             break;
-        case OperatorEqualAssociative:
-            pushToArray(array, *operator);
-            if ((returnCode = rulesEvaluation(array, &generatedRules)) != SUCCESS) {
+        case AssociativityEqual:
+            pushToStack(expStack, *expItem);
+            if ((returnCode = rulesEvaluation(expStack, &assignedOperation)) != SUCCESS) {
                 return returnCode;
             }
-            evaluateTypeOfExpressions(&generatedRules); 
-            // TODO: generateAST(); 
-            pushToArray(array, generatedRules.newExp);
-            printArray(array); // DEBUG
+            evaluateTypeOfExpressions(&assignedOperation); 
+            newExpression.value.ee.type = ExpExpOperation;
+            newExpression.value.ee.ExpProperties.operation = assignedOperation;
+            pushToStack(expStack, newExpression);
+            printStack(expStack); // DEBUG
             break;
-        case OperatorError:
+        case AssociativityError:
             return SYNTAX_ERROR;
     }
     return SUCCESS;
 }
 
-int checkIfValidToken(Token *token, ExpArray *array, ExpValue *operator) {
+int checkIfValidToken(Token *token, ExpStack *expStack, ExpItem *expItem) {
     int returnCode;
     acceptAny();
+    expItem->type = ExpItemOperator;
     switch (token->type) {
         case TokenAdd:
-            if(isInStackOperator(array)) 
+            if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
-            operator->value = OperatorAdd;
+            expItem->value.op = OperatorAdd;
             break;
         case TokenSubtract:
-            operator->value = OperatorSubtract;
+            expItem->value.op = OperatorSubtract;
             break;
         case TokenMultiply:
-            if(isInStackOperator(array)) 
+            if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
-            operator->value = OperatorMultiply;
+            expItem->value.op = OperatorMultiply;
             break;
         case TokenDivide:
-            if(isInStackOperator(array)) 
+            if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
-            operator->value = OperatorDivide;
+            expItem->value.op = OperatorDivide;
             break;
         case TokenLeftBracket:
-            if(isInStackExpressionOrIdentifier(array)) 
+            if(isInStackExpression(expStack)) 
                 return SYNTAX_ERROR;
-            operator->value = OperatorLeftBracket;
+            expItem->value.op = OperatorLeftBracket;
             break;
         case TokenRightBracket:
-            operator->value = OperatorRightBracket;
+            expItem->value.op = OperatorRightBracket;
             break;
         case TokenIsLessThan:
-            if(isInStackOperator(array)) 
+            if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
-            operator->value = OperatorIsLessThan;
+            expItem->value.op = OperatorIsLessThan;
             break;
         case TokenIsLessEqual:
-            if(isInStackOperator(array)) 
+            if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
-            operator->value = OperatorIsGreaterEqual;
+            expItem->value.op = OperatorIsGreaterEqual;
             break;
         case TokenIsGreaterThan:
-            if(isInStackOperator(array)) 
+            if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
-            operator->value = OperatorIsGreaterThan;
+            expItem->value.op = OperatorIsGreaterThan;
             break;
         case TokenIsGreaterEqual:
-            if(isInStackOperator(array)) 
+            if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
-            operator->value = OperatorIsGreaterEqual;
+            expItem->value.op = OperatorIsGreaterEqual;
             break;
         case TokenIsEqual:
-            if(isInStackOperator(array)) 
+            if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
-            operator->value = OperatorIsEqual;
+            expItem->value.op = OperatorIsEqual;
             break;
         case TokenNotEqual:
-            if(isInStackOperator(array)) 
+            if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
-            operator->value = OperatorNotEqual;
+            expItem->value.op = OperatorNotEqual;
             break;
         case TokenIdentifier:
         case TokenWholeNbr:
         case TokenDecimalNbr:
         case TokenStringLiteral:
-            if(isInStackExpressionOrIdentifier(array)) 
+            if(isInStackExpression(expStack)) 
                 return SYNTAX_ERROR;
+            expItem->type = ExpItemExpression;
             Term term;
-            if(parseTerm(&term, false) == SUCCESS){
-                if ((&term)->type == TermVariable) {
-                    // TODO: Remebember variable from symtable
-                }
-                operator->value = OperatorIdentifier;
-                operator->ExpProperties.literal = term;
+            if(parseTerm(&term, false) == SUCCESS) {
+                expItem->value.ee.type = ExpExpAtom;
+                expItem->value.ee.ExpProperties.atom = term;
             } else {
                 return returnCode;
             }
@@ -450,28 +443,28 @@ int checkIfValidToken(Token *token, ExpArray *array, ExpValue *operator) {
     return SUCCESS;
 }
 
-int parseExpression(ExpValue* expression, _Operators assingmentOperation, SymbolVariable *symbol) {
+int parseExpression(ExpExp* expression, Operator assingmentOperation, SymbolVariable *symbol) {
     /* Stack initialization */
-    ExpArray expArray;
-    initExpArray(&expArray, 0);
-    pushToArray(&expArray, endStartOperator);
-    printArray(&expArray); // DEBUG
-    ExpValue operator;
+    ExpStack expStack;
+    initExpStack(&expStack, 0);
+    pushToStack(&expStack, endStartOperator);
+    printStack(&expStack); // DEBUG
+    ExpItem expItem;
     int parseStatus;
-    parseStatus = checkIfValidToken(&curTok, &expArray, &operator);
+    parseStatus = checkIfValidToken(&curTok, &expStack, &expItem);
     while (parseStatus == SUCCESS) {
-        if (evaluateExpression(&expArray, &operator) == SYNTAX_ERROR) 
+        if (evaluateExpression(&expStack, &expItem) == SYNTAX_ERROR) 
             return SYNTAX_ERROR;
-        parseStatus = checkIfValidToken(&curTok, &expArray, &operator);
+        parseStatus = checkIfValidToken(&curTok, &expStack, &expItem);
     }
     if (parseStatus != ANALYSIS_END)
         return parseStatus;
     /* Validate the Expression until is only E*/
-    if (evaluateExpression(&expArray, &endStartOperator) == SYNTAX_ERROR) 
+    if (evaluateExpression(&expStack, &endStartOperator) == SYNTAX_ERROR) 
         return SYNTAX_ERROR;
 
-    printArray(&expArray); // DEBUG
-    freeArray(&expArray);
+    printStack(&expStack); // DEBUG
+    freeExpStack(&expStack);
     return SUCCESS;
 }
 
