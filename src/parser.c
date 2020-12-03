@@ -96,7 +96,7 @@ int FunctionDefinition(){
     if(peek(TokenIdentifier)){
         if (getFunction(strGetStr(&curTok.attribute.s)) == NULL){
             callAndHandleException_clean(strCopyString(&function.id,&curTok.attribute.s));
-            acceptAny();
+            acceptAny_clean();
         } else return SEMANTIC_ERROR_DEFINITION; // A function with the given name already exists.
     }
     else return SYNTAX_ERROR;
@@ -182,10 +182,10 @@ int processFunctionDefinitionParameter(SymbolFunction* function){
         return INTERNAL_ERROR;
     }
 
-    acceptAny();
+    acceptAny_clean();
     if (peek(TokenDataType)){
         callAndHandleException(addFunctionParameter(function,&id,curTok.attribute.t));
-        acceptAny();
+        acceptAny_clean();
     } else {
         strFree(&id);
         return SYNTAX_ERROR;
@@ -193,6 +193,9 @@ int processFunctionDefinitionParameter(SymbolFunction* function){
     strFree(&id);
 
     return SUCCESS;
+    CLEAN_UP:
+    strFree(&id);
+    return returnCode;
 }
 
 int FunctionDefinitionParameters_Start(SymbolFunction* function){
@@ -332,7 +335,7 @@ int StatementStartingWithIdentifier(){
 
     if(peek(TokenIdentifier)){ //Unnecessary check since we already know that we are dealing with an identifier as the current token, but for good measure I check here as well.
         callAndHandleException_clean(strCopyString(&firstID, &curTok.attribute.s));
-        acceptAny();
+        acceptAny_clean();
     } else returnAndClean(SYNTAX_ERROR);
 
     switch(curTok.type){
@@ -376,7 +379,7 @@ int Assignment(SymbolVariableArray* lValues){
 
     if (peek(TokenIdentifier)){
         callAndHandleException_clean(strCopyString(&functionCandidate, &curTok.attribute.s));
-        acceptAny();
+        acceptAny_clean();
         if(peek(TokenLeftBracket)){ //We are dealing with a function call with assignment now.
             if (getVariable(strGetStr(&functionCandidate)) != NULL)
                 returnAndClean(SEMANTIC_ERROR_OTHER);
@@ -667,7 +670,7 @@ int For_Definition(){
     callAndHandleException_clean(strInit(&id));
     callAndHandleException_clean(strCopyString(&id,&curTok.attribute.s));
 
-    acceptAny();
+    acceptAny_clean();
 
     callAndHandleException_clean(VariableDefinition(&id));
 
