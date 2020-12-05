@@ -34,7 +34,6 @@ typedef enum {
 
     OperatorLeftBracket, /** ( */
     OperatorRightBracket, /** ) */
-    OperatorIdentifier, /** id */
 
     OperatorIsLessThan, /** < */
     OperatorIsLessEqual, /** <= */
@@ -42,7 +41,7 @@ typedef enum {
     OperatorIsGreaterEqual, /** >= */
     OperatorIsEqual, /** == */
     OperatorNotEqual, /** != */
-	OperatorEnd, /** $ */
+    OperatorEnd, /** $ */
 
     OperationNegate,
     OperatorNotScreaming,
@@ -68,21 +67,19 @@ typedef enum {
     OperationMul, /** E->E*E */
     OperationDiv, /** E->E/E */
     OperationPar, /** E->(E) */
-    OperationVar, /** E->i */
     OperationGth, /** E->E>E */
     OperationGEq, /** E->E>=E */
     OperationLes, /** E->E<E */
     OperationLEq, /** E->E<=E */
     OperationEqu, /** E->E==E */
     OperationNEq, /** E->E!=E */
-	OperationUnk,
     OperationErr
 } OperationType;
 
 typedef enum {
 	OperationStateStart,
 	StateBracketExpression,
-	OperationStateBracketRight,
+	OperationStateBracketLeft,
 	OperationStateExpression,
 	OperationStateCompleteExpression
 } OperationState;
