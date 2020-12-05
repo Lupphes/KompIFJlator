@@ -97,9 +97,9 @@ int FunctionDefinition(){
         if (getFunction(strGetStr(&curTok.attribute.s)) == NULL){
             callAndHandleException_clean(strCopyString(&function.id,&curTok.attribute.s));
             acceptAny_clean();
-        } else return SEMANTIC_ERROR_DEFINITION; // A function with the given name already exists.
+        } else returnAndClean(SEMANTIC_ERROR_DEFINITION); // A function with the given name already exists.
     }
-    else return SYNTAX_ERROR;
+    else returnAndClean(SYNTAX_ERROR);
 
     assert_clean(TokenLeftBracket);
     callAndHandleException_clean(FunctionDefinitionParameters_Start(&function));
