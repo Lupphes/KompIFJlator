@@ -23,8 +23,7 @@
 
 #define ANALYSIS_END -1
 ExpItem endStartOperator = {.type = ExpItemEnd, .value = {OperatorEnd}};
-ExpItem assocExpItem = {.type = ExpItemAssociativity};
-
+ExpItem nothingOperator = {.type = ExpItemOperator, .value = {OperatorNothing}};
 
 /** ---------------------- Stack Functions ---------------------- **/
 
@@ -123,7 +122,7 @@ void printStack(ExpStack *expStack) {
                 printf("%s,", enumAtomTermTranslate[expStack->values[i].value.ee.ExpProperties.atom.type]);
                 break;
             case ExpExpOperation:
-                // printf("%s:%s:%s,", enumAtomTermTranslate[expStack->values[i].value.ee.ExpProperties.operation.value.binary.first->ExpProperties.atom.type], enumOperationTranslate[expStack->values[i].value.ee.ExpProperties.operation.type],  enumAtomTermTranslate[expStack->values[i].value.ee.ExpProperties.operation.value.binary.second->ExpProperties.atom.type]);
+                // printf("%s%s%s,", enumAtomTermTranslate[expStack->values[i].value.ee.ExpProperties.operation.value.binary.first->ExpProperties.atom.type], enumOperationTranslate[expStack->values[i].value.ee.ExpProperties.operation.type],  enumAtomTermTranslate[expStack->values[i].value.ee.ExpProperties.operation.value.binary.second->ExpProperties.atom.type]);
                 printf("E,");
                 break;
             }
@@ -326,9 +325,10 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
     }
     switch (PSATable[foundValue][expItem->value.op]) {
         case AssociativityLeft:
-            assocExpItem.value.as = PSATable[foundValue][expItem->value.op];
+            newExpression.type = ExpItemAssociativity;
+            newExpression.value.as = PSATable[foundValue][expItem->value.op];
             printStack(expStack); // DEBUG
-            pushToArrayBehindEorID(expStack, assocExpItem);
+            pushToArrayBehindEorID(expStack, newExpression);
             printStack(expStack); // DEBUG
             pushToStack(expStack, *expItem);
 
@@ -339,7 +339,7 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
                 return returnCode;
             } 
             evaluateTypeOfExpressions(&assignedOperation);
-            newExpression.value.ee.type = ExpExpOperation;
+            newExpression.type = ExpExpOperation;
             newExpression.value.ee.ExpProperties.operation = assignedOperation;
             pushToStack(expStack, newExpression);
             printStack(expStack); // DEBUG
@@ -366,62 +366,75 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
 int checkIfValidToken(Token *token, ExpStack *expStack, ExpItem *expItem) {
     int returnCode;
     acceptAny();
-    expItem->type = ExpItemOperator;
     switch (token->type) {
         case TokenAdd:
             if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
+            expItem->type = ExpItemOperator;    
             expItem->value.op = OperatorAdd;
             break;
         case TokenSubtract:
+            expItem->type = ExpItemOperator;
             expItem->value.op = OperatorSubtract;
             break;
         case TokenMultiply:
             if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
+            expItem->type = ExpItemOperator;
             expItem->value.op = OperatorMultiply;
             break;
         case TokenDivide:
             if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
+            expItem->type = ExpItemOperator;
             expItem->value.op = OperatorDivide;
             break;
         case TokenLeftBracket:
             if(isInStackExpression(expStack)) 
                 return SYNTAX_ERROR;
+            expItem->type = ExpItemOperator;
             expItem->value.op = OperatorLeftBracket;
             break;
         case TokenRightBracket:
+            if(isInStackOperator(expStack)) 
+                return SYNTAX_ERROR;
+            expItem->type = ExpItemOperator;
             expItem->value.op = OperatorRightBracket;
             break;
         case TokenIsLessThan:
             if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
+            expItem->type = ExpItemOperator;
             expItem->value.op = OperatorIsLessThan;
             break;
         case TokenIsLessEqual:
             if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
+            expItem->type = ExpItemOperator;
             expItem->value.op = OperatorIsGreaterEqual;
             break;
         case TokenIsGreaterThan:
             if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
+            expItem->type = ExpItemOperator;
             expItem->value.op = OperatorIsGreaterThan;
             break;
         case TokenIsGreaterEqual:
             if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
+            expItem->type = ExpItemOperator;
             expItem->value.op = OperatorIsGreaterEqual;
             break;
         case TokenIsEqual:
             if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
+            expItem->type = ExpItemOperator;
             expItem->value.op = OperatorIsEqual;
             break;
         case TokenNotEqual:
             if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
+            expItem->type = ExpItemOperator;
             expItem->value.op = OperatorNotEqual;
             break;
         case TokenIdentifier:
@@ -459,7 +472,6 @@ int parseExpression(ExpExp* expression, Operator assingmentOperation, SymbolVari
     printStack(&expStack); // DEBUG
     ExpItem expItem;
     int parseStatus;
-    // parseStatus = checkIfValidToken(&curTok, &expStack, &expItem);
     do {
         parseStatus = checkIfValidToken(&curTok, &expStack, &expItem);
         if (parseStatus != SUCCESS) {
@@ -474,11 +486,24 @@ int parseExpression(ExpExp* expression, Operator assingmentOperation, SymbolVari
     if (parseStatus != ANALYSIS_END)
         return parseStatus;
     /* Validate the Expression until is only E*/
-    if (evaluateExpression(&expStack, &endStartOperator) == SYNTAX_ERROR) 
-        return SYNTAX_ERROR;
-
+    seekValueStackValue(&expStack, &expItem);
+    if (expItem.type != ExpItemEnd) {
+        if (evaluateExpression(&expStack, &endStartOperator) == SYNTAX_ERROR) 
+            return SYNTAX_ERROR;
+    } else {
+        //nothingOperator
+    }
     printStack(&expStack); // DEBUG
     freeExpStack(&expStack);
     return SUCCESS;
+}
+
+DataType getDataTypeOfExpression(ExpExp *value) {
+    DataType returnedData = 5;
+    return returnedData;
+}
+
+void freeExpExp(ExpExp *expExp) {
+
 }
 

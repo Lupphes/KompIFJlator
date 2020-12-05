@@ -24,7 +24,7 @@
 #include "token.h"
 #include "term.h"
 
-#define PLAIN_ASSIGEMENT OperatorNotScreaming
+#define PLAIN_ASSIGEMENT OperatorNothing
 
 typedef enum {
     OperatorAdd = 0, /** + */
@@ -44,7 +44,7 @@ typedef enum {
     OperatorEnd, /** $ */
 
     OperationNegate,
-    OperatorNotScreaming,
+    OperatorNothing,
     OperatorError  /** = > */
 } Operator;
 
