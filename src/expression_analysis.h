@@ -176,5 +176,6 @@ bool isInStackOperator(ExpStack *expStack);
 bool isInStackExpression(ExpStack *expStack);
 DataType getDataTypeOfExpression(ExpExp *value);
 int evaluateTypeOfExpressions(Operation *assignedOperation);
+void freeExpExp(ExpExp *expExp);
 
 #endif
