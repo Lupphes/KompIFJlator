@@ -72,8 +72,7 @@ typedef enum {
     OperationLes, /** E->E<E */
     OperationLEq, /** E->E<=E */
     OperationEqu, /** E->E==E */
-    OperationNEq, /** E->E!=E */
-    OperationErr
+    OperationNEq /** E->E!=E */
 } OperationType;
 
 typedef enum {
@@ -104,6 +103,7 @@ typedef struct {
 } Operation;
 
 typedef struct _ExpExp {
+  DataType dataType;
   enum {
     ExpExpAtom,
     ExpExpOperation
@@ -165,7 +165,7 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem);
  * @param array 
  * @return int 
  */
-int rulesEvaluation(ExpStack *expStack, Operation *assignetOperation);
+int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp);
 int initExpStack(ExpStack *expStack, int64_t initialSize);
 int pushToStack(ExpStack *expStack, ExpItem stackItem);
 int seekValueStackValue(ExpStack *expStack, ExpItem *expItem);
@@ -175,7 +175,7 @@ void printStack(ExpStack *expStack);
 bool isInStackOperator(ExpStack *expStack);
 bool isInStackExpression(ExpStack *expStack);
 DataType getDataTypeOfExpression(ExpExp *value);
-int evaluateTypeOfExpressions(Operation *assignedOperation);
+int evaluateTypeOfExpressions(ExpExp *newExpExp);
 void freeExpExp(ExpExp *expExp);
 
 #endif
