@@ -393,7 +393,7 @@ int getToken(Token* token) {
                 charMacro(getCharCheck, &currChar);       
             } 
             charMacro(unGetCharCheck, currChar);
-            for (int i = 0; i < sizeof(_keywords)/sizeof(keywordEntry); i++) {
+            for (unsigned long i = 0; i < sizeof(_keywords)/sizeof(keywordEntry); i++) {
                 if(strCmpConstStr(&bufferString, _keywords[i].key) == 0) {
                     *token = _keywords[i].value;
                     strFree(&bufferString);
@@ -501,6 +501,7 @@ int getToken(Token* token) {
                     }
                     break;
                 } else {
+                    charMacro(unGetCharCheck, currChar);
                     if (sscanf(strGetStr(&bufferString),"%lf", &token->attribute.d) == EOF) {
                         strFree(&bufferString);
                         return INTERNAL_ERROR;
@@ -561,9 +562,10 @@ int getToken(Token* token) {
                         strFree(&bufferString);
                         return INTERNAL_ERROR;
                     }
-                    break;
                     state = StateCompleteExpoNbr;
+                    break;
                 } else {
+                    charMacro(unGetCharCheck, currChar);
                     if (sscanf(strGetStr(&bufferString),"%lf", &token->attribute.d) == EOF) {
                         strFree(&bufferString);
                         return INTERNAL_ERROR;

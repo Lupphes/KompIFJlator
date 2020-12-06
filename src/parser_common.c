@@ -23,8 +23,11 @@
 #include "helper.h"
 #include "error.h"
 #include "scanner.h"
+#include "parser_builtin_functions.h"
 
 Token curTok = {TokenEOF}; //We initialise the current token so that the function nextToken works properly.
+Token cacheTok = {TokenEOF};
+bool historicCurTok = false;
 
 DubiousFunctionCallArray dubiousFunctionCalls;
 
@@ -36,21 +39,35 @@ DubiousFunctionCallArray dubiousFunctionCalls;
 int beginParsing(){
     int returnCode = SUCCESS;
     initDubiousFunctionCallArray(&dubiousFunctionCalls);
+    callAndHandleException_clean(initFunctionTable());
+    callAndHandleException_clean(initVariableTableStack());
     callAndHandleException_clean(nextToken()) //First read of the token.
+    callAndHandleException_clean(initBuiltInFunctions());
+
+    callAndHandleException_clean(Start());
     
-    //callAndHandleException_clean(Start());
+    //Checking for existence and proper form of main function.
+    const SymbolFunction* mainFunction = getFunction("main");
+    if (mainFunction == NULL)
+        returnAndClean(SEMANTIC_ERROR_DEFINITION);
+    if (mainFunction->parameters.count != 0 || mainFunction->returnTypes.count != 0)
+        returnAndClean(SEMANTIC_ERROR_TYPE_FUNCTION);
     
+    //Evaluating dubious function calls
     for (int i = 0; i < countInDubiousFunctionCallArray(&dubiousFunctionCalls);i++){
         const SymbolFunction* function = getFunction(strGetStr(&dubiousFunctionCalls.arr[i].functionName));
         if (function == NULL)
             returnAndClean(SEMANTIC_ERROR_DEFINITION);
         callAndHandleException_clean(validateFunctionCall(function,dubiousFunctionCalls.arr[i].lValues,dubiousFunctionCalls.arr[i].functionParameters));
     }
-
+    
     //TODO: Start code generation here.
 
     CLEAN_UP:
     freeDubiousFunctionCallArray(&dubiousFunctionCalls);
+    freeFunctionTable();
+    freeVariableTableStack();
+    freeCurTok();
     return returnCode;
         
 }
@@ -80,26 +97,69 @@ bool peek(_TokenType type){
 }
 
 /**
- * @brief Asks the scanner for the next token and stores it in the curTok variable. The function FREES the string stored in curTok if it needs to.
+ * @brief Sets curTok to the next token. If prevToken hasn't been called, this asks the scanner for the next token and frees the memory used by the PREVIOUS token. If prevToken has been called, this restores the state to before prevToken was called.
  * 
- * @return int The return code of the getToken function.
+ * @retval SUCCESS The operation completed successfully.
+ * @retval LEXICAL_ERROR The scanner encountered a lexical error while getting the next token.
+ * @retval INTERNAL_ERROR There was an unrecoverable error with memory operations.
  */
 int nextToken(){
-    if (curTok.type == TokenIdentifier || curTok.type == TokenStringLiteral) //Checks whether we need to free the smart string if the token used it.
+    if (!historicCurTok){
+        if (cacheTok.type == TokenIdentifier || cacheTok.type == TokenStringLiteral) //Checks whether we need to free the smart string if the token used it.
+            strFree(&cacheTok.attribute.s);
+        cacheTok = curTok;
+        return getToken(&curTok);
+    }
+    else {
+        Token tmp = cacheTok;
+        cacheTok = curTok;
+        curTok = tmp;
+        historicCurTok = false;
+        return SUCCESS;
+    }
+}
+
+/**
+ * @brief "Goes back one token." Sets the currentToken to its previous value. This function can be used to only go one step back; multiple successive calls result in failure.
+ * 
+ * @retval SUCCESS The operation completed successfully.
+ * @retval INTERNAL_ERROR An attempt was made to go back more than one token in the past. This feature is not supported.
+ */
+int prevToken(){
+    if (historicCurTok)
+        return INTERNAL_ERROR;
+    else{
+        Token tmp = cacheTok;
+        cacheTok = curTok;
+        curTok = tmp;
+        historicCurTok = true;
+        return SUCCESS;
+    }
+}
+
+/**
+ * @brief Frees the memory used by the variables used for handling the current token, i.e. curTok and cacheTok.
+ * 
+ */
+void freeCurTok(){
+    if (cacheTok.type == TokenIdentifier || cacheTok.type == TokenStringLiteral)
+        strFree(&cacheTok.attribute.s);
+    if (curTok.type == TokenIdentifier || curTok.type == TokenStringLiteral)
         strFree(&curTok.attribute.s);
-    return getToken(&curTok);
 }
 
 int validateFunctionCall(const SymbolFunction* function, const SymbolVariableArray* lValues, const TermArray* functionParameters){
     //Paremer count check
-    if(countInTermArray(functionParameters) != function->parameters.count){
+    if(!function->parameters.variadic && countInTermArray(functionParameters) != function->parameters.count){
         return SEMANTIC_ERROR_TYPE_FUNCTION;
     }
     
     //Parameter type check
-    for(int i = 0;i < function->parameters.count;i++){
-        if(function->parameters.params[i].type != termType(functionParameters->arr[i]))
-            return SEMANTIC_ERROR_TYPE_FUNCTION;
+    if (!function->parameters.variadic){
+        for(int i = 0;i < function->parameters.count;i++){
+            if(function->parameters.params[i].type != termType(functionParameters->arr[i]))
+                return SEMANTIC_ERROR_TYPE_FUNCTION;
+        }
     }
 
     //Return value count check
@@ -166,9 +226,25 @@ int parseTerm(Term* term, bool autoAdvance){
     return SUCCESS;
 }
 
+/**
+ * @brief Returns the data type of a term.
+ * 
+ * @param term The term to get its data type of.
+ * @return DataType The data type of the given term.
+ */
 DataType termType(Term* term){
     if (term->type != TermVariable)
         return term->type; //The TermType enum has equivalent enum values for all types except TermVariable.
     else
         return term->value.v->type;
+}
+
+/**
+ * @brief Frees the memory used by a term.
+ * 
+ * @param term The term to free its memory.
+ */
+void freeTerm(Term* term){
+    if (term->type == TermStringLiteral)
+        strFree(&term->value.s);
 }
