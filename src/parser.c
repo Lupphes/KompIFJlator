@@ -428,13 +428,16 @@ int ExpressionList_Start(ExpressionArray* expressionList){
     int returnCode;
     ExpExp* expression;
 
-    if ((returnCode = parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)) != SUCCESS && returnCode != NO_EXPRESSION){
-        return returnCode; //If there is an error while parsing the expression
-    }
-    else if (returnCode == NO_EXPRESSION){
+    if ((returnCode = parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)) == NO_EXPRESSION){
         return SUCCESS; //Epsilon rule.
     }
+    else if (returnCode != SUCCESS){
+        return returnCode; //If there is an error while parsing the expression
+    }
     
+    if (getDataTypeOfExpression(expression) == TypeBlackHole)
+        returnAndClean(SEMANTIC_ERROR_OTHER);
+
     callAndHandleException_clean(addToExpressionArray(expressionList,expression));
     callAndHandleException(ExpressionList_Next(expressionList));
 
@@ -451,7 +454,14 @@ int ExpressionList_Next(ExpressionArray* expressionList){
 
     assertOrEpsilon(TokenComma);
     
-    callAndHandleException(parseExpression(&expression,PLAIN_ASSIGEMENT,NULL));
+    if ((returnCode = parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)) == NO_EXPRESSION){
+        return SYNTAX_ERROR;
+    }
+    else if (returnCode != SUCCESS){
+        return returnCode;
+    }
+    if (getDataTypeOfExpression(expression) == TypeBlackHole)
+        returnAndClean(SEMANTIC_ERROR_OTHER);
     callAndHandleException_clean(addToExpressionArray(expressionList,expression));
     callAndHandleException(ExpressionList_Next(expressionList));
 
@@ -489,7 +499,14 @@ int VariableDefinition(string* idName){
     ExpExp* expression;
     if((returnCode = parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)) != SUCCESS){
         strFree(&newVariable.id);
-        return returnCode;
+        return returnCode == NO_EXPRESSION ? SYNTAX_ERROR : returnCode;
+    }
+
+    if (getDataTypeOfExpression(expression) == TypeBool || getDataTypeOfExpression(expression) == TypeBlackHole){
+        freeExpExp(expression);
+        free(expression);
+        strFree(&newVariable.id);
+        return SEMANTIC_ERROR_TYPE_EXPRESION;
     }
 
     if (strCopyString(&newVariable.id,idName) != SUCCESS){
@@ -597,6 +614,8 @@ int If(){
         return SYNTAX_ERROR;
     else if (returnCode != SUCCESS)
         return returnCode;
+    if (getDataTypeOfExpression(expression) != TypeBool)
+        returnAndClean(SEMANTIC_ERROR_TYPE_EXPRESION);
     callAndHandleException_clean(Block(true));
     assert_clean(TokenElse);
     callAndHandleException_clean(Block(true));
@@ -644,6 +663,8 @@ int For(){
         return SYNTAX_ERROR;
     else if (returnCode != SUCCESS)
         return returnCode;
+    if (getDataTypeOfExpression(expression) != TypeBool)
+        returnAndClean(SEMANTIC_ERROR_TYPE_EXPRESION);
     assert_clean(TokenSemicolon);
     callAndHandleException_clean(For_Assignment());
     callAndHandleException_clean(Block(true));

@@ -245,7 +245,7 @@ void initExpressionArray(ExpressionArray* arr){
  */
 int addToExpressionArray(ExpressionArray* arr, ExpExp* expression){
     int newCount = arr->count + 1;
-    if ((arr->arr = realloc(arr->arr,sizeof(ExpExp)*newCount)) == NULL)
+    if ((arr->arr = realloc(arr->arr,sizeof(ExpExp*)*newCount)) == NULL)
         return INTERNAL_ERROR;
     arr->arr[newCount-1] = expression;
     arr->count++;

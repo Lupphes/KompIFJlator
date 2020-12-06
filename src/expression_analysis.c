@@ -152,7 +152,7 @@ void freeExpExp(ExpExp *expExp) {
             break;
         }        
     }
-    free(expExp);
+    //free(expExp);
 }
 
 /** ---------------------- Stack Functions ---------------------- **/
@@ -288,13 +288,13 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                         case OperatorDivide:
                             switch (newExpExp->ExpProperties.operation.value.binary.second->type) {
                                 case ExpExpAtom:
-                                    switch (newExpExp->ExpProperties.atom.type) {
+                                    switch (newExpExp->ExpProperties.operation.value.binary.second->ExpProperties.atom.type) {
                                     case TermIntegerLiteral:
-                                        if (newExpExp->ExpProperties.atom.value.i == 0)
+                                        if (newExpExp->ExpProperties.operation.value.binary.second->ExpProperties.atom.value.i == 0)
                                             return SEMANTIC_ERROR_DIV_ZERO;
                                         break;
                                     case TermFloatLiteral:
-                                        if (newExpExp->ExpProperties.atom.value.d == 0.0)
+                                        if (newExpExp->ExpProperties.operation.value.binary.second->ExpProperties.atom.value.d == 0.0)
                                             return SEMANTIC_ERROR_DIV_ZERO;
                                         break;
                                     default:
@@ -342,7 +342,7 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                     *tmp = previousExpItem.value.ee;
                     newExpExp->type = ExpExpOperation;
                     newExpExp->ExpProperties.operation.value.binary.first = tmp;
-                    newExpExp->dataType = newExpExp->ExpProperties.operation.value.binary.first->dataType;
+                    newExpExp->dataType = newExpExp->ExpProperties.operation.type >= OperationGth ? TypeBool : newExpExp->ExpProperties.operation.value.binary.first->dataType; //Enum is magic is happening.
                     if (evaluateTypeOfExpressions(newExpExp) == SEMANTIC_ERROR_TYPE_EXPRESION) {
                         return SEMANTIC_ERROR_TYPE_EXPRESION;
                     }
@@ -594,15 +594,26 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
         freeExpStack(&expStack);
         return INTERNAL_ERROR; 
     }
-    if (expItem.type == ExpItemExpression) {
-        *expression = &expItem.value.ee;
-    } else if (expItem.type != ExpItemEnd) {
+    if (expItem.type == ExpItemEnd && expStack.used == 1) {
+        *expression = NULL;
+        return NO_EXPRESSION;
+    } else if (expItem.type != ExpItemEnd && expStack.used > 2) {
         if ((returnCode = evaluateExpression(&expStack, &endStartOperator)) != SUCCESS) { 
             freeExpStack(&expStack);
             return returnCode;
         }
-    } else   if (expItem.type == ExpItemEnd) {
-        *expression = &nothingOperator;
+        if (seekValueStackValue(&expStack, &expItem) == INTERNAL_ERROR) {
+            freeExpStack(&expStack);
+            return INTERNAL_ERROR; 
+        }
+    }
+    if (expItem.type == ExpItemExpression) {
+        if (expStack.used != 2)
+            return SYNTAX_ERROR;
+        ExpExp* tmp = malloc(sizeof(ExpExp));
+        //Check later aligator
+        *tmp = expItem.value.ee;
+        *expression = tmp;
     } else {
         return INTERNAL_ERROR;
     }
