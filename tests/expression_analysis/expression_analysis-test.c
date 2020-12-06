@@ -9,7 +9,7 @@
 int main() {
     int returnCode = 0;
     ExpExp *expression;
-    Operator assingmentOperation = 0;
+    Operator assingmentOperation = PLAIN_ASSIGEMENT;
     SymbolVariable *symbol = NULL;
     initVariableTableStack();
     acceptAny();

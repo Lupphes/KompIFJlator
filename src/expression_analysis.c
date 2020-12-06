@@ -594,14 +594,14 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
         freeExpStack(&expStack);
         return INTERNAL_ERROR; 
     }
-    if (expItem.type != ExpItemEnd) {
+    if (expItem.type == ExpItemExpression) {
+        *expression = &expItem.value.ee;
+    } else if (expItem.type != ExpItemEnd) {
         if ((returnCode = evaluateExpression(&expStack, &endStartOperator)) != SUCCESS) { 
             freeExpStack(&expStack);
             return returnCode;
         }
-    } else if (expItem.type == ExpItemExpression) {
-        *expression = &expItem.value.ee;
-    } else if (expItem.type == ExpItemEnd) {
+    } else   if (expItem.type == ExpItemEnd) {
         *expression = &nothingOperator;
     } else {
         return INTERNAL_ERROR;
