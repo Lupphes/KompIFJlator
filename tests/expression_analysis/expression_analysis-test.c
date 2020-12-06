@@ -8,8 +8,8 @@
 
 int main() {
     int returnCode = 0;
-    ExpExp expression;
-    Operator assingmentOperation = PLAIN_ASSIGEMENT;
+    ExpExp *expression;
+    Operator assingmentOperation = 0;
     SymbolVariable *symbol = NULL;
     initVariableTableStack();
     acceptAny();

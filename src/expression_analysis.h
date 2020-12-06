@@ -49,6 +49,14 @@ typedef enum {
 } Operator;
 
 typedef enum {
+  OAssignEql = 0, /** = */
+  OAssignAdd, /** += */
+  OAssignSub, /** -= */
+  OAssignMul, /** *= */
+  OAssignDiv /** /= */
+} OperatorAssign;
+
+typedef enum {
     AssociativityLeft,  /** [ || < */
     AssociativityRight,  /** ] || > */
     AssociativityEqual,  /** = > */
@@ -140,7 +148,7 @@ typedef struct {
  * @param expression 
  * @return int 
  */
-int parseExpression(ExpExp* expression, Operator operator, SymbolVariable *symbol);
+int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, const SymbolVariable *symbol);
 /**
  * @brief This function validates if recived token fits into already read expression, probably will be depricated as the rules can verify it more easily
  * Also, It is used to correctly parse the IDs

@@ -24,7 +24,7 @@
 
 #define ANALYSIS_END -1
 ExpItem endStartOperator = {.type = ExpItemEnd, .value = {OperatorEnd}};
-ExpItem nothingOperator = {.type = ExpItemOperator, .value = {OperatorNothing}};
+ExpExp nothingOperator = {.type = ExpExpOperation, .ExpProperties = {{OperatorNothing}}};
 
 /** ---------------------- Stack Functions ---------------------- **/
 
@@ -139,6 +139,22 @@ void printStack(ExpStack *expStack) {
     printf("\n");
 }
 
+void freeExpExp(ExpExp *expExp) {
+    if (expExp->type == ExpExpAtom) {
+        switch (expExp->ExpProperties.atom.type) {
+        case TermStringLiteral:
+            strClear(&expExp->ExpProperties.atom.value.s);
+            break;
+        case TermVariable:
+            free(&expExp->ExpProperties.atom.value.v);
+            break;
+        default:
+            break;
+        }        
+    }
+    free(expExp);
+}
+
 /** ---------------------- Stack Functions ---------------------- **/
 
 /** ------------------------ Short-Hands ------------------------ **/
@@ -177,16 +193,16 @@ int evaluateTypeOfExpressions(ExpExp *newExpExp) {
         case OperationDiv:
         case OperationSub:
         case OperationMul:
+            if (newExpExp->ExpProperties.operation.value.binary.first->dataType == TypeString || newExpExp->ExpProperties.operation.value.binary.second->dataType == TypeString) {
+                return SEMANTIC_ERROR_TYPE_EXPRESION;
+            }
+        // intentionally not breaking
         case OperationGth:
         case OperationGEq:
         case OperationLes:
         case OperationLEq:
         case OperationEqu:
         case OperationNEq:
-            if (newExpExp->ExpProperties.operation.value.binary.first->dataType == TypeString || newExpExp->ExpProperties.operation.value.binary.first->dataType == TypeString) {
-                return SEMANTIC_ERROR_TYPE_EXPRESION;
-            }
-        // intentionally not breaking
         case OperationAdd:
             if (newExpExp->ExpProperties.operation.value.binary.first->dataType != newExpExp->ExpProperties.operation.value.binary.second->dataType){
                 return SEMANTIC_ERROR_TYPE_EXPRESION;
@@ -239,16 +255,16 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                     if ((tmp = malloc(sizeof(ExpExp))) == NULL)
                         return INTERNAL_ERROR;
                     *tmp = previousExpItem.value.ee;
+                    newExpExp->type = ExpExpOperation;
+                    newExpExp->ExpProperties.operation.type = OperationPar;
                     newExpExp->ExpProperties.operation.value.unary.first = tmp;
+                    newExpExp->dataType = newExpExp->ExpProperties.operation.value.binary.first->dataType;
                     state = OperationStateBracketLeft;
                 }
                 break;
             case OperationStateBracketLeft:
                 if (previousExpItem.type == ExpItemOperator) {
                     if (previousExpItem.value.op == OperatorLeftBracket) {
-                        newExpExp->type = ExpExpOperation;
-                        newExpExp->ExpProperties.operation.type = OperationPar;
-                        newExpExp->dataType = newExpExp->ExpProperties.operation.value.unary.first->ExpProperties.atom.type;
                         if (evaluateTypeOfExpressions(newExpExp) == SEMANTIC_ERROR_TYPE_EXPRESION) {
                             return SEMANTIC_ERROR_TYPE_EXPRESION;
                         }
@@ -326,7 +342,7 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                     *tmp = previousExpItem.value.ee;
                     newExpExp->type = ExpExpOperation;
                     newExpExp->ExpProperties.operation.value.binary.first = tmp;
-                    newExpExp->dataType = newExpExp->ExpProperties.operation.value.binary.first->ExpProperties.atom.type;
+                    newExpExp->dataType = newExpExp->ExpProperties.operation.value.binary.first->dataType;
                     if (evaluateTypeOfExpressions(newExpExp) == SEMANTIC_ERROR_TYPE_EXPRESION) {
                         return SEMANTIC_ERROR_TYPE_EXPRESION;
                     }
@@ -351,7 +367,7 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
 
 int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
     ExpItem previousExpItem;
-    ExpItem newExpression = {.type = ExpItemExpression};
+    ExpItem newExpression;
     int returnCode;
     int foundValue;
 
@@ -382,6 +398,7 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
             printStack(expStack); // DEBUG
             break;
         case AssociativityRight:
+            newExpression.type = ExpItemExpression;
             if ((returnCode = rulesEvaluation(expStack, &newExpression.value.ee)) != SUCCESS) {
                 return returnCode;
             } 
@@ -392,6 +409,7 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
             printStack(expStack); // DEBUG
             break;
         case AssociativityEqual:
+            newExpression.type = ExpItemExpression;
             if (pushToStack(expStack, *expItem) == INTERNAL_ERROR)
                 return INTERNAL_ERROR;
             if ((returnCode = rulesEvaluation(expStack, &newExpression.value.ee)) != SUCCESS) {
@@ -507,17 +525,54 @@ int checkIfValidToken(Token *token, ExpStack *expStack, ExpItem *expItem) {
     return SUCCESS;
 }
 
-int parseExpression(ExpExp* expression, Operator assingmentOperation, SymbolVariable *symbol) {
+int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, const SymbolVariable *symbol) {
     /* Stack initialization */
     ExpStack expStack;
+    int returnCode;
     if (initExpStack(&expStack, 0) == INTERNAL_ERROR)
         return INTERNAL_ERROR;
     if (pushToStack(&expStack, endStartOperator) == INTERNAL_ERROR)
         return INTERNAL_ERROR;
     printStack(&expStack); // DEBUG
+
+    if (assingmentOperation != OAssignEql) {
+        ExpItem operatorExpItem;
+        ExpItem atomExpItem;
+        atomExpItem.type = ExpItemExpression;
+        atomExpItem.value.ee.dataType = symbol->type;
+        atomExpItem.value.ee.type = ExpExpAtom;
+        //  atomExpItem->value.ee.ExpProperties.atom = term;
+        if (pushToStack(&expStack, atomExpItem) == INTERNAL_ERROR)
+            return INTERNAL_ERROR;
+        printStack(&expStack); // DEBUG
+        
+        operatorExpItem.type = ExpItemOperator;    
+        switch (assingmentOperation) {
+            case OAssignAdd:
+                operatorExpItem.value.op = OperatorAdd;
+                break;
+            case OAssignSub:
+                operatorExpItem.value.op = OperationSub;
+                break;
+            case OAssignMul:
+                operatorExpItem.value.op = OperationMul;
+                break;
+            case OAssignDiv:
+                operatorExpItem.value.op = OperationDiv;
+                break;
+            default:
+                return INTERNAL_ERROR;
+                break;
+        }
+        if ((returnCode = evaluateExpression(&expStack, &operatorExpItem)) != SUCCESS) {
+                freeExpStack(&expStack);
+                return returnCode;
+        }
+        
+    }
+    
     ExpItem expItem;
     int parseStatus;
-    int returnCode;
     do {
         parseStatus = checkIfValidToken(&curTok, &expStack, &expItem);
         if (parseStatus != SUCCESS) {
@@ -544,27 +599,16 @@ int parseExpression(ExpExp* expression, Operator assingmentOperation, SymbolVari
             freeExpStack(&expStack);
             return returnCode;
         }
+    } else if (expItem.type == ExpItemExpression) {
+        *expression = &expItem.value.ee;
+    } else if (expItem.type == ExpItemEnd) {
+        *expression = &nothingOperator;
     } else {
-        //nothingOperator
+        return INTERNAL_ERROR;
     }
     printStack(&expStack); // DEBUG
+
     freeExpStack(&expStack);
     return SUCCESS;
-}
-
-void freeExpExp(ExpExp *expExp) {
-    if (expExp->type == ExpExpAtom) {
-        switch (expExp->ExpProperties.atom.type) {
-        case TermStringLiteral:
-            strClear(&expExp->ExpProperties.atom.value.s);
-            break;
-        case TermVariable:
-            free(&expExp->ExpProperties.atom.value.v);
-            break;
-        default:
-            break;
-        }        
-    }
-    free(expExp);
 }
 

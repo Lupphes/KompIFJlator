@@ -42,9 +42,9 @@ int beginParsing(){
     callAndHandleException_clean(initFunctionTable());
     callAndHandleException_clean(initVariableTableStack());
     callAndHandleException_clean(nextToken()) //First read of the token.
-    callAndHandleException_clean(initBuiltInFunctions());
+    // callAndHandleException_clean(initBuiltInFunctions());
 
-    callAndHandleException_clean(Start());
+    // callAndHandleException_clean(Start());
     
     //Checking for existence and proper form of main function.
     const SymbolFunction* mainFunction = getFunction("main");
