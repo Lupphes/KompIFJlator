@@ -24,7 +24,7 @@
 #include "token.h"
 #include "term.h"
 
-#define PLAIN_ASSIGEMENT OperatorNothing
+#define PLAIN_ASSIGEMENT OAssignEql
 
 typedef enum {
     OperatorAdd = 0, /** + */
