@@ -20,6 +20,7 @@
 #include "expression_analysis.h"
 #include "parser_common.h"
 #include "operator_table.h"
+#include "str.h"
 
 #define ANALYSIS_END -1
 ExpItem endStartOperator = {.type = ExpItemEnd, .value = {OperatorEnd}};
@@ -174,8 +175,6 @@ int evaluateTypeOfExpressions(ExpExp *newExpExp) {
 
     switch (newExpExp->ExpProperties.operation.type) {
         case OperationDiv:
-        // TODO: Divide 0 check
-        // intentionally not breaking
         case OperationSub:
         case OperationMul:
         case OperationGth:
@@ -226,10 +225,12 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                                 state = StateBracketExpression;
                                 break;                        
                             default:
+                                return SYNTAX_ERROR;
                                 break;
                         }
                         break;
                     default:
+                        return SYNTAX_ERROR;
                         break;
                 }
                 break;
@@ -269,6 +270,25 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                             newExpExp->ExpProperties.operation.type = OperationMul;
                             break;
                         case OperatorDivide:
+                            switch (newExpExp->ExpProperties.operation.value.binary.second->type) {
+                                case ExpExpAtom:
+                                    switch (newExpExp->ExpProperties.atom.type) {
+                                    case TermIntegerLiteral:
+                                        if (newExpExp->ExpProperties.atom.value.i == 0)
+                                            return SEMANTIC_ERROR_DIV_ZERO;
+                                        break;
+                                    case TermFloatLiteral:
+                                        if (newExpExp->ExpProperties.atom.value.d == 0.0)
+                                            return SEMANTIC_ERROR_DIV_ZERO;
+                                        break;
+                                    default:
+                                        break;
+                                    }
+                                    break;
+                                case ExpExpOperation:
+                                    // TODO: Better handling of zeros
+                                    break;
+                            }
                             newExpExp->ExpProperties.operation.type = OperationDiv;
                             break;
                         case OperatorIsLessThan:
@@ -295,6 +315,7 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                         state = OperationStateCompleteExpression;
                         break;
                     default:
+                        return SYNTAX_ERROR;
                         break;
                     }
                 break;
@@ -467,10 +488,7 @@ int checkIfValidToken(Token *token, ExpStack *expStack, ExpItem *expItem) {
                 return SYNTAX_ERROR;
             expItem->type = ExpItemExpression;
             Term term;
-            if((returnCode = parseTerm(&term, false)) == SUCCESS) {
-                if (term.type == TermVariable) {
-                    // TODO: Locate values from symtable
-                }
+            if ((returnCode = parseTerm(&term, false)) == SUCCESS) {
                 expItem->value.ee.dataType = termType(&term);
                 expItem->value.ee.type = ExpExpAtom;
                 expItem->value.ee.ExpProperties.atom = term;
@@ -482,7 +500,6 @@ int checkIfValidToken(Token *token, ExpStack *expStack, ExpItem *expItem) {
             }
             break;
     default:
-        acceptAny();
         return ANALYSIS_END;
         break;
     }
@@ -506,16 +523,22 @@ int parseExpression(ExpExp* expression, Operator assingmentOperation, SymbolVari
         if (parseStatus != SUCCESS) {
             break;
         } else if (expItem.type != ExpItemExpression) {
-            if ((returnCode = evaluateExpression(&expStack, &expItem)) != SUCCESS) 
+            if ((returnCode = evaluateExpression(&expStack, &expItem)) != SUCCESS) {
+                freeExpStack(&expStack);
                 return returnCode;
+            }
             continue;
         }
     } while (parseStatus == SUCCESS);
-    if (parseStatus != ANALYSIS_END)
+    if (parseStatus != ANALYSIS_END) {
+        freeExpStack(&expStack);
         return parseStatus;
+    }
     /* Validate the Expression until is only E*/
-    if (seekValueStackValue(&expStack, &expItem) == INTERNAL_ERROR)
+    if (seekValueStackValue(&expStack, &expItem) == INTERNAL_ERROR) {
+        freeExpStack(&expStack);
         return INTERNAL_ERROR; 
+    }
     if (expItem.type != ExpItemEnd) {
         if ((returnCode = evaluateExpression(&expStack, &endStartOperator)) != SUCCESS) { 
             freeExpStack(&expStack);
@@ -529,9 +552,19 @@ int parseExpression(ExpExp* expression, Operator assingmentOperation, SymbolVari
     return SUCCESS;
 }
 
-
-
 void freeExpExp(ExpExp *expExp) {
-
+    if (expExp->type == ExpExpAtom) {
+        switch (expExp->ExpProperties.atom.type) {
+        case TermStringLiteral:
+            strClear(&expExp->ExpProperties.atom.value.s);
+            break;
+        case TermVariable:
+            free(&expExp->ExpProperties.atom.value.v);
+            break;
+        default:
+            break;
+        }        
+    }
+    free(expExp);
 }
 
