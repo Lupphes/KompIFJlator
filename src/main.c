@@ -1,8 +1,7 @@
-/*File name: data_type.h --------------------------------------------*
+/*File name: main.c -------------------------------------------------*
  |Project:    Implementace překladače imperativního jazyka IFJ20     |
  |Team:       124, varianta II                                       |
- |Authors:    Ondřej Sloup (xsloup02)                                |
- |            Viktor Rucký (xrucky01)                                |
+ |Authors:    Viktor Rucký (xrucky01)                                |
  |                                                                   |
  |  _      _     _   __                   __  _        _             |
  | | |    (_)   | | /_/                  /_/ | |      | |            |
@@ -14,20 +13,8 @@
  |                                      |___/                        |
  *-------------------------------------------------------------------*/
 
-#ifndef DATA_TYPE_H
-#define DATA_TYPE_H
+#include "parser_common.h"
 
-/**
- * @enum DataType
- * @brief Describes all data types.
- *
- */
-typedef enum {
-  TypeInt,
-  TypeFloat64,
-  TypeString,
-  TypeBool,
-  TypeBlackHole //A pseudo data type used by the pseudo variable "_".
-} DataType;
-
-#endif 
+int main(){
+    return beginParsing();
+}

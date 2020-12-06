@@ -18,6 +18,7 @@
 #include "str.h"
 #include "symbol.h"
 #include "term.h"
+#include "expression_analysis.h"
 
 //Short hand. Process the "call" (usually a function call, but can technically be any expression in C) and returns its return code if is non-zero (i.e. the function returned unsuccesfully.)
 #define callAndHandleException(call) {if ((returnCode = (call))) return returnCode;}
@@ -54,6 +55,11 @@ typedef struct {
     int count;
 } DubiousFunctionCallArray;
 
+typedef struct {
+    ExpExp** arr;
+    int count;
+} ExpressionArray;
+
 void initSymbolVariableArray(SymbolVariableArray* arr);
 int addToSymbolVariableArray(SymbolVariableArray* arr, const SymbolVariable* var);
 int countInSymbolVariableArray(const SymbolVariableArray* arr);
@@ -74,5 +80,9 @@ int addToDubiousFunctionCallArray(DubiousFunctionCallArray* arr, DubiousFunction
 int countInDubiousFunctionCallArray(const DubiousFunctionCallArray* arr);
 void freeDubiousFunctionCallArray(DubiousFunctionCallArray* arr);
 
+void initExpressionArray(ExpressionArray* arr);
+int addToExpressionArray(ExpressionArray* arr, ExpExp* expression);
+int countInExpressionArray(const ExpressionArray* arr);
+void freeExpressionArray(ExpressionArray* arr);
 
 #endif

@@ -163,7 +163,7 @@ int validateFunctionCall(const SymbolFunction* function, const SymbolVariableArr
     }
 
     //Return value count check
-    if(countInSymbolVariableArray(lValues) != function->returnTypes.count){ //TODO: change on behest of the boss mayble later.
+    if(countInSymbolVariableArray(lValues) != function->returnTypes.count){
         return SEMANTIC_ERROR_TYPE_FUNCTION;
     }
 
@@ -234,7 +234,7 @@ int parseTerm(Term* term, bool autoAdvance){
  */
 DataType termType(Term* term){
     if (term->type != TermVariable)
-        return term->type; //The TermType enum has equivalent enum values for all types except TermVariable.
+        return term->type; //The TermType enum has enum values equivalent with DatyType for all types except TermVariable.
     else
         return term->value.v->type;
 }
