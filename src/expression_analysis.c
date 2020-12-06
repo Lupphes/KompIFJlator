@@ -194,9 +194,9 @@ int evaluateTypeOfExpressions(ExpExp *newExpExp) {
         case OperationSub:
         case OperationMul:
             if (newExpExp->ExpProperties.operation.value.binary.first->dataType == TypeString || newExpExp->ExpProperties.operation.value.binary.second->dataType == TypeString) {
-                return SEMANTIC_ERROR_TYPE_EXPRESION;
+                return SEMANTIC_ERROR_TYPE_EXPRESSION;
             }
-        // intentionally not breaking
+        /* FALLTHRU */
         case OperationGth:
         case OperationGEq:
         case OperationLes:
@@ -205,7 +205,7 @@ int evaluateTypeOfExpressions(ExpExp *newExpExp) {
         case OperationNEq:
         case OperationAdd:
             if (newExpExp->ExpProperties.operation.value.binary.first->dataType != newExpExp->ExpProperties.operation.value.binary.second->dataType){
-                return SEMANTIC_ERROR_TYPE_EXPRESION;
+                return SEMANTIC_ERROR_TYPE_EXPRESSION;
             } 
         break;
         case OperationPar:
@@ -265,8 +265,8 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
             case OperationStateBracketLeft:
                 if (previousExpItem.type == ExpItemOperator) {
                     if (previousExpItem.value.op == OperatorLeftBracket) {
-                        if (evaluateTypeOfExpressions(newExpExp) == SEMANTIC_ERROR_TYPE_EXPRESION) {
-                            return SEMANTIC_ERROR_TYPE_EXPRESION;
+                        if (evaluateTypeOfExpressions(newExpExp) == SEMANTIC_ERROR_TYPE_EXPRESSION) {
+                            return SEMANTIC_ERROR_TYPE_EXPRESSION;
                         }
                         evaluationFinished = false;
                     }
@@ -343,8 +343,8 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                     newExpExp->type = ExpExpOperation;
                     newExpExp->ExpProperties.operation.value.binary.first = tmp;
                     newExpExp->dataType = newExpExp->ExpProperties.operation.type >= OperationGth ? TypeBool : newExpExp->ExpProperties.operation.value.binary.first->dataType; //Enum is magic is happening.
-                    if (evaluateTypeOfExpressions(newExpExp) == SEMANTIC_ERROR_TYPE_EXPRESION) {
-                        return SEMANTIC_ERROR_TYPE_EXPRESION;
+                    if (evaluateTypeOfExpressions(newExpExp) == SEMANTIC_ERROR_TYPE_EXPRESSION) {
+                        return SEMANTIC_ERROR_TYPE_EXPRESSION;
                     }
                     evaluationFinished = false;
                 }

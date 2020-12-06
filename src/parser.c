@@ -436,7 +436,7 @@ int ExpressionList_Start(ExpressionArray* expressionList){
     }
     
     if (getDataTypeOfExpression(expression) == TypeBlackHole)
-        returnAndClean(SEMANTIC_ERROR_OTHER);
+        returnAndClean(SEMANTIC_ERROR_DEFINITION);
 
     callAndHandleException_clean(addToExpressionArray(expressionList,expression));
     callAndHandleException(ExpressionList_Next(expressionList));
@@ -461,7 +461,7 @@ int ExpressionList_Next(ExpressionArray* expressionList){
         return returnCode;
     }
     if (getDataTypeOfExpression(expression) == TypeBlackHole)
-        returnAndClean(SEMANTIC_ERROR_OTHER);
+        returnAndClean(SEMANTIC_ERROR_DEFINITION);
     callAndHandleException_clean(addToExpressionArray(expressionList,expression));
     callAndHandleException(ExpressionList_Next(expressionList));
 
@@ -506,7 +506,7 @@ int VariableDefinition(string* idName){
         freeExpExp(expression);
         free(expression);
         strFree(&newVariable.id);
-        return SEMANTIC_ERROR_TYPE_EXPRESION;
+        return SEMANTIC_ERROR_TYPE_EXPRESSION;
     }
 
     if (strCopyString(&newVariable.id,idName) != SUCCESS){
@@ -615,7 +615,7 @@ int If(){
     else if (returnCode != SUCCESS)
         return returnCode;
     if (getDataTypeOfExpression(expression) != TypeBool)
-        returnAndClean(SEMANTIC_ERROR_TYPE_EXPRESION);
+        returnAndClean(SEMANTIC_ERROR_TYPE_EXPRESSION);
     callAndHandleException_clean(Block(true));
     assert_clean(TokenElse);
     callAndHandleException_clean(Block(true));
@@ -664,7 +664,7 @@ int For(){
     else if (returnCode != SUCCESS)
         return returnCode;
     if (getDataTypeOfExpression(expression) != TypeBool)
-        returnAndClean(SEMANTIC_ERROR_TYPE_EXPRESION);
+        returnAndClean(SEMANTIC_ERROR_TYPE_EXPRESSION);
     assert_clean(TokenSemicolon);
     callAndHandleException_clean(For_Assignment());
     callAndHandleException_clean(Block(true));
