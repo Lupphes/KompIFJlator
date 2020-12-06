@@ -243,7 +243,7 @@ void initExpressionArray(ExpressionArray* arr){
  * @param str The expression to insert into the array.
  * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
  */
-int addToexpressionArray(ExpressionArray* arr, ExpExp* expression){
+int addToExpressionArray(ExpressionArray* arr, ExpExp* expression){
     int newCount = arr->count + 1;
     if ((arr->arr = realloc(arr->arr,sizeof(ExpExp)*newCount)) == NULL)
         return INTERNAL_ERROR;
