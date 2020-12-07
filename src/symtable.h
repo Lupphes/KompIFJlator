@@ -82,7 +82,7 @@ int enterNewStackFrame();
 
 void leaveStackFrame();
 
-int addVariable(const SymbolVariable* variable);
+int addVariable(SymbolVariable* variable);
 
 const SymbolVariable* getVariable(const char* id);
 
