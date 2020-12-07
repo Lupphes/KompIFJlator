@@ -132,6 +132,22 @@ int FunctionDefinition(ASTRoot* astRoot){
 
     callAndHandleException_clean(Block(astFunctionCodeBlock,false));
     
+    //Add implicit return to the end of the function.
+    ASTNodeStatement* tmp = malloc(sizeof(ASTNodeStatement));
+    if (tmp == NULL)
+        returnAndClean(INTERNAL_ERROR);
+    tmp->next = NULL;
+    tmp->type = StatementTypeReturn;
+    initExpressionArray(&tmp->value.returnStatement.rValues);
+    if (astFunctionCodeBlock->firstStatement != NULL){
+        ASTNodeStatement* i;
+        for(i = astFunctionCodeBlock->firstStatement;i->next != NULL;i = i->next);
+        i->next = tmp;
+    } else {
+        astFunctionCodeBlock->firstStatement = tmp;
+    }
+
+    
     leaveStackFrame();
 
     if (function.returnTypes.count != 0 && !currentFunctionContainsReturnStatement)
