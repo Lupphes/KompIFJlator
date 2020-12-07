@@ -618,6 +618,7 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
     }
     if (expItem.type == ExpItemExpression) {
         if (expStack.used != 2)
+            freeExpStack(&expStack);
             return SYNTAX_ERROR;
         ExpExp* tmp = malloc(sizeof(ExpExp));
         //Check later aligator
