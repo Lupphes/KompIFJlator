@@ -105,6 +105,11 @@ int popFromStack(ExpStack *expStack, ExpItem *expItem) {
 }
 
 void freeExpStack(ExpStack *expStack) {
+    for (int i = 0; i < expStack->used; i++) {
+        if (expStack->values[i].type == ExpItemExpression) {
+            freeExpExp(&expStack->values[i].value.ee);
+        }
+    }
     free(expStack->values);
     expStack->values = NULL;
     expStack->used = 0;
