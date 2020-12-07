@@ -22,6 +22,7 @@
 struct _ASTNodeBlock;
 
 typedef enum {
+    StatementInvalid = 0,
     StatementTypeAssignment,
     StatementTypeFunctionCall,
     StatementTypeIf,

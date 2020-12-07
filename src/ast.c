@@ -21,8 +21,10 @@ void freeASTReturn(ASTNodeReturn* x){
 }
 
 void freeASTFor(ASTNodeFor* x){
-    freeExpExp(x->condition);
-    free(x->condition);
+    if (x->condition != NULL){
+        freeExpExp(x->condition);
+        free(x->condition);
+    }
     if (x->incrementAssignment != NULL){
         freeASTAssignment(x->incrementAssignment);
         free(x->incrementAssignment);
@@ -31,8 +33,10 @@ void freeASTFor(ASTNodeFor* x){
         freeASTAssignment(x->initAssignment);
         free(x->initAssignment);
     }
-    freeASTBlock(x->code);
-    free(x->code);
+    if (x->code != NULL){
+        freeASTBlock(x->code);
+        free(x->code);
+    }
 }
 
 void freeASTIf(ASTNodeIf* x){
@@ -56,6 +60,8 @@ void freeASTAssignment(ASTNodeAssignment* x){
 
 void freeASTStatement(ASTNodeStatement* x){
     switch(x->type){
+        case StatementInvalid:
+            return;
         case StatementTypeAssignment:
             freeASTAssignment(&x->value.assignment);
             break;

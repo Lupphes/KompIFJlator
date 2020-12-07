@@ -46,6 +46,9 @@ extern DubiousFunctionCallArray dubiousFunctionCalls;
 //Short hand. Asserts the existence of a TokenEOL on the input. Then it reads TokenEOLs from the input until it hits the first token that isn't TokenEOL.
 #define EOL_Mandatory() {assert(TokenEOL); while(peek(TokenEOL)) { acceptAny(); }}
 
+//Clean variant of EOL_Mandatory
+#define EOL_Mandatory_clean() {assert_clean(TokenEOL); while(peek(TokenEOL)) { acceptAny_clean(); }}
+
 //Short hand. Reads TokenEOLs from the input until it hits the first token that isn't TokenEOL.
 #define EOL_Optional() {while(peek(TokenEOL)) { acceptAny(); }}
 
