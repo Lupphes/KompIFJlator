@@ -139,20 +139,24 @@ void printStack(ExpStack *expStack) {
     printf("\n");
 }
 
+
 void freeExpExp(ExpExp *expExp) {
-    if (expExp->type == ExpExpAtom) {
-        switch (expExp->ExpProperties.atom.type) {
-        case TermStringLiteral:
-            strClear(&expExp->ExpProperties.atom.value.s);
+    switch(expExp->type){
+        case ExpExpAtom:
+            freeTerm(&expExp->ExpProperties.atom);
             break;
-        case TermVariable:
-            free(&expExp->ExpProperties.atom.value.v);
+        case ExpExpOperation:
+            if(expExp->ExpProperties.operation.type == OperationPar){ //TODO: add checks for other unary operations
+                freeExpExp(expExp->ExpProperties.operation.value.unary.first);
+                free(expExp->ExpProperties.operation.value.unary.first);
+            } else {
+                freeExpExp(expExp->ExpProperties.operation.value.binary.first);
+                freeExpExp(expExp->ExpProperties.operation.value.binary.second);
+                free(expExp->ExpProperties.operation.value.binary.first);
+                free(expExp->ExpProperties.operation.value.binary.second);
+            }
             break;
-        default:
-            break;
-        }        
     }
-    //free(expExp);
 }
 
 /** ---------------------- Stack Functions ---------------------- **/

@@ -30,58 +30,70 @@ typedef enum {
 } ASTStatementType;
 
 typedef struct {
-    const ExpressionArray rValues;
+     ExpressionArray rValues;
 }   ASTNodeReturn;
 
 typedef struct {
-    const SymbolVariableArray lValues;
-    const ExpressionArray rValues;
+    SymbolVariableArray lValues;
+    ExpressionArray rValues;
 } ASTNodeAssignment;
 
 typedef struct {
-    const SymbolVariable* initVariable;
-    const ASTNodeAssignment* initAssignment;
-    const ExpExp* condition;
-    const ASTNodeAssignment* incrementAssignment;
-    const struct _AstNodeBlock* code;
+    ASTNodeAssignment* initAssignment;
+    ExpExp* condition;
+    ASTNodeAssignment* incrementAssignment;
+    struct _ASTNodeBlock* code;
 } ASTNodeFor;
 
 typedef struct {
-    const ExpExp* condition;
-    const struct _ASTNodeBlock* ifClause;
-    const struct _ASTNodeBlock* elseClause;
+    ExpExp* condition;
+    struct _ASTNodeBlock* ifClause;
+    struct _ASTNodeBlock* elseClause;
 } ASTNodeIf;
 
 typedef struct {
-    const SymbolVariableArray lValues;
+    SymbolVariableArray lValues;
+    TermArray parameters;
     const SymbolFunction* function;
 } ASTNodeFunctionCall;
 
 typedef struct _ASTNodeStatement{
-    const ASTStatementType type;
+    ASTStatementType type;
     union {
-        const ASTNodeAssignment assignment;
-        const ASTNodeFunctionCall functionCall;
-        const ASTNodeIf ifStatement;
-        const ASTNodeFor forStatement;
-        const ASTNodeReturn returnStatement;
+        ASTNodeAssignment assignment;
+        ASTNodeFunctionCall functionCall;
+        ASTNodeIf ifStatement;
+        ASTNodeFor forStatement;
+        ASTNodeReturn returnStatement;
     } value;
-    const struct _ASTNodeStatement* next;
+    struct _ASTNodeStatement* next;
 } ASTNodeStatement;
 
 typedef struct _ASTNodeBlock {
-    const SymbolVariableArray variables;
-    const ASTNodeStatement* firstStatement;
+    ASTNodeStatement* firstStatement;
 } ASTNodeBlock;
 
-typedef struct {
+typedef struct _ASTNodeFunction {
     const SymbolFunction* function;
-    const ASTNodeBlock* code;
+    SymbolVariableArray variables;
+    ASTNodeBlock* code;
+    struct _ASTNodeFunction* next;
 } ASTNodeFunction;
 
 typedef struct{
-    ASTNodeFunction* userFunctions; //Later I'll probably use a helper.h array for this.
+    ASTNodeFunction* userFunctions;
     ASTNodeFunction* mainFunction;
 } ASTRoot;
+
+
+void freeASTReturn(ASTNodeReturn* x);
+void freeASTFor(ASTNodeFor* x);
+void freeASTIf(ASTNodeIf* x);
+void freeASTFunctionCall(ASTNodeFunctionCall* x);
+void freeASTAssignment(ASTNodeAssignment* x);
+void freeASTStatement(ASTNodeStatement* x);
+void freeASTBlock(ASTNodeBlock* x);
+void freeASTFunction(ASTNodeFunction* x);
+void freeAST(ASTRoot* root);
 
 #endif

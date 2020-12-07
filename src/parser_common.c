@@ -24,6 +24,7 @@
 #include "error.h"
 #include "scanner.h"
 #include "parser_builtin_functions.h"
+#include "ast.h"
 
 Token curTok = {TokenEOF}; //We initialise the current token so that the function nextToken works properly.
 Token cacheTok = {TokenEOF};
@@ -38,13 +39,14 @@ DubiousFunctionCallArray dubiousFunctionCalls;
  */
 int beginParsing(){
     int returnCode = SUCCESS;
+    ASTRoot astRoot = {NULL, NULL};
     initDubiousFunctionCallArray(&dubiousFunctionCalls);
     callAndHandleException_clean(initFunctionTable());
     callAndHandleException_clean(initVariableTableStack());
     callAndHandleException_clean(nextToken()) //First read of the token.
     callAndHandleException_clean(initBuiltInFunctions());
 
-    callAndHandleException_clean(Start());
+    callAndHandleException_clean(Start(&astRoot));
     
     //Checking for existence and proper form of main function.
     const SymbolFunction* mainFunction = getFunction("main");
@@ -64,6 +66,7 @@ int beginParsing(){
     //TODO: Start code generation here.
 
     CLEAN_UP:
+    freeAST(&astRoot);
     freeDubiousFunctionCallArray(&dubiousFunctionCalls);
     freeFunctionTable();
     freeVariableTableStack();

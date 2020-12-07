@@ -28,6 +28,7 @@
 
 const SymbolFunction* currentFunction = NULL;
 bool currentFunctionContainsReturnStatement;
+SymbolVariableArray variablesInCurrentFunction;
 
 //Short hand. Processes the function of the specified nonterminal and returns its failure code if it finds issues; otherwise the control flow will resume.
 #define NTERM(nt) callAndHandleException(nt())
@@ -35,13 +36,13 @@ bool currentFunctionContainsReturnStatement;
 //Variant of assert that executes the clean-up function instead of returning straight away in case of failure.
 #define NTERM_clean(nt) callAndHandleException_clean(nt())
 
-int Start(){
-    int returnCode;
+int Start(ASTRoot* astRoot){
+    int returnCode;    
 
     EOL_Optional();
     NTERM(Prolog);
     EOL_Mandatory();
-    NTERM(Chief);
+    callAndHandleException(Chief(astRoot));
 
     return SUCCESS;
 }
@@ -65,20 +66,20 @@ int Prolog(){
     }
 }
 
-int Chief(){
+int Chief(ASTRoot* astRoot){
     int returnCode;
 
     if (accept(TokenEOF) == SUCCESS)
         return SUCCESS;
     
-    NTERM(FunctionDefinition);
+    callAndHandleException(FunctionDefinition(astRoot));
     EOL_Optional(); //TODO: Investigate
-    NTERM(Chief);
+    callAndHandleException(Chief(astRoot));
     
     return SUCCESS;
 }
 
-int FunctionDefinition(){
+int FunctionDefinition(ASTRoot* astRoot){
     int returnCode = SUCCESS;
     SymbolFunction function;
     function.parameters.count = 0;
@@ -87,7 +88,16 @@ int FunctionDefinition(){
     function.returnTypes.count = 0;
     function.returnTypes.types = NULL;
     function.builtIn = false;
+    initSymbolVariableArray(&variablesInCurrentFunction);
     callAndHandleException(strInit(&function.id));
+    ASTNodeBlock* astFunctionCodeBlock = NULL;
+    ASTNodeFunction* astFunction = NULL;
+    astFunction = malloc(sizeof(ASTNodeFunction));
+    if (astFunction == NULL)
+        returnAndClean(INTERNAL_ERROR);
+    astFunctionCodeBlock = malloc(sizeof(ASTNodeBlock));
+    if (astFunctionCodeBlock == NULL)
+        returnAndClean(INTERNAL_ERROR);
 
     //Syntactical and semantic checks.
 
@@ -114,17 +124,33 @@ int FunctionDefinition(){
     for (int i = 0; i < function.parameters.count;i++){
         SymbolVariable var = {.id = function.parameters.params[i].id, .type = function.parameters.params[i].type};
         callAndHandleException_clean(addVariable(&var));
+        callAndHandleException_clean(addToSymbolVariableArray(&variablesInCurrentFunction,getVariable(strGetStr(&function.parameters.params[i].id))));
     }
 
     currentFunction = getFunction(strGetStr(&function.id));
     currentFunctionContainsReturnStatement = false;
 
-    callAndHandleException_clean(Block(false)); //Todo: attach to the AST generation later.
+    callAndHandleException_clean(Block(astFunctionCodeBlock,false));
     
     leaveStackFrame();
 
     if (function.returnTypes.count != 0 && !currentFunctionContainsReturnStatement)
         returnAndClean(SEMANTIC_ERROR_TYPE_FUNCTION);
+
+    //AST generation
+
+    astFunction->function = currentFunction;
+    astFunction->variables = variablesInCurrentFunction;
+    astFunction->code = astFunctionCodeBlock;
+
+    if (getFunction("main") == currentFunction){
+        astFunction->next = NULL;   
+        astRoot->mainFunction = astFunction;
+    }
+    else{
+        astFunction->next = astRoot->userFunctions;
+        astRoot->userFunctions = astFunction;
+    }
 
     CLEAN_UP:
     strFree(&function.id);
@@ -132,6 +158,10 @@ int FunctionDefinition(){
         strFree(&function.parameters.params[i].id);
     free(function.parameters.params);
     free(function.returnTypes.types);
+    if (returnCode != SUCCESS){ //If this operation was successful, the freeing will be done when the AST is freed later.
+        free(astFunction);
+        free(astFunctionCodeBlock);
+    }
     return returnCode;
 }
 
@@ -277,15 +307,17 @@ int FunctionReturnValues_Next(SymbolFunction* function){
     return SUCCESS;
 }
 
-int Block(bool newStackFrame){
+int Block(ASTNodeBlock* astBlock, bool newStackFrame){
     int returnCode;
     
+    astBlock->firstStatement = NULL;
+
     if (newStackFrame)
         callAndHandleException(enterNewStackFrame());
 
     assert(TokenLeftCurlyBracket);
     EOL_Mandatory();
-    NTERM(Statement);
+    callAndHandleException(Statement(&astBlock->firstStatement));
     EOL_Optional(); //TODO: Investigate.
     assert(TokenRightCurlyBracket);
 
@@ -295,33 +327,39 @@ int Block(bool newStackFrame){
     return SUCCESS;
 }
 
-int Statement(){
+int Statement(ASTNodeStatement** astStatement){
     int returnCode;
+
+    ASTNodeStatement* astStatementTMP = malloc(sizeof(ASTNodeStatement));
+    if (astStatement == NULL)
+        return INTERNAL_ERROR;
+    astStatementTMP->next = NULL;
 
     switch(curTok.type){
         case TokenIf:
-            NTERM(If)
+            callAndHandleException(If(astStatementTMP))
             break;
         case TokenReturn:
-            NTERM(Return);
+            callAndHandleException(Return(astStatementTMP));
             break;
         case TokenFor:
-            NTERM(For);
+            callAndHandleException(For(astStatementTMP));
             break;
         case TokenIdentifier:
-            NTERM(StatementStartingWithIdentifier);
+            callAndHandleException(StatementStartingWithIdentifier(astStatementTMP));
             break;
         default: //Epsilon case
+            free(astStatementTMP);
             return SUCCESS;
     }
 
     EOL_Mandatory();
-    NTERM(Statement);
-    
+    callAndHandleException(Statement(&astStatementTMP->next));
+    *astStatement = astStatementTMP;
     return SUCCESS;
 }
 
-int StatementStartingWithIdentifier(){
+int StatementStartingWithIdentifier(ASTNodeStatement* astStatement){
     int returnCode = SUCCESS;
     
     const int numberOfDubiousFunctionCallsBeforeApplyingThisRule = countInDubiousFunctionCallArray(&dubiousFunctionCalls);
@@ -342,10 +380,11 @@ int StatementStartingWithIdentifier(){
         case TokenLeftBracket:
             if (getVariable(strGetStr(&firstID)) != NULL)
                 returnAndClean(SEMANTIC_ERROR_OTHER);
-            callAndHandleException_clean(FunctionCall_rule(lValues,getFunction(strGetStr(&firstID)),&firstID));
+            callAndHandleException_clean(FunctionCall_rule(astStatement,lValues,getFunction(strGetStr(&firstID)),&firstID));
             returnAndClean(SUCCESS);
         case TokenVarDefine:
-            callAndHandleException_clean(VariableDefinition(&firstID));
+            astStatement->type = StatementTypeAssignment;
+            callAndHandleException_clean(VariableDefinition(&astStatement->value.assignment, &firstID));
             returnAndClean(SUCCESS);
         case TokenAssignment:
         case TokenComma:
@@ -353,7 +392,7 @@ int StatementStartingWithIdentifier(){
             if (firstVariable == NULL) //No variable with the given name exists in the current context.
                 returnAndClean(SEMANTIC_ERROR_DEFINITION);
             callAndHandleException_clean(addToSymbolVariableArray(lValues,firstVariable));
-            callAndHandleException_clean(Assignment(lValues));
+            callAndHandleException_clean(Assignment(astStatement,lValues));
             returnAndClean(SUCCESS);
         default:
             returnAndClean(SYNTAX_ERROR);
@@ -369,7 +408,7 @@ int StatementStartingWithIdentifier(){
 
 }
 
-int Assignment(SymbolVariableArray* lValues){
+int Assignment(ASTNodeStatement* astStatement,SymbolVariableArray* lValues){
     int returnCode = SUCCESS;
     string functionCandidate;
     callAndHandleException(strInit(&functionCandidate));
@@ -384,15 +423,17 @@ int Assignment(SymbolVariableArray* lValues){
             if (getVariable(strGetStr(&functionCandidate)) != NULL)
                 returnAndClean(SEMANTIC_ERROR_OTHER);
             const SymbolFunction* function = getFunction(strGetStr(&functionCandidate));
-            callAndHandleException_clean(FunctionCall_rule(lValues, function,&functionCandidate)); //TODO: AST handling somewhere.
+            callAndHandleException_clean(FunctionCall_rule(astStatement,lValues, function,&functionCandidate)); //TODO: AST handling somewhere.
         }
         else{
             callAndHandleException_clean(prevToken());
-            callAndHandleException_clean(AssignmentOfExpressions(lValues));
+            astStatement->type = StatementTypeAssignment;
+            callAndHandleException_clean(AssignmentOfExpressions(&astStatement->value.assignment,lValues));
         }
     }
     else{
-        callAndHandleException_clean(AssignmentOfExpressions(lValues));
+        astStatement->type = StatementTypeAssignment;
+        callAndHandleException_clean(AssignmentOfExpressions(&astStatement->value.assignment,lValues));
     }
     
     CLEAN_UP:
@@ -400,7 +441,7 @@ int Assignment(SymbolVariableArray* lValues){
     return returnCode;
 }
 
-int AssignmentOfExpressions(const SymbolVariableArray* lValues){
+int AssignmentOfExpressions(ASTNodeAssignment* astAsignment,const SymbolVariableArray* lValues){
     int returnCode = SUCCESS;
     
     ExpressionArray expressionList;
@@ -416,7 +457,13 @@ int AssignmentOfExpressions(const SymbolVariableArray* lValues){
         if(lValues->arr[i]->type != TypeBlackHole && lValues->arr[i]->type != getDataTypeOfExpression(expressionList.arr[i]))
             returnAndClean(SEMANTIC_ERROR_OTHER);
 
-    //Send to AST here.
+    //Magic we can't make robust and nice in time.
+    astAsignment->lValues.arr = malloc(sizeof(SymbolVariable*) * lValues->count);
+    if (astAsignment->lValues.arr == NULL)
+        returnAndClean(INTERNAL_ERROR);
+    memcpy(astAsignment->lValues.arr,lValues->arr,sizeof(SymbolVariable*)*lValues->count);
+    astAsignment->lValues.count = lValues->count;
+    astAsignment->rValues = expressionList;
 
     return returnCode;
     CLEAN_UP:
@@ -490,7 +537,7 @@ int VariableList_Next(SymbolVariableArray* lValues){
     return SUCCESS;
 }
 
-int VariableDefinition(string* idName){
+int VariableDefinition(ASTNodeAssignment* astAssignmentStatement,string* idName){
     int returnCode;
     SymbolVariable newVariable;
     callAndHandleException(strInit(&newVariable.id));
@@ -523,15 +570,30 @@ int VariableDefinition(string* idName){
         free(expression);
         return returnCode;
     }
+    const SymbolVariable* symtableVariableEntry = getVariable(strGetStr(idName));
+    if ((returnCode = addToSymbolVariableArray(&variablesInCurrentFunction,symtableVariableEntry)) != SUCCESS){
+        strFree(&newVariable.id);
+        freeExpExp(expression);
+        free(expression);
+        return returnCode;
+    }
 
     strFree(&newVariable.id);
     
-    //TODO: add to AST
+    initSymbolVariableArray(&astAssignmentStatement->lValues);
+    initExpressionArray(&astAssignmentStatement->rValues);
+    if (addToSymbolVariableArray(&astAssignmentStatement->lValues,symtableVariableEntry) != SUCCESS || addToExpressionArray(&astAssignmentStatement->rValues,expression) != SUCCESS){
+        freeSymbolVariableArray(&astAssignmentStatement->lValues);
+        freeExpressionArray(&astAssignmentStatement->rValues);
+        freeExpExp(expression);
+        free(expression);
+        return INTERNAL_ERROR;
+    }
 
     return SUCCESS;
 }
 
-int FunctionCall_rule(SymbolVariableArray* lValues, const SymbolFunction* function, const string* functionName){
+int FunctionCall_rule(ASTNodeStatement* astStatement, SymbolVariableArray* lValues, const SymbolFunction* function, const string* functionName){
     int returnCode = SUCCESS;
     TermArray* functionParameters = malloc(sizeof(TermArray));
     if(functionParameters == NULL)
@@ -554,6 +616,17 @@ int FunctionCall_rule(SymbolVariableArray* lValues, const SymbolFunction* functi
         return SUCCESS; //We don't want to clean the function-parameter array here because we need it later in the dubious-function-call check at the end of parsing.
     }
 
+    astStatement->type = StatementTypeFunctionCall;
+    astStatement->value.functionCall.function = function;
+    astStatement->value.functionCall.parameters = *functionParameters;
+    astStatement->value.functionCall.lValues.arr = malloc(sizeof(SymbolVariable*) * lValues->count);
+    if (astStatement->value.functionCall.lValues.arr == NULL)
+        returnAndClean(INTERNAL_ERROR);
+    memcpy(astStatement->value.functionCall.lValues.arr,lValues->arr,sizeof(SymbolVariable*)*lValues->count);
+    astStatement->value.functionCall.lValues.count = lValues->count;
+
+    free(functionParameters);
+    return SUCCESS;
     CLEAN_UP:
     freeTermArray(functionParameters);
     free(functionParameters);
@@ -605,9 +678,15 @@ int TermListNext(TermArray* functionParameters){
     }
 }
 
-int If(){
+int If(ASTNodeStatement* astIfStatement){
     int returnCode;
-    ExpExp* expression;
+    ExpExp* expression = NULL;
+    ASTNodeBlock* ifClause   = NULL;
+    ASTNodeBlock* elseClause = NULL;
+    ifClause = malloc(sizeof(ASTNodeBlock));
+    elseClause = malloc(sizeof(ASTNodeBlock));
+    if (ifClause == NULL || elseClause == NULL)
+        returnAndClean(INTERNAL_ERROR);
 
     assert(TokenIf);
     if ((returnCode = parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)) == NO_EXPRESSION)
@@ -616,20 +695,25 @@ int If(){
         return returnCode;
     if (getDataTypeOfExpression(expression) != TypeBool)
         returnAndClean(SEMANTIC_ERROR_TYPE_EXPRESSION);
-    callAndHandleException_clean(Block(true));
+    callAndHandleException_clean(Block(ifClause,true));
     assert_clean(TokenElse);
-    callAndHandleException_clean(Block(true));
+    callAndHandleException_clean(Block(elseClause,true));
 
-    //TODO: AST
+    astIfStatement->type = StatementTypeIf;
+    astIfStatement->value.ifStatement.condition = expression;
+    astIfStatement->value.ifStatement.ifClause = ifClause;
+    astIfStatement->value.ifStatement.elseClause = elseClause;
 
     return SUCCESS;
     CLEAN_UP:
-    freeExpExp(expression);
+    if (expression != NULL) freeExpExp(expression);
     free(expression);
+    free(ifClause);
+    free(elseClause);
     return returnCode;
 }
 
-int Return(){
+int Return(ASTNodeStatement* astStatement){
     int returnCode;
     ExpressionArray expressions;
     initExpressionArray(&expressions);
@@ -645,19 +729,28 @@ int Return(){
         if (getDataTypeOfExpression(expressions.arr[i]) != currentFunction->returnTypes.types[i])
             returnAndClean(SEMANTIC_ERROR_TYPE_FUNCTION);
 
+    astStatement->type = StatementTypeReturn;
+    astStatement->value.returnStatement.rValues = expressions;
     return SUCCESS;
     CLEAN_UP:
     freeExpressionArray(&expressions);
     return returnCode;
 }
 
-int For(){
+int For(ASTNodeStatement* astStatement){
     int returnCode;
     ExpExp* expression;
+
+    astStatement->type = StatementTypeFor;
+    astStatement->value.forStatement.code = NULL;
+    astStatement->value.forStatement.condition = NULL;
+    astStatement->value.forStatement.incrementAssignment = NULL;
+    astStatement->value.forStatement.initAssignment = NULL;
+
     callAndHandleException(enterNewStackFrame());
 
     assert(TokenFor);
-    NTERM(For_Definition);
+    callAndHandleException(For_Definition(&astStatement->value.forStatement));
     assert(TokenSemicolon);
     if((returnCode = parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)) == NO_EXPRESSION)
         return SYNTAX_ERROR;
@@ -665,49 +758,57 @@ int For(){
         return returnCode;
     if (getDataTypeOfExpression(expression) != TypeBool)
         returnAndClean(SEMANTIC_ERROR_TYPE_EXPRESSION);
+    astStatement->value.forStatement.condition = expression;
     assert_clean(TokenSemicolon);
-    callAndHandleException_clean(For_Assignment());
-    callAndHandleException_clean(Block(true));
+    callAndHandleException_clean(For_Assignment(&astStatement->value.forStatement));
+    ASTNodeBlock* tmp = malloc(sizeof(ASTNodeBlock));
+    astStatement->value.forStatement.code = tmp;
+    callAndHandleException_clean(Block(astStatement->value.forStatement.code,true));
 
     leaveStackFrame();
 
-    //TODO: AST handling; will be a bit tricky.
-
     return SUCCESS;
     CLEAN_UP:
-    freeExpExp(expression);
-    free(expression);
     return returnCode;
 
 }
 
-int For_Definition(){
+int For_Definition(ASTNodeFor* astForStatement){
     int returnCode = SUCCESS;
     string id;
 
-    if(!peek(TokenIdentifier))
+    if(!peek(TokenIdentifier)){
+        astForStatement->initAssignment = NULL;
         return SUCCESS; //Epsilon rule
+    }
 
     callAndHandleException_clean(strInit(&id));
     callAndHandleException_clean(strCopyString(&id,&curTok.attribute.s));
 
     acceptAny_clean();
 
-    callAndHandleException_clean(VariableDefinition(&id));
+    ASTNodeAssignment* tmp = malloc(sizeof(ASTNodeAssignment));
+    if (tmp == NULL)
+        returnAndClean(INTERNAL_ERROR);
+
+    callAndHandleException_clean(VariableDefinition(tmp,&id));
+    astForStatement->initAssignment = tmp;
 
     CLEAN_UP:
     strFree(&id);
     return returnCode;
 }
 
-int For_Assignment(){
+int For_Assignment(ASTNodeFor* astForStatement){
     int returnCode = SUCCESS;
     SymbolVariableArray lValues;
     const SymbolVariable* firstVariable;
     initSymbolVariableArray(&lValues);
 
-    if (!peek(TokenIdentifier))
+    if (!peek(TokenIdentifier)){ //Epsilon rule
+        astForStatement->incrementAssignment = NULL;
         return SUCCESS;
+    }
     firstVariable = getVariable(strGetStr(&curTok.attribute.s));
     if (firstVariable == NULL)
         return SEMANTIC_ERROR_DEFINITION;
@@ -715,7 +816,11 @@ int For_Assignment(){
     callAndHandleException(addToSymbolVariableArray(&lValues,firstVariable));
     callAndHandleException_clean(VariableList_Next(&lValues));
     assert_clean(TokenAssignment);
-    callAndHandleException_clean(AssignmentOfExpressions(&lValues));
+    ASTNodeAssignment* tmp = malloc(sizeof(ASTNodeAssignment));
+    if (tmp == NULL)
+        returnAndClean(INTERNAL_ERROR);
+    callAndHandleException_clean(AssignmentOfExpressions(tmp,&lValues));
+    astForStatement->incrementAssignment = tmp;
 
     CLEAN_UP:
     freeSymbolVariableArray(&lValues);
