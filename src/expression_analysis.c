@@ -535,9 +535,10 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
     int returnCode;
     if (initExpStack(&expStack, 0) == INTERNAL_ERROR)
         return INTERNAL_ERROR;
-    if (pushToStack(&expStack, endStartOperator) == INTERNAL_ERROR)
+    if (pushToStack(&expStack, endStartOperator) == INTERNAL_ERROR) {
         freeExpStack(&expStack);
         return INTERNAL_ERROR;
+    }
     printStack(&expStack); // DEBUG
 
     if (assingmentOperation != OAssignEql) {
@@ -547,9 +548,10 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
         atomExpItem.value.ee.dataType = symbol->type;
         atomExpItem.value.ee.type = ExpExpAtom;
         //  atomExpItem->value.ee.ExpProperties.atom = term;
-        if (pushToStack(&expStack, atomExpItem) == INTERNAL_ERROR)
+        if (pushToStack(&expStack, atomExpItem) == INTERNAL_ERROR) {
             freeExpStack(&expStack);
             return INTERNAL_ERROR;
+        }
         printStack(&expStack); // DEBUG
         
         operatorExpItem.type = ExpItemOperator;    
