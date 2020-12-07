@@ -535,8 +535,10 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
     int returnCode;
     if (initExpStack(&expStack, 0) == INTERNAL_ERROR)
         return INTERNAL_ERROR;
-    if (pushToStack(&expStack, endStartOperator) == INTERNAL_ERROR)
+    if (pushToStack(&expStack, endStartOperator) == INTERNAL_ERROR) {
+        freeExpStack(&expStack);
         return INTERNAL_ERROR;
+    }
     printStack(&expStack); // DEBUG
 
     if (assingmentOperation != OAssignEql) {
@@ -546,8 +548,10 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
         atomExpItem.value.ee.dataType = symbol->type;
         atomExpItem.value.ee.type = ExpExpAtom;
         //  atomExpItem->value.ee.ExpProperties.atom = term;
-        if (pushToStack(&expStack, atomExpItem) == INTERNAL_ERROR)
+        if (pushToStack(&expStack, atomExpItem) == INTERNAL_ERROR) {
+            freeExpStack(&expStack);
             return INTERNAL_ERROR;
+        }
         printStack(&expStack); // DEBUG
         
         operatorExpItem.type = ExpItemOperator;    
@@ -600,6 +604,7 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
     }
     if (expItem.type == ExpItemEnd && expStack.used == 1) {
         *expression = NULL;
+        freeExpStack(&expStack);
         return NO_EXPRESSION;
     } else if (expItem.type != ExpItemEnd && expStack.used > 2) {
         if ((returnCode = evaluateExpression(&expStack, &endStartOperator)) != SUCCESS) { 
@@ -619,6 +624,7 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
         *tmp = expItem.value.ee;
         *expression = tmp;
     } else {
+        freeExpStack(&expStack);
         return INTERNAL_ERROR;
     }
     printStack(&expStack); // DEBUG
