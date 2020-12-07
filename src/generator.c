@@ -22,7 +22,7 @@
  *	@param	root	Root of the tree
  */
 int generateTree(ASTRoot* root){
-	printf(".IFJcode20\n");
+	printf(".IFJcode20\n\n");
 	printf("WRITE string@Hello\\032generator\\032world!\\010\n");
 	return 0;
 }

@@ -48,7 +48,7 @@ $(PRJ3)-test: $(LIBDIR)/*.h $(LIBDIR)/$(PRJ3).h $(TESTSDIR)/$(PRJ3)/*.h $(LIBDIR
 $(INTER_CODE)-test:	$(TESTSDIR)/$(INTER_CODE)/*.c $(LIBDIR)/*.c $(LIBDIR)/*.h
 	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/$(INTER_CODE)/*.c $(LIBDIR)/$(INTER_CODE).c
 
-generator-test: $(TESTSDIR)/generator/*.c $(LIBDIR)/*.c $(LIBDIR)/*.h
+generator-test: directories $(TESTSDIR)/generator/*.c $(LIBDIR)/*.c $(LIBDIR)/*.h
 	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/generator/*.c $(LIBDIR)/generator.c
 
 clean:
