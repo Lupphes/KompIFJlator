@@ -23,7 +23,7 @@ INTER_CODE=inter_code
 
 .PHONY: directories
 
-all: directories $(SCANNEROBJ) 
+all: directories $(SCANNEROBJ) generator-test
 #symtable-test
 
 directories: ${BUILDDIR}
@@ -47,6 +47,9 @@ $(PRJ3)-test: $(LIBDIR)/*.h $(LIBDIR)/$(PRJ3).h $(TESTSDIR)/$(PRJ3)/*.h $(LIBDIR
 
 $(INTER_CODE)-test:	$(TESTSDIR)/$(INTER_CODE)/*.c $(LIBDIR)/*.c $(LIBDIR)/*.h
 	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/$(INTER_CODE)/*.c $(LIBDIR)/$(INTER_CODE).c
+
+generator-test: $(TESTSDIR)/generator/*.c $(LIBDIR)/*.c $(LIBDIR)/*.h
+	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/generator/*.c $(LIBDIR)/generator.c
 
 clean:
 	rm -rf $(BUILDDIR)
