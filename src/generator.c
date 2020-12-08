@@ -82,6 +82,18 @@ void generateUserFunctions(ASTNodeFunction *function){
 		printf("CREATEFRAME\n");
 		printf("PUSHFRAME\n\n");
 
+		// generate handling parameters
+		for(int i = (function->function->parameters.count - 1); i >= 0; i++){
+			// foreach parameter
+			// definition
+			char newVarName[4096];
+			generateVariableName(function->variables.arr[i], newVarName);
+			printf("DEFVAR %s\n", newVarName);
+
+			// pop value from stack
+			printf("POPS %s\n", newVarName);
+		}
+
 		// generate function body
 		generateFunctionBody(function);
 
@@ -97,9 +109,9 @@ void generateFunctionBody(ASTNodeFunction *function){
 
 	for(int i = 0; i < function->variables.count; i++){
 		if(function->variables.arr[i] != NULL){
-			char name[4096];
-			generateVariableName(function->variables.arr[i], name);
-			printf("DEFVAR %s\n", name);
+			char newVarName[4096];
+			generateVariableName(function->variables.arr[i], newVarName);
+			printf("DEFVAR %s\n", newVarName);
 		}
 	}
 
@@ -132,7 +144,7 @@ void generateFunctionCall(ASTNodeStatement *functionCall){
 }
 
 // Generate variable name to format "LF@$uid"
-char* generateVariableName(const SymbolVariable* var, char* out){
+char *generateVariableName(const SymbolVariable *var, char *out){
 	int len = var->type != TypeBlackHole ? sprintf(out,"LF@$%d",var->uid) : sprintf(out,"nil@nil");
     if (len < 0)
         exit(INTERNAL_ERROR);
