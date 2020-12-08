@@ -236,7 +236,6 @@ void generateUserFunctionCall(ASTNodeFunctionCall* call){
 	}
 }
 
-
 char* generateIntLiteral(int64_t lit, char* out){
 	int len = sprintf(out,"int@%"PRId64,lit);
 	if (len < 0)
@@ -552,7 +551,21 @@ void generateStatementInvalid(ASTNodeStatement* codeStmnt){
 }
 
 void generateAssignment(ASTNodeAssignment *assignment){
-	printf("# Statement Assignment generated.\n");
+	if(assignment == NULL)
+		return;
+
+	// save the smaller number from these two
+	int valuesCount = (assignment->lValues.count < assignment->rValues.count) ? assignment->lValues.count : assignment->rValues.count ;
+
+	for(int i = 0; i < valuesCount; i++){
+		// push rValue
+		generateExpExp(assignment->rValues.arr[i]);
+
+		// pop it to lValue
+		char lValueName[STRING_BUFFER_LENGTH];
+		generateVariableName(assignment->lValues.arr[i], lValueName);
+		printf("POPS %s\n", lValueName);
+	}
 }
 
 void generateIf(ASTNodeIf* ifStatement){
@@ -634,6 +647,6 @@ void generateReturn(ASTNodeReturn* returnStatement){
 
 // dummy methods
 void generateExpExp(ExpExp* condition){
-	printf("PUSH bool@true\n");
+	printf("PUSHS bool@true\n");
 }
 
