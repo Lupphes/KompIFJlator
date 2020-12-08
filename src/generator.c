@@ -631,9 +631,6 @@ void generateBuiltInInputf(ASTNodeFunctionCall* inputfStatment){
 	printf("LABEL %s_END\n",label);
 }
 
-void generateStatementInvalid(ASTNodeStatement* codeStmnt){
-}
-
 void generateAssignment(ASTNodeAssignment *assignment){
 	if(assignment == NULL)
 		return;
@@ -643,7 +640,7 @@ void generateAssignment(ASTNodeAssignment *assignment){
 
 	for(int i = 0; i < valuesCount; i++){
 		// push rValue
-		generateExpExp(assignment->rValues.arr[i]);
+		generateExpresion(assignment->rValues.arr[i]);
 
 		// pop it to lValue
 		char lValueName[STRING_BUFFER_LENGTH];
@@ -663,7 +660,7 @@ void generateIf(ASTNodeIf* ifStatement){
 	getUIDLabelName(endIfLabel);
 
 	// generate condition 
-	generateExpExp(ifStatement->condition);
+	generateExpresion(ifStatement->condition);
 	printf("PUSH bool@false\n");	// condition negation for eliminating redundant jumps
 	printf("\nJUMPIFEQS %s\n", elseLabel);
 
@@ -698,7 +695,7 @@ void generateFor(ASTNodeFor* forStatement){
 	printf("\tLABEL %s\n", forLabel);
 
 	// for condition	(eg. i < 5)
-	generateExpExp(forStatement->condition);
+	generateExpresion(forStatement->condition);
 	printf("PUSH bool@false\n");	// condition negation for eliminating redundant jumps
 	printf("\nJUMPIFEQS %s\n", endForLabel);
 
@@ -722,15 +719,9 @@ void generateReturn(ASTNodeReturn* returnStatement){
 
 	// generate all return variables PUSH them to STACK (left-to-right)
 	for (int i = 0; i < returnStatement->rValues.count; i++){
-		generateExpExp(returnStatement->rValues.arr[i]);
+		generateExpresion(returnStatement->rValues.arr[i]);
 	}
 
 	// generate return
 	printf("RETURN\n");
 }
-
-// dummy methods
-void generateExpExp(ExpExp* condition){
-	printf("PUSHS bool@true\n");
-}
-

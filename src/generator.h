@@ -31,6 +31,8 @@ char* generateIntLiteral(int64_t lit, char* out);
 char* generateFloatLiteral(double lit, char* out);
 char* generateStringLiteral(const char* lit,char* out);
 char* generateTermRepresentation(const Term* term,char* out);
+void generateExpresion(ExpExp* exp);
+void generateOperation(OperationType opType, DataType dataType);
 
 // built-in functions generation
 void generateBuiltInPrint(ASTNodeFunctionCall* printCall);
@@ -43,8 +45,6 @@ void generateBuiltInSubstr(ASTNodeFunctionCall* substrCall);
 void generateBuiltInInputs(ASTNodeFunctionCall* inputsStatment);
 void generateBuiltInInputi(ASTNodeFunctionCall* inputiStatment);
 void generateBuiltInInputf(ASTNodeFunctionCall* inputfStatment);
-void generateExpresion(ExpExp* exp);
-void generateOperation(OperationType opType, DataType dataType);
 
 // code statement generation
 void generateAssignment(ASTNodeAssignment *assignment);
@@ -55,11 +55,9 @@ void generateIf(ASTNodeIf* ifStatement);
 void generateFor(ASTNodeFor* forStatement);
 void generateReturn(ASTNodeReturn* returnStatement);
 
+// helpers
 void generateDebug();
-
 int getUID();
 void getUIDLabelName(char* out);
 
-// dummy methods
-void generateExpExp(ExpExp* condition);
 #endif
