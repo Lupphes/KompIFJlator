@@ -72,6 +72,8 @@ const char* enumAtomTermTranslate[] = {
     ":<=:",   /** E->E<=E */
     ":==:",   /** E->E==E */
     ":!=:",   /** E->E!=E */
+    ":--:", /** OP-E->OPE */
+    ":++:" /** OP+E->OPE */
     ":E:"
  };
 

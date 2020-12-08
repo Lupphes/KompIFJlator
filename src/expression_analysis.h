@@ -42,8 +42,9 @@ typedef enum {
     OperatorIsEqual, /** == */
     OperatorNotEqual, /** != */
     OperatorEnd, /** $ */
+    // OperatorUnaryAdd, /** +E */
+    // OperatorUnarySub, /** -E */
 
-    OperationNegate,
     OperatorNothing,
     OperatorError  /** = > */
 } Operator;
@@ -80,7 +81,9 @@ typedef enum {
     OperationLes, /** E->E<E */
     OperationLEq, /** E->E<=E */
     OperationEqu, /** E->E==E */
-    OperationNEq /** E->E!=E */
+    OperationNEq, /** E->E!=E */
+    OperationUnA, /** OP-E->OPE */
+    OperationUnS /** OP+E->OPE */
 } OperationType;
 
 typedef enum {
