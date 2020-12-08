@@ -57,4 +57,7 @@ void generateDebug();
 
 int getUID();
 void getUIDLabelName(char* out);
+
+// dummy methods
+void generateExpExp(ExpExp* condition);
 #endif

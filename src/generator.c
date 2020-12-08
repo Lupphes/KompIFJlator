@@ -104,7 +104,7 @@ void generateUserFunctions(ASTNodeFunction *function){
 		for(int i = (function->function->parameters.count - 1); i >= 0; --i){
 			// foreach parameter
 			// definition
-			char newVarName[4096];
+			char newVarName[STRING_BUFFER_LENGTH];
 			generateVariableName(function->variables.arr[i], newVarName);
 			printf("DEFVAR %s\n", newVarName);
 
@@ -127,7 +127,7 @@ void generateFunctionBody(ASTNodeFunction *function){
 
 	for(int i = 0; i < function->variables.count; i++){
 		if(function->variables.arr[i] != NULL){
-			char newVarName[4096];
+			char newVarName[STRING_BUFFER_LENGTH];
 			generateVariableName(function->variables.arr[i], newVarName);
 			printf("DEFVAR %s\n", newVarName);
 		}
@@ -556,11 +556,74 @@ void generateAssignment(ASTNodeAssignment *assignment){
 }
 
 void generateIf(ASTNodeIf* ifStatement){
+	if (ifStatement == NULL)
+		return;
+
+	// prepare unique labels
+	char elseLabel[STRING_BUFFER_LENGTH];
+	char endIfLabel[STRING_BUFFER_LENGTH];
+	getUIDLabelName(elseLabel);
+	getUIDLabelName(endIfLabel);
+
+	// generate condition 
+	generateExpExp(ifStatement->condition);
+	printf("PUSH bool@false\n");	// condition negation for eliminating redundant jumps
+	printf("\nJUMPIFEQS %s\n", elseLabel);
+
+	// generate true code block and jump to endIfLabel
+	generateFunctionCodeBlock(ifStatement->ifClause->firstStatement);
+	printf("JUMP %s\n", endIfLabel);
+
+	// generate elseLabel
+	printf("\tLABEL %s\n", elseLabel);
+
+	// generate false code block
+	generateFunctionCodeBlock(ifStatement->elseClause->firstStatement);
+
+	// generate endIfLabel
+	printf("\tLABEL %s\n", endIfLabel);
 }
 
 void generateFor(ASTNodeFor* forStatement){
+	if (forStatement == NULL)
+		return;
+
+	// prepare unique labels
+	char forLabel[STRING_BUFFER_LENGTH];
+	char endForLabel[STRING_BUFFER_LENGTH];
+	getUIDLabelName(forLabel);
+	getUIDLabelName(endForLabel);
+
+	// initial assignment 	(eg. i := 0)
+	generateAssignment(forStatement->initAssignment);
+
+	// LABEL for
+	printf("\tLABEL %s\n", forLabel);
+
+	// for condition	(eg. i < 5)
+	generateExpExp(forStatement->condition);
+	printf("PUSH bool@false\n");	// condition negation for eliminating redundant jumps
+	printf("\nJUMPIFEQS %s\n", endForLabel);
+
+    // generate code inside of for   struct _ASTNodeBlock* code;
+    generateFunctionCodeBlock(forStatement->code->firstStatement);
+
+	// generate incrementation
+    // ASTNodeAssignment* incrementAssignment;
+    generateAssignment(forStatement->incrementAssignment);
+
+	// JUMP for
+	printf("JUMP %s\n", forLabel);
+
+	// generate label endfor
+	printf("\tLABEL %s\n", endForLabel);
 }
 
 void generateReturn(ASTNodeReturn* returnStatement){
+}
+
+// dummy methods
+void generateExpExp(ExpExp* condition){
+	printf("PUSH bool@true\n");
 }
 
