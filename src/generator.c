@@ -15,6 +15,7 @@
 
 
 #include "generator.h"
+#include <inttypes.h>
 #define STRING_BUFFER_LENGTH 4096
 
 /**
@@ -128,7 +129,7 @@ char* generateVariableName(const SymbolVariable* var, char* out){
 }
 
 char* generateIntLiteral(int64_t lit, char* out){
-	int len = sprintf(out,"int@%d",lit);
+	int len = sprintf(out,"int@%"PRId64,lit);
 	if (len < 0)
 		exit(INTERNAL_ERROR);
 	return out + len;
@@ -142,10 +143,21 @@ char* generateFloatLiteral(double lit, char* out){
 }
 
 char* generateStringLiteral(const char* lit,char* out){
-	int len = sprintf(out, "float@%s",lit); //Todo
+	int len = sprintf(out, "string@");
 	if (len < 0)
 		exit(INTERNAL_ERROR);
-	return out + len;
+	out += len;
+	for(const char* i = lit; *i !='\0'; i++){
+		if (*i <= 32 || *i == 35 || *i == 92){
+			sprintf(out,"\\%3d",*i);
+			out += 4;
+		} else {
+			*out = *i;
+			out++;
+		}
+	}
+	*out = '\0';
+	return out;
 }
 
 char* generateTermRepresentation(const Term* term,char* out){
@@ -158,6 +170,8 @@ char* generateTermRepresentation(const Term* term,char* out){
 			return generateStringLiteral(strGetStr(&term->value.s),out);
 		case TermVariable:
 			return generateVariableName(term->value.v,out);
+		default:
+			exit(INTERNAL_ERROR); //Shouldn't get to this line.
 	}
 }
 
