@@ -42,8 +42,6 @@ typedef enum {
     OperatorIsEqual, /** == */
     OperatorNotEqual, /** != */
     OperatorEnd, /** $ */
-    // OperatorUnaryAdd, /** +E */
-    // OperatorUnarySub, /** -E */
 
     OperatorNothing,
     OperatorError  /** = > */

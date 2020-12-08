@@ -142,10 +142,8 @@ void printStack(ExpStack *expStack) {
             switch (expStack->values[i].value.ee.type) {
             case ExpExpAtom:
                 printf("%s,", enumAtomTermTranslate[expStack->values[i].value.ee.ExpProperties.atom.type]);
-                // printf("Test,");
                 break;
             case ExpExpOperation:
-                // printf("%s%s%s,", enumAtomTermTranslate[expStack->values[i].value.ee.ExpProperties.operation.value.binary.first->ExpProperties.atom.type], enumOperationTranslate[expStack->values[i].value.ee.ExpProperties.operation.type],  enumAtomTermTranslate[expStack->values[i].value.ee.ExpProperties.operation.value.binary.second->ExpProperties.atom.type]);
                 printf("E,");
                 break;
             }
@@ -236,9 +234,13 @@ int evaluateTypeOfExpressions(ExpExp *newExpExp) {
                 return SEMANTIC_ERROR_TYPE_EXPRESSION;
             } 
         break;
-        case OperationPar:
         case OperationUnA:
         case OperationUnS:
+            if (newExpExp->ExpProperties.operation.value.unary.first->dataType == TypeString) {
+                return SEMANTIC_ERROR_TYPE_EXPRESSION;
+            }
+        break;
+        case OperationPar:
             // default case, no checks
         break;
     }
@@ -307,7 +309,7 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                         switch (previousExpItem.value.op) {
                         case OperatorAdd:
                             if (seekValueStackValue(expStack, &seekExpItem) == INTERNAL_ERROR) {
-                                free(tmp);
+                                freeExpExp(newExpExp);
                                 return INTERNAL_ERROR;
                             }
                             if (seekExpItem.type == ExpItemAssociativity) {
@@ -315,6 +317,10 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                                 newExpExp->ExpProperties.operation.value.unary.first = tmp;
                                 newExpExp->ExpProperties.operation.type = OperationUnA;
                                 newExpExp->dataType = newExpExp->ExpProperties.operation.value.unary.first->dataType;
+                                if (evaluateTypeOfExpressions(newExpExp) == SEMANTIC_ERROR_TYPE_EXPRESSION) {
+                                    freeExpExp(newExpExp);
+                                    return SEMANTIC_ERROR_TYPE_EXPRESSION;
+                                }
                                 evaluationFinished = false;
                                 break;
                             }
@@ -323,7 +329,7 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                             break;
                         case OperatorSubtract:
                             if (seekValueStackValue(expStack, &seekExpItem) == INTERNAL_ERROR) {
-                                free(tmp);
+                                freeExpExp(newExpExp);
                                 return INTERNAL_ERROR;
                             }
                             if (seekExpItem.type == ExpItemAssociativity) {
@@ -331,6 +337,10 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                                 newExpExp->ExpProperties.operation.value.unary.first = tmp;
                                 newExpExp->dataType = newExpExp->ExpProperties.operation.value.unary.first->dataType;
                                 newExpExp->ExpProperties.operation.type = OperationUnS;
+                                if (evaluateTypeOfExpressions(newExpExp) == SEMANTIC_ERROR_TYPE_EXPRESSION) {
+                                    freeExpExp(newExpExp);
+                                    return SEMANTIC_ERROR_TYPE_EXPRESSION;
+                                }
                                 evaluationFinished = false;
                                 break;
                             }
@@ -437,48 +447,27 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
     int returnCode;
     ExpItem previousExpItem;
     ExpItem newExpression;
-    // Operator foundValue;
 
     printStack(expStack); // DEBUG
     seekValueBehindE(expStack, &previousExpItem);
-    switch (previousExpItem.type) {
-        case ExpItemOperator:
-            // foundValue = previousExpItem.value.op;
-            if (isUnaryOperationInStack(expStack)) {
-                ExpItem newUnaryOperation;
-                newUnaryOperation.type = ExpItemExpression;
-                printStack(expStack); // DEBUG
-                if ((returnCode = rulesEvaluation(expStack, &newUnaryOperation.value.ee)) != SUCCESS) {
+    if (isUnaryOperationInStack(expStack)) {
+        ExpItem newUnaryOperation = {.type = ExpItemExpression};
+        printStack(expStack); // DEBUG
+        if ((returnCode = rulesEvaluation(expStack, &newUnaryOperation.value.ee)) != SUCCESS) {
+            return returnCode;
+        }
+        if (pushToStack(expStack, newUnaryOperation) == INTERNAL_ERROR)
+            return INTERNAL_ERROR;
+        printStack(expStack); // DEBUG
+        seekValueBehindE(expStack, &previousExpItem);
+
+        if (expItem->type == ExpItemEnd) {
+            if (expStack->used > 2) {
+               if ((returnCode = evaluateExpression(expStack, &endStartOperator)) != SUCCESS)
                     return returnCode;
-                }
-                if (pushToStack(expStack, newUnaryOperation) == INTERNAL_ERROR)
-                    return INTERNAL_ERROR;
-                printStack(expStack); // DEBUG
-                seekValueBehindE(expStack, &previousExpItem);
-                // foundValue = previousExpItem.value.op;
-                switch (expItem->type) {
-                case ExpItemOperator:
-                    /* code */
-                    break;
-                case ExpItemEnd:
-                    if (expStack->used > 2) {
-                        if ((returnCode = evaluateExpression(expStack, &endStartOperator)) != SUCCESS)
-                            return returnCode;
-                    }
-                    return SUCCESS;
-                    break;
-                default:
-                    break;
-                }
             }
-            break;
-        case ExpItemEnd:
-            // foundValue = previousExpItem.value.op;
-            // Infrmation already there
-            break;
-        default:
-            return SYNTAX_ERROR;
-            break;
+            return SUCCESS;
+        }
     }
     switch (PSATable[previousExpItem.value.op][expItem->value.op]) {
         case AssociativityLeft:

@@ -10,7 +10,7 @@
 int main() {
     int returnCode = 0;
     ExpExp *expression = NULL;
-    OperatorAssign assingmentOperation = 1;
+    OperatorAssign assingmentOperation = 0;
     string ahoj = {.allocSize = 2,.length = 2,.str = "ah"};
     SymbolVariable symbol = {.id = ahoj,.type = TypeInt,.uid = 1505};
     SymbolVariable *haha = &symbol;
@@ -23,6 +23,7 @@ int main() {
        freeExpExp(expression);
        free(expression);
     }
+    freeCurTok();
     freeVariableTableStack();
     printf("Return code is: %d\n", result);
     return result;
