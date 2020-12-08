@@ -15,6 +15,7 @@
 
 
 #include "generator.h"
+#include "expression_analysis.h"
 #include <inttypes.h>
 #define STRING_BUFFER_LENGTH 4096
 #define STRING_BUFFER_LENGTH_SMALL 256
@@ -170,8 +171,6 @@ void generateFunctionCodeBlock(ASTNodeStatement* codeStmnt){
 	}
 }
 
-bool isBinaryOperation(OperationType op);
-
 void generateOperation(OperationType opType, DataType dataType){
 	char buffer[STRING_BUFFER_LENGTH_SMALL];
 	switch(opType){
@@ -197,11 +196,17 @@ void generateOperation(OperationType opType, DataType dataType){
 		case OperationDiv:
 			getUIDLabelName(buffer);
 			printf("POPS GF@BlackHole\n");
-			dataType == TypeInt ? printf("JUMPIFNEQ %s GF@BlackHole int@0\n") : printf("JUMPIFNEQ %s GF@BlackHole float@0x0p+0\n");
+			dataType == TypeInt ? printf("JUMPIFNEQ %s GF@BlackHole int@0\n",buffer) : printf("JUMPIFNEQ %s GF@BlackHole float@0x0p+0\n",buffer);
 			printf("EXIT int@9\n");
 			printf("LABEL %s\n",buffer);
 			printf("PUSHS GF@BlackHole\n");
 			dataType == TypeInt ? printf("IDIV\n") : printf("DIV\n");
+			break;
+		case OperationUnS:
+			printf("POPS GF@BlackHole\n");
+			dataType == TypeInt ? printf("PUSHS int@-1\n") : printf("PUSHS float@-0x1p+0\n");
+			printf("PUSHS GF@BlackHole\n");
+			printf("SUBS\n");
 			break;
 		case OperationGth:
 			printf("GTS\n");
@@ -225,6 +230,7 @@ void generateOperation(OperationType opType, DataType dataType){
 			printf("NOT\n");
 			break;
 		case OperationPar:
+		case OperationUnA:
 			break;
 	}
 }
