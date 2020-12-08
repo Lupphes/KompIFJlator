@@ -389,12 +389,81 @@ void generateBuiltInSubstr(ASTNodeFunctionCall* substrCall){
 			printf("GETCHAR TF@strBuf TF@i\n");
 			printf("CONCAT %s %s TF@strBuf\n",output,output);
 			printf("ADD TF@i TF@i int@1\n");
-			printf("JMP %s_ForCheck\n");
+			printf("JUMP %s_ForCheck\n");
 
-			
+
 		printf("LABEL %s_ELSE\n",label);
 		printf("MOVE %s int@1\n",errorCode);
 	
 	printf("LABEL %s_END",label);
 
+}
+
+void generateBuiltInInputs(ASTNodeFunctionCall* inputsStatment){
+	char output[STRING_BUFFER_LENGTH_SMALL];
+	char errorCode[STRING_BUFFER_LENGTH_SMALL];
+	char label[STRING_BUFFER_LENGTH_SMALL];
+	generateVariableName(inputsStatment->lValues.arr[0],output);
+	generateVariableName(inputsStatment->lValues.arr[1],errorCode);
+	getUIDLabelName(label);
+
+	printf("CREATEFRAME\n");
+	printf("DEFVAR TF@out\n");
+	printf("READ TF@out string\n");
+	printf("JUMPIFEQ %s_ERROR TF@out nil@nil\n");
+
+		printf("MOVE %s TF@out\n",output);
+		printf("MOVE %s int@0\n",errorCode);
+		printf("JUMP %s_END",label);
+
+		printf("LABEL %s_ERROR\n",label);
+		printf("MOVE %s int@1\n",errorCode);
+	
+	printf("LABEL %s_END\n",label);
+}
+
+void generateBuiltInInputi(ASTNodeFunctionCall* inputiStatment){
+	char output[STRING_BUFFER_LENGTH_SMALL];
+	char errorCode[STRING_BUFFER_LENGTH_SMALL];
+	char label[STRING_BUFFER_LENGTH_SMALL];
+	generateVariableName(inputiStatment->lValues.arr[0],output);
+	generateVariableName(inputiStatment->lValues.arr[1],errorCode);
+	getUIDLabelName(label);
+
+	printf("CREATEFRAME\n");
+	printf("DEFVAR TF@out\n");
+	printf("READ TF@out int\n");
+	printf("JUMPIFEQ %s_ERROR TF@out nil@nil\n");
+
+		printf("MOVE %s TF@out\n",output);
+		printf("MOVE %s int@0\n",errorCode);
+		printf("JUMP %s_END",label);
+
+		printf("LABEL %s_ERROR\n",label);
+		printf("MOVE %s int@1\n",errorCode);
+	
+	printf("LABEL %s_END\n",label);
+}
+
+void generateBuiltInInputf(ASTNodeFunctionCall* inputfStatment){
+	char output[STRING_BUFFER_LENGTH_SMALL];
+	char errorCode[STRING_BUFFER_LENGTH_SMALL];
+	char label[STRING_BUFFER_LENGTH_SMALL];
+	generateVariableName(inputfStatment->lValues.arr[0],output);
+	generateVariableName(inputfStatment->lValues.arr[1],errorCode);
+	getUIDLabelName(label);
+
+	printf("CREATEFRAME\n");
+	printf("DEFVAR TF@out\n");
+	printf("READ TF@out float\n");
+	printf("JUMPIFEQ %s_ERROR TF@out nil@nil\n");
+
+		printf("MOVE %s TF@out\n",output);
+		printf("MOVE %s int@0\n",errorCode);
+		printf("JUMP %s_END",label);
+
+		printf("LABEL %s_ERROR\n",label);
+		printf("MOVE %s int@1\n",errorCode);
+	
+	printf("LABEL %s_END\n",label);
 }
