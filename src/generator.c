@@ -131,21 +131,52 @@ void generateDebug(){
 	printf("WRITE string@-------\\010\n");
 }
 
+void generateFunctionCall(ASTNodeFunctionCall* call){
+	if (call->function->builtIn)
+		generateBuiltInFunctionCall(call);
+	else
+		generateUserFunctionCall(call);
+}
 
-void generateUserFunctionCall(ASTNodeFunctionCall call){
+void generateBuiltInFunctionCall(ASTNodeFunctionCall* call){
+	if (!strCmpConstStr(&call->function->id,"inputs"))
+		generateBuiltInInputs(call);
+	else if (!strCmpConstStr(&call->function->id,"inputi"))
+		generateBuiltInInputi(call);
+	else if (!strCmpConstStr(&call->function->id,"inputf"))
+		generateBuiltInInputf(call);
+	else if (!strCmpConstStr(&call->function->id,"print"))
+		generateBuiltInPrint(call);
+	else if (!strCmpConstStr(&call->function->id,"int2float"))
+		generateBuiltInInt2Float(call);
+	else if (!strCmpConstStr(&call->function->id,"float2int"))
+		generateBuiltInFloat2Int(call);
+	else if (!strCmpConstStr(&call->function->id,"len"))
+		generateBuiltInLen(call);
+	else if (!strCmpConstStr(&call->function->id,"substr"))
+		generateBuiltInSubstr(call);
+	else if (!strCmpConstStr(&call->function->id,"ord"))
+		generateBuiltInOrd(call);
+	else if (!strCmpConstStr(&call->function->id,"chr"))
+		generateBuiltInChr(call);
+	else
+		exit(INTERNAL_ERROR);
+}
+
+void generateUserFunctionCall(ASTNodeFunctionCall* call){
 	//Pushing parameters to stack.
-	for (int i = 0;i < call.parameters.count;i++){
+	for (int i = 0;i < call->parameters.count;i++){
 		char buffer[STRING_BUFFER_LENGTH];
-		generateTermRepresentation(call.parameters.arr[i],buffer);
+		generateTermRepresentation(call->parameters.arr[i],buffer);
 		printf("PUSHS %s\n",buffer);
 	}
 	//Calling the function
-	printf("CALL %s\n",strGetStr(&call.function->id));
+	printf("CALL %s\n",strGetStr(&call->function->id));
 	printf("POPFRAME\n");
 	//Assigning the return values
-	for (int i = call.lValues.count-1;i >= 0;i--){
+	for (int i = call->lValues.count-1;i >= 0;i--){
 		char buffer[STRING_BUFFER_LENGTH];
-		generateVariableName(call.lValues.arr[i],buffer);
+		generateVariableName(call->lValues.arr[i],buffer);
 		printf("POPS %s\n",buffer);
 	}
 }
@@ -389,7 +420,7 @@ void generateBuiltInSubstr(ASTNodeFunctionCall* substrCall){
 			printf("GETCHAR TF@strBuf TF@i\n");
 			printf("CONCAT %s %s TF@strBuf\n",output,output);
 			printf("ADD TF@i TF@i int@1\n");
-			printf("JUMP %s_ForCheck\n");
+			printf("JUMP %s_ForCheck\n",label);
 
 
 		printf("LABEL %s_ELSE\n",label);
@@ -410,7 +441,7 @@ void generateBuiltInInputs(ASTNodeFunctionCall* inputsStatment){
 	printf("CREATEFRAME\n");
 	printf("DEFVAR TF@out\n");
 	printf("READ TF@out string\n");
-	printf("JUMPIFEQ %s_ERROR TF@out nil@nil\n");
+	printf("JUMPIFEQ %s_ERROR TF@out nil@nil\n",label);
 
 		printf("MOVE %s TF@out\n",output);
 		printf("MOVE %s int@0\n",errorCode);
@@ -433,7 +464,7 @@ void generateBuiltInInputi(ASTNodeFunctionCall* inputiStatment){
 	printf("CREATEFRAME\n");
 	printf("DEFVAR TF@out\n");
 	printf("READ TF@out int\n");
-	printf("JUMPIFEQ %s_ERROR TF@out nil@nil\n");
+	printf("JUMPIFEQ %s_ERROR TF@out nil@nil\n",label);
 
 		printf("MOVE %s TF@out\n",output);
 		printf("MOVE %s int@0\n",errorCode);
@@ -456,7 +487,7 @@ void generateBuiltInInputf(ASTNodeFunctionCall* inputfStatment){
 	printf("CREATEFRAME\n");
 	printf("DEFVAR TF@out\n");
 	printf("READ TF@out float\n");
-	printf("JUMPIFEQ %s_ERROR TF@out nil@nil\n");
+	printf("JUMPIFEQ %s_ERROR TF@out nil@nil\n",label);
 
 		printf("MOVE %s TF@out\n",output);
 		printf("MOVE %s int@0\n",errorCode);
