@@ -64,6 +64,7 @@ void testProg1(ASTRoot *root){
 	root->mainFunction->function = newFunction;
 
 	initSymbolVariableArray(&root->mainFunction->variables);
+	root->mainFunction->variables.count = 1;
 	SymbolVariable *newVar = (SymbolVariable *)malloc(sizeof(SymbolVariable));
 	strInit(&newVar->id);
 	strCopyConstString(&newVar->id, "a");

@@ -25,9 +25,9 @@ int generateMain(ASTNodeFunction *function);
 void generateUserFunctions(ASTNodeFunction *function);
 void generateFunction(ASTNodeFunction *function);
 void generateFunctionBody(ASTNodeFunction *function);
-int generateDefinitionsOfVariables(SymbolVariableArray *variables);
 void generateFunctionCall(ASTNodeStatement *functionCall);
 void generateFunctionCodeBlock(ASTNodeBlock* code);
+char* generateVariableName(const SymbolVariable* var, char* out);
 
 void generateDebug();
 

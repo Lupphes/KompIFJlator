@@ -98,39 +98,59 @@ void generateFunction(ASTNodeFunction *function){
 
 	generateFunctionBody(function);
 
-	printf("\nPOPFRAME\n");
 	printf("RETURN\n");		// není náhodou RETURN už uložený v kodu ??
 }
 
 // Generates function body. Param function guaranteed to NOT be NULL.
 void generateFunctionBody(ASTNodeFunction *function){
-	if(function == NULL){	// delete this. Parameter is guaranteed to NOT be NULL
-		return;
+	// Generate Definitions Of Variables
+	printf("\n# Define all variables of function.\n");
+
+	for(int i = 0; i < function->variables.count; i++){
+		if(function->variables.arr[i] != NULL){
+			char name[4096];
+			generateVariableName(function->variables.arr[i], name);
+			printf("DEFVAR %s\n", name);
+		}
 	}
-	printf("WRITE string@Hello\\032main!\\010\n");
 
-	generateDefinitionsOfVariables(&function->variables);
-
+	// generate function code block
 	generateFunctionCodeBlock(function->code);
 }
 
+// Generate code blocK of the function
 void generateFunctionCodeBlock(ASTNodeBlock* code){
-	printf("# Code of this function.\n");
+	printf("\n# Code of this function.\n");
+	printf("WRITE string@I'm\\032still\\032here!\\010\n");
 }
 
-int generateDefinitionsOfVariables(SymbolVariableArray *variables){
-	printf("#DEFVAR all of them.\n");
-	return 42; // becuase 42
-}
-
-// Generates functioncall
+// Generate functioncall
 void generateFunctionCall(ASTNodeStatement *functionCall){
 	//Až bude funkce generateFunctionCall, tak se skočí do generateBuiltInFunctionCall, 
 	//pozná se, co to je za funkce a zavolá se správná obslužná funkce.
 
+	/*
+	foo, bar = returns2(5, foo, ":)")
+
+	PUSHS int@5
+	PUSHS LF@0
+	PUSHS string@:)
+	CALL returns2
+	POPFRAME       printf("\nPOPFRAME\n"); // uklízí volající
+	POPS LF@1
+	POPS LF@0
+	*/
 }
 
-// generates debug instruction to ifjcode output
+// Generate variable name to format "LF@$uid"
+char* generateVariableName(const SymbolVariable* var, char* out){
+	int len = var->type != TypeBlackHole ? sprintf(out,"LF@$%d",var->uid) : sprintf(out,"nil@nil");
+    if (len < 0)
+        exit(INTERNAL_ERROR);
+    return out + len;
+}
+
+// Generate debug instruction to ifjcode output
 void generateDebug(){
 	printf("WRITE string@-------\\010\n");
 	printf("BREAK\n");
@@ -142,7 +162,6 @@ void generateDebug(){
 
 generateBuiltInPrint, 
 
-generateVariableName, 
 generateIntLiteral, 
 generateFloatLiteral, 
 generateStringLiteral, 
