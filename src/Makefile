@@ -49,7 +49,7 @@ $(INTER_CODE)-test:	$(TESTSDIR)/$(INTER_CODE)/*.c $(LIBDIR)/*.c $(LIBDIR)/*.h
 	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/$(INTER_CODE)/*.c $(LIBDIR)/$(INTER_CODE).c
 
 generator-test: directories $(TESTSDIR)/generator/*.c $(LIBDIR)/*.c $(LIBDIR)/*.h
-	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/generator/*.c $(LIBDIR)/*.c
+	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/generator/*.c parser_common.c parser_builtin_functions.c scanner.c parser.c symtable.c helper.c str.c expression_analysis.c ast.c generator.c
 
 compiler: directories $(LIBDIR)/*.h $(LIBDIR)/*.c 
 	$(CC) $(CFLAGS) $(WEXFLAGS) -o $(BUILDDIR)/$@  main.c parser_common.c parser_builtin_functions.c scanner.c parser.c symtable.c helper.c str.c expression_analysis.c ast.c generator.c

@@ -64,6 +64,7 @@ int generateMain(ASTNodeFunction *function){
 
 	printf("\nPOPFRAME\n");
 	printf("CREATEFRAME\n");
+	printf("EXIT int@0\n");
 	//generateDebug();
 
 	return SUCCESS;
@@ -92,6 +93,7 @@ void generateFunction(ASTNodeFunction *function){
 		printf("LABEL %s\n", strGetStr(&function->function->id));
 	}
 
+	printf("CREATEFRAME\n");
 	printf("PUSHFRAME\n\n");
 
 	generateFunctionBody(function);
@@ -106,12 +108,26 @@ void generateFunctionBody(ASTNodeFunction *function){
 		return;
 	}
 	printf("WRITE string@Hello\\032main!\\010\n");
-	// definice všech promennych
+
+	generateDefinitionsOfVariables(&function->variables);
+
+	generateFunctionCodeBlock(function->code);
+}
+
+void generateFunctionCodeBlock(ASTNodeBlock* code){
+	printf("# Code of this function.\n");
+}
+
+int generateDefinitionsOfVariables(SymbolVariableArray *variables){
 	printf("#DEFVAR all of them.\n");
-	
+	return 42; // becuase 42
+}
 
+// Generates functioncall
+void generateFunctionCall(ASTNodeStatement *functionCall){
+	//Až bude funkce generateFunctionCall, tak se skočí do generateBuiltInFunctionCall, 
+	//pozná se, co to je za funkce a zavolá se správná obslužná funkce.
 
-	// code 
 }
 
 // generates debug instruction to ifjcode output
@@ -120,3 +136,16 @@ void generateDebug(){
 	printf("BREAK\n");
 	printf("WRITE string@-------\\010\n");
 }
+
+
+/* Alpatron: 
+
+generateBuiltInPrint, 
+
+generateVariableName, 
+generateIntLiteral, 
+generateFloatLiteral, 
+generateStringLiteral, 
+generateTermRepresentation
+
+*/
