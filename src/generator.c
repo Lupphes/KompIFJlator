@@ -17,6 +17,17 @@
 #include "generator.h"
 #include <inttypes.h>
 #define STRING_BUFFER_LENGTH 4096
+#define STRING_BUFFER_LENGTH_SMALL 256
+
+int getUID(){
+	static int uid = 0;
+	return uid++;
+}
+
+void getUIDLabelName(char* out){
+	if (sprintf(out,"&%d",getUID()) < 0)
+		exit(INTERNAL_ERROR);
+}
 
 /**
  *	@brief	Generates the whole tree
@@ -130,6 +141,7 @@ void generateUserFunctionCall(ASTNodeFunctionCall call){
 	}
 	//Calling the function
 	printf("CALL %s\n",strGetStr(&call.function->id));
+	printf("POPFRAME\n");
 	//Assigning the return values
 	for (int i = call.lValues.count-1;i >= 0;i--){
 		char buffer[STRING_BUFFER_LENGTH];
@@ -139,7 +151,7 @@ void generateUserFunctionCall(ASTNodeFunctionCall call){
 }
 
 char* generateVariableName(const SymbolVariable* var, char* out){
-	int len = var->type != TypeBlackHole ? sprintf(out,"LF@uid_%d",var->uid) : sprintf(out,"nil@nil");
+	int len = var->type != TypeBlackHole ? sprintf(out,"LF@$%d",var->uid) : sprintf(out,"nil@nil");
 	if (len < 0)
 		exit(INTERNAL_ERROR);
 	return out + len;
@@ -198,4 +210,78 @@ void generateBuiltInPrint(ASTNodeFunctionCall* printCall){
 		generateTermRepresentation(printCall->parameters.arr[i],argBuffer);
 		printf("WRITE %s\n",argBuffer);
 	}
+}
+
+void generateBuiltInInt2Float(ASTNodeFunctionCall* int2floatCall){
+	char lValue[STRING_BUFFER_LENGTH];
+	char rValue[STRING_BUFFER_LENGTH];
+	generateVariableName(int2floatCall->lValues.arr[0],lValue);
+	generateTermRepresentation(int2floatCall->parameters.arr[0],rValue);
+	printf("INT2FLOAT %s %s\n",lValue,rValue);
+}
+
+void generateBuiltInFloat2Int(ASTNodeFunctionCall* float2intCall){
+	char lValue[STRING_BUFFER_LENGTH];
+	char rValue[STRING_BUFFER_LENGTH];
+	generateVariableName(float2intCall->lValues.arr[0],lValue);
+	generateTermRepresentation(float2intCall->parameters.arr[0],rValue);
+	printf("FLOAT2INT %s %s\n",lValue,rValue);
+}
+
+void generateBuiltInLen(ASTNodeFunctionCall* lenCall){
+	char lValue[STRING_BUFFER_LENGTH];
+	char rValue[STRING_BUFFER_LENGTH];
+	generateVariableName(lenCall->lValues.arr[0],lValue);
+	generateTermRepresentation(lenCall->parameters.arr[0],rValue);
+	printf("STRLEN %s %s\n",lValue,rValue);
+}
+
+void generateBuiltInChr(ASTNodeFunctionCall* lenCall){
+	//str, int <- int<0;255>
+	/*
+	if (i < 0 || i > 255)
+		return _, 1
+	else
+		return (char)i, 0
+	*/
+	/*
+	PUSHS int@255
+	PUSHS LF@i
+	GTS
+	PUSHS int@0
+	PUSHS LF@i
+	LTS 
+	ORS
+	PUSHS bool@true
+	JUMPIFNEQS &UID_ELSE
+	MOVE LF@R2 int@1
+	JUMP &UID_END
+	LABEL &UID_ELSE
+	INT2CHAR LF@R1 LF@i
+	MOVE LF@R2 int@0
+	LABEL &UID_END
+	*/
+	char output[STRING_BUFFER_LENGTH_SMALL];
+	char errorCode[STRING_BUFFER_LENGTH_SMALL];
+	char input[STRING_BUFFER_LENGTH_SMALL];
+	char label[STRING_BUFFER_LENGTH_SMALL];
+	generateVariableName(lenCall->lValues.arr[0],output);
+	generateVariableName(lenCall->lValues.arr[1],errorCode);
+	generateTermRepresentation(lenCall->parameters.arr[0],input);
+	getUIDLabelName(label);
+	printf("PUSHS int@255\n");
+	printf("PUSHS %s\n",input);
+	printf("GTS");
+	printf("PUSHS int@0\n");
+	printf("PUSHS %s\n",input);
+	printf("LTS\n");
+	printf("ORS\n");
+	printf("PUSHS bool@true\n");
+	printf("JUMPIFNEQS %s_ELSE\n",label);
+	printf("MOVE %s int@1\n",errorCode);
+	printf("JUMP %s_END",label);
+	printf("LABEL %s_ELSE\n",label);
+	printf("INT2CHAR %s %s",output,input);
+	printf("MOVE %s int@0\n",errorCode);
+	printf("LABEL %s_END",label);
 }
