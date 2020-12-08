@@ -102,6 +102,9 @@ void generateFunction(ASTNodeFunction *function){
 
 // Generates function body. Param function guaranteed to NOT be NULL.
 void generateFunctionBody(ASTNodeFunction *function){
+	if(function == NULL){	// delete this. Parameter is guaranteed to NOT be NULL
+		return;
+	}
 	printf("WRITE string@Hello\\032main!\\010\n");
 	// definice všech promennych
 	printf("#DEFVAR all of them.\n");
