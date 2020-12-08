@@ -25,6 +25,7 @@
 #include "scanner.h"
 #include "parser_builtin_functions.h"
 #include "ast.h"
+#include "generator.h"
 
 Token curTok = {TokenEOF}; //We initialise the current token so that the function nextToken works properly.
 Token cacheTok = {TokenEOF};
@@ -63,7 +64,7 @@ int beginParsing(){
         callAndHandleException_clean(validateFunctionCall(function,dubiousFunctionCalls.arr[i].lValues,dubiousFunctionCalls.arr[i].functionParameters));
     }
     
-    //TODO: Start code generation here.
+    generateTree(&astRoot);
 
     CLEAN_UP:
     freeAST(&astRoot);
