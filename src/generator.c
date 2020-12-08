@@ -144,24 +144,24 @@ void generateFunctionCodeBlock(ASTNodeStatement* codeStmnt){
 	// go through all codeStatments and generate them
 	while(codeStmnt != NULL){
 		// generate this codeStatment
-		switch(codeStmnt->type){ 
-			case StatementInvalid:
-				generateStatementInvalid(codeStmnt);
-				break;
+		switch(codeStmnt->type){
 			case StatementTypeAssignment:
-				generateStatementTypeAssignment(codeStmnt);
+				generateAssignment(&codeStmnt->value.assignment);
 				break;
 			case StatementTypeFunctionCall:
-				generateStatementTypeFunctionCall(codeStmnt);
+				generateFunctionCall(&codeStmnt->value.functionCall);
 				break;
 			case StatementTypeIf:
-				generateStatementTypeIf(codeStmnt);
+				generateIf(&codeStmnt->value.ifStatement);
 				break;
 			case StatementTypeFor:
-				generateStatementTypeFor(codeStmnt);
+				generateFor(&codeStmnt->value.forStatement);
 				break;
 			case StatementTypeReturn:
-				generateStatementTypeReturn(codeStmnt);
+				generateReturn(&codeStmnt->value.returnStatement);
+				break;
+			default:
+				fprintf(stderr, "Unknown ASTStatementType: %d\n", codeStmnt->type);
 				break;
 		}
 
@@ -548,25 +548,18 @@ void generateBuiltInInputf(ASTNodeFunctionCall* inputfStatment){
 }
 
 void generateStatementInvalid(ASTNodeStatement* codeStmnt){
-
 }
 
-void generateStatementTypeAssignment(ASTNodeStatement* codeStmnt){
+void generateAssignment(ASTNodeAssignment *assignment){
 	printf("# Statement Assignment generated.\n");
 }
 
-void generateStatementTypeFunctionCall(ASTNodeStatement* codeStmnt){
-
+void generateIf(ASTNodeIf* ifStatement){
 }
 
-void generateStatementTypeIf(ASTNodeStatement* codeStmnt){
-
+void generateFor(ASTNodeFor* forStatement){
 }
 
-void generateStatementTypeFor(ASTNodeStatement* codeStmnt){
-
+void generateReturn(ASTNodeReturn* returnStatement){
 }
 
-void generateStatementTypeReturn(ASTNodeStatement* codeStmnt){
-
-}

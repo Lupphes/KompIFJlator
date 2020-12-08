@@ -26,13 +26,12 @@ void generateUserFunctions(ASTNodeFunction *function);
 void generateFunctionBody(ASTNodeFunction *function);
 void generateFunctionCodeBlock(ASTNodeStatement* codeStmnt);
 char* generateVariableName(const SymbolVariable* var, char* out);
-void generateFunctionCall(ASTNodeFunctionCall* call);
-void generateBuiltInFunctionCall(ASTNodeFunctionCall* call);
-void generateUserFunctionCall(ASTNodeFunctionCall* call);
 char* generateIntLiteral(int64_t lit, char* out);
 char* generateFloatLiteral(double lit, char* out);
 char* generateStringLiteral(const char* lit,char* out);
 char* generateTermRepresentation(const Term* term,char* out);
+
+// built-in functions generation
 void generateBuiltInPrint(ASTNodeFunctionCall* printCall);
 void generateBuiltInInt2Float(ASTNodeFunctionCall* int2floatCall);
 void generateBuiltInFloat2Int(ASTNodeFunctionCall* float2intCall);
@@ -44,12 +43,15 @@ void generateBuiltInInputs(ASTNodeFunctionCall* inputsStatment);
 void generateBuiltInInputi(ASTNodeFunctionCall* inputiStatment);
 void generateBuiltInInputf(ASTNodeFunctionCall* inputfStatment);
 
-void generateStatementInvalid(ASTNodeStatement* codeStmnt);
-void generateStatementTypeAssignment(ASTNodeStatement* codeStmnt);
-void generateStatementTypeFunctionCall(ASTNodeStatement* codeStmnt);
-void generateStatementTypeIf(ASTNodeStatement* codeStmnt);
-void generateStatementTypeFor(ASTNodeStatement* codeStmnt);
-void generateStatementTypeReturn(ASTNodeStatement* codeStmnt);
+// code statement generation
+void generateAssignment(ASTNodeAssignment *assignment);
+void generateFunctionCall(ASTNodeFunctionCall* call);
+void generateBuiltInFunctionCall(ASTNodeFunctionCall* call);
+void generateUserFunctionCall(ASTNodeFunctionCall* call);
+void generateIf(ASTNodeIf* ifStatement);
+void generateFor(ASTNodeFor* forStatement);
+void generateReturn(ASTNodeReturn* returnStatement);
+
 void generateDebug();
 
 int getUID();
