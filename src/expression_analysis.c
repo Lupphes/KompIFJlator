@@ -105,6 +105,11 @@ int popFromStack(ExpStack *expStack, ExpItem *expItem) {
 }
 
 void freeExpStack(ExpStack *expStack) {
+    for (int i = 0; i < expStack->used; i++) {
+        if (expStack->values[i].type == ExpItemExpression) {
+            freeExpExp(&expStack->values[i].value.ee);
+        }
+    }
     free(expStack->values);
     expStack->values = NULL;
     expStack->used = 0;
@@ -310,12 +315,16 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                                 case ExpExpAtom:
                                     switch (newExpExp->ExpProperties.operation.value.binary.second->ExpProperties.atom.type) {
                                     case TermIntegerLiteral:
-                                        if (newExpExp->ExpProperties.operation.value.binary.second->ExpProperties.atom.value.i == 0)
+                                        if (newExpExp->ExpProperties.operation.value.binary.second->ExpProperties.atom.value.i == 0) {
+                                            free(newExpExp->ExpProperties.operation.value.binary.second);
                                             return SEMANTIC_ERROR_DIV_ZERO;
+                                        }
                                         break;
                                     case TermFloatLiteral:
-                                        if (newExpExp->ExpProperties.operation.value.binary.second->ExpProperties.atom.value.d == 0.0)
+                                        if (newExpExp->ExpProperties.operation.value.binary.second->ExpProperties.atom.value.d == 0.0) {
+                                            free(newExpExp->ExpProperties.operation.value.binary.second);
                                             return SEMANTIC_ERROR_DIV_ZERO;
+                                        }
                                         break;
                                     default:
                                         break;
@@ -364,6 +373,7 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                     newExpExp->ExpProperties.operation.value.binary.first = tmp;
                     newExpExp->dataType = newExpExp->ExpProperties.operation.type >= OperationGth ? TypeBool : newExpExp->ExpProperties.operation.value.binary.first->dataType; //Enum is magic is happening.
                     if (evaluateTypeOfExpressions(newExpExp) == SEMANTIC_ERROR_TYPE_EXPRESSION) {
+                        freeExpExp(newExpExp);
                         return SEMANTIC_ERROR_TYPE_EXPRESSION;
                     }
                     evaluationFinished = false;
@@ -550,9 +560,9 @@ int addOperatorAssignToStack(ExpStack *expStack, OperatorAssign assingmentOperat
     ExpItem atomExpItem;
     atomExpItem.type = ExpItemExpression;
     atomExpItem.value.ee.type = ExpExpAtom;
+    atomExpItem.value.ee.dataType = symbol->type;
     atomExpItem.value.ee.ExpProperties.atom.type = TermVariable;
     atomExpItem.value.ee.ExpProperties.atom.value.v = symbol;
-    atomExpItem.value.ee.dataType = symbol->type;
     if (pushToStack(expStack, atomExpItem) == INTERNAL_ERROR) {
         return INTERNAL_ERROR;
     }
@@ -592,8 +602,6 @@ int addOperatorAssignToStack(ExpStack *expStack, OperatorAssign assingmentOperat
     return SUCCESS;
 }
 
-
-
 int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, const SymbolVariable *symbol) {
     /* Stack initialization */
     ExpStack expStack;
@@ -632,7 +640,7 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
         freeExpStack(&expStack);
         return NO_EXPRESSION;
     } else if (expItem.type != ExpItemEnd && expStack.used > 2) {
-        if ((returnCode = evaluateExpression(&expStack, &endStartOperator)) != SUCCESS) { 
+        if ((returnCode = evaluateExpression(&expStack, &endStartOperator)) != SUCCESS) {
             freeExpStack(&expStack);
             return returnCode;
         }
@@ -651,6 +659,10 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
                 freeExpStack(&expStack);
                 return returnCode;
             }
+            if (seekValueStackValue(&expStack, &expItem) == INTERNAL_ERROR) {
+                freeExpStack(&expStack);
+                return INTERNAL_ERROR; 
+            }
             printStack(&expStack); // DEBUG
         }
         ExpExp* tmp;
@@ -663,7 +675,8 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
         return INTERNAL_ERROR;
     }
     printStack(&expStack); // DEBUG
-
+    if (popFromStack(&expStack, &expItem) == INTERNAL_ERROR)
+        return INTERNAL_ERROR;
     freeExpStack(&expStack);
     return SUCCESS;
 }
