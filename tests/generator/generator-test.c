@@ -18,10 +18,37 @@
 #include <stdlib.h>
 #include <stdlib.h>
 
-int main(int argc, char const *argv[]) {
-	ASTRoot root;
-	int returnValue = generateTree(&root);
+// free all the tree
+void freeTree(ASTRoot *root){
+	/* TODO */
+	fprintf(stderr, "Freeing root\n");
+}
 
-	fprintf(stderr, "returnValue: %d\n", returnValue);
+void testProg1(ASTRoot *root){
+	/*
+	package main
+
+	main(){
+		a := 0
+		a = 1
+		a++;
+	}
+	*/ 
+
+	root->userFunctions = NULL;
+	root->mainFunction = (ASTNodeFunction *) malloc(sizeof(ASTNodeFunction));
+
+	// TODO define main function as shown higher
+
+	root->mainFunction->next = NULL;
+}
+
+int main() {
+	ASTRoot root;
+
+	testProg1(&root);
+	generateTree(&root);
+	free(&root);
+
 	return 0;
 }

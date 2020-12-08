@@ -22,11 +22,11 @@ makeAndRun(){
 		$TESTBUILD > $TESTOUTFILE
 
 		if [ $printall -eq $TRUE ]; then 
-			echo "-------ouptut.ifjcode:"
+			echo "---------------------------ouptut.ifjcode--------------------------"
 			cat ../build/generator-test.ifjcode
 		fi
 
-		echo "------------ifjcode20:"
+		echo "---------------------------ifjcode20-------------------------------"
 		$IFJCODEINTERPRET $TESTOUTFILE
 	fi
 }
@@ -74,10 +74,4 @@ case $1 in
 		;;
 esac
 
-
 exit 
-
-# This file compares two outputs from inter_code-test.c
-# and prints th result
-# For correct response run with:
-# %PROJECTDIR%/src$ ./../tests/inter_code/inter_code-test.sh

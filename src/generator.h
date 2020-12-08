@@ -18,13 +18,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ast.h"
+#include "error.h"
 
-/**
- *	@brief	Generates the whole tree
- *
- *	@param	root	Root of the tree
- */
 int generateTree(ASTRoot *root);
+int generateMain(ASTNodeFunction *function);
+void generateUserFunctions(ASTNodeFunction *function);
+void generateFunction(ASTNodeFunction *function);
 
 
 #endif
