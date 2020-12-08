@@ -549,15 +549,17 @@ int checkIfValidToken(Token *token, ExpStack *expStack, ExpItem *expItem) {
 int addOperatorAssignToStack(ExpStack *expStack, OperatorAssign assingmentOperation, const SymbolVariable *symbol) {
     int returnCode;
     ExpItem tempPop;
+    // if ((tempPop = malloc(sizeof(ExpItem))) == NULL)
+    //     return INTERNAL_ERROR;
     if (popFromStack(expStack, &tempPop) == INTERNAL_ERROR)
         return INTERNAL_ERROR;
     printStack(expStack); // DEBUG
     ExpItem atomExpItem;
     atomExpItem.type = ExpItemExpression;
     atomExpItem.value.ee.type = ExpExpAtom;
+    atomExpItem.value.ee.dataType = symbol->type;
     atomExpItem.value.ee.ExpProperties.atom.type = TermVariable;
     atomExpItem.value.ee.ExpProperties.atom.value.v = symbol;
-    atomExpItem.value.ee.dataType = symbol->type;
     if (pushToStack(expStack, atomExpItem) == INTERNAL_ERROR) {
         return INTERNAL_ERROR;
     }
@@ -596,8 +598,6 @@ int addOperatorAssignToStack(ExpStack *expStack, OperatorAssign assingmentOperat
     printStack(expStack); // DEBUG
     return SUCCESS;
 }
-
-
 
 int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, const SymbolVariable *symbol) {
     /* Stack initialization */
@@ -656,6 +656,10 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
                 freeExpStack(&expStack);
                 return returnCode;
             }
+            if (seekValueStackValue(&expStack, &expItem) == INTERNAL_ERROR) {
+                freeExpStack(&expStack);
+                return INTERNAL_ERROR; 
+            }
             printStack(&expStack); // DEBUG
         }
         ExpExp* tmp;
@@ -668,7 +672,8 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
         return INTERNAL_ERROR;
     }
     printStack(&expStack); // DEBUG
-
+    if (popFromStack(&expStack, &expItem) == INTERNAL_ERROR)
+        return INTERNAL_ERROR;
     freeExpStack(&expStack);
     return SUCCESS;
 }
