@@ -43,6 +43,8 @@ void generateBuiltInSubstr(ASTNodeFunctionCall* substrCall);
 void generateBuiltInInputs(ASTNodeFunctionCall* inputsStatment);
 void generateBuiltInInputi(ASTNodeFunctionCall* inputiStatment);
 void generateBuiltInInputf(ASTNodeFunctionCall* inputfStatment);
+void generateExpresion(ExpExp* exp);
+void generateOperation(OperationType opType, DataType dataType);
 
 // code statement generation
 void generateAssignment(ASTNodeAssignment *assignment);

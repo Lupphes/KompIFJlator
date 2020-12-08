@@ -16,6 +16,7 @@
 
 
 #include "generator.h"
+#include "expression_analysis.h"
 #include <inttypes.h>
 #define STRING_BUFFER_LENGTH 4096
 #define STRING_BUFFER_LENGTH_SMALL 256
@@ -168,6 +169,89 @@ void generateFunctionCodeBlock(ASTNodeStatement* codeStmnt){
 
 		// move to the next code statement
 		codeStmnt = codeStmnt->next;
+	}
+}
+
+void generateOperation(OperationType opType, DataType dataType){
+	char buffer[STRING_BUFFER_LENGTH_SMALL];
+	switch(opType){
+		case OperationAdd:
+			if (dataType == TypeString){
+				printf("CREATEFRAME\n");
+				printf("DEFVAR TF@left\n");
+				printf("DEFVAR TF@right\n");
+				printf("POPS TF@right\n");
+				printf("POPS TF@left\n");
+				printf("CONCAT TF@left TF@left TF@right\n");
+				printf("PUSHS TF@left\n");
+			} else {
+				printf("ADDS\n");
+			}
+			break;
+		case OperationSub:
+			printf("SUBS\n");
+			break;
+		case OperationMul:
+			printf("MULS\n");
+			break;
+		case OperationDiv:
+			getUIDLabelName(buffer);
+			printf("POPS GF@BlackHole\n");
+			dataType == TypeInt ? printf("JUMPIFNEQ %s GF@BlackHole int@0\n",buffer) : printf("JUMPIFNEQ %s GF@BlackHole float@0x0p+0\n",buffer);
+			printf("EXIT int@9\n");
+			printf("LABEL %s\n",buffer);
+			printf("PUSHS GF@BlackHole\n");
+			dataType == TypeInt ? printf("IDIV\n") : printf("DIV\n");
+			break;
+		case OperationUnS:
+			printf("POPS GF@BlackHole\n");
+			dataType == TypeInt ? printf("PUSHS int@-1\n") : printf("PUSHS float@-0x1p+0\n");
+			printf("PUSHS GF@BlackHole\n");
+			printf("SUBS\n");
+			break;
+		case OperationGth:
+			printf("GTS\n");
+			break;
+		case OperationLes:
+			printf("LTS\n");
+			break;
+		case OperationEqu:
+			printf("EQS\n");
+			break;
+		case OperationNEq:
+			printf("EQS\n");
+			printf("NOTS\n");
+			break;
+		case OperationGEq:
+			printf("LTS\n");
+			printf("NOT\n");
+			break;
+		case OperationLEq:
+			printf("GTS\n");
+			printf("NOT\n");
+			break;
+		case OperationPar:
+		case OperationUnA:
+			break;
+	}
+}
+
+void generateExpresion(ExpExp* exp){
+	char buffer[STRING_BUFFER_LENGTH];
+	switch(exp->type){
+		case ExpExpAtom:
+			generateTermRepresentation(&exp->ExpProperties.atom,buffer);
+			printf("PUSHS %s\n",buffer);
+			break;
+		case ExpExpOperation:
+			if (isBinaryOperation(exp->ExpProperties.operation.type)){
+				generateExpresion(exp->ExpProperties.operation.value.binary.first);
+				generateExpresion(exp->ExpProperties.operation.value.binary.second);
+			} else {
+				generateExpresion(exp->ExpProperties.operation.value.unary.first);
+			}
+			generateOperation(exp->ExpProperties.operation.type,exp->dataType);
+			break;
 	}
 }
 

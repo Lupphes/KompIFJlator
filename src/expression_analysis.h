@@ -43,7 +43,6 @@ typedef enum {
     OperatorNotEqual, /** != */
     OperatorEnd, /** $ */
 
-    OperationNegate,
     OperatorNothing,
     OperatorError  /** = > */
 } Operator;
@@ -80,7 +79,9 @@ typedef enum {
     OperationLes, /** E->E<E */
     OperationLEq, /** E->E<=E */
     OperationEqu, /** E->E==E */
-    OperationNEq /** E->E!=E */
+    OperationNEq, /** E->E!=E */
+    OperationUnA, /** OP-E->OPE */
+    OperationUnS /** OP+E->OPE */
 } OperationType;
 
 typedef enum {
@@ -142,48 +143,33 @@ typedef struct {
   ExpItem *values;
 } ExpStack;
 
-/**
- * @brief This function retuns Expression to the parser and therfore parser can validate the output type
- * 
- * @param expression 
- * @return int 
- */
-int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, const SymbolVariable *symbol);
-/**
- * @brief This function validates if recived token fits into already read expression, probably will be depricated as the rules can verify it more easily
- * Also, It is used to correctly parse the IDs
- * 
- * @param token 
- * @param array 
- * @param operator 
- * @return int 
- */
-int checkIfValidToken(Token *token, ExpStack *array, ExpItem *operator);
-/**
- * @brief 
- * 
- * @param array 
- * @param operator 
- * @return int 
- */
-int evaluateExpression(ExpStack *expStack, ExpItem *expItem);
-/**
- * @brief Final state machine which checks for rules and then applies them
- * 
- * @param array 
- * @return int 
- */
-int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp);
+/** ---------------------- Stack Functions ---------------------- **/
 int initExpStack(ExpStack *expStack, int64_t initialSize);
 int pushToStack(ExpStack *expStack, ExpItem stackItem);
+int pushToStackBehindE(ExpStack *expStack, ExpItem expItem);
+int seekValueBehindE(ExpStack *expStack, ExpItem *expItem);
+bool isUnaryOperationInStack(ExpStack *expStack);
 int seekValueStackValue(ExpStack *expStack, ExpItem *expItem);
 int popFromStack(ExpStack *expStack, ExpItem *expItem);
-void freeExpStack(ExpStack *expStack);
 void printStack(ExpStack *expStack);
+void freeExpStack(ExpStack *expStack);
+void freeExpExp(ExpExp *expExp);
+
+/** ---------------------- Stack Functions ---------------------- **/
+
+/** ------------------------ Short-Hands ------------------------ **/
 bool isInStackOperator(ExpStack *expStack);
 bool isInStackExpression(ExpStack *expStack);
-DataType getDataTypeOfExpression(ExpExp *value);
+bool isBufferEmpty(ExpStack *expStack);
+DataType getDataTypeOfExpression(ExpExp *expExp);
+bool isBinaryOperation(OperationType operation);
+/** ------------------------ Short-Hands ------------------------ **/
+
 int evaluateTypeOfExpressions(ExpExp *newExpExp);
-void freeExpExp(ExpExp *expExp);
+int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp);
+int evaluateExpression(ExpStack *expStack, ExpItem *expItem);
+int checkIfValidToken(Token *token, ExpStack *expStack, ExpItem *expItem);
+int addOperatorAssignToStack(ExpStack *expStack, OperatorAssign assingmentOperation, const SymbolVariable *symbol);
+int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, const SymbolVariable *symbol);
 
 #endif
