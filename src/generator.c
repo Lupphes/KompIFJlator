@@ -15,6 +15,7 @@
 
 
 #include "generator.h"
+#define STRING_BUFFER_LENGTH 4096
 
 /**
  *	@brief	Generates the whole tree
@@ -116,4 +117,54 @@ void generateDebug(){
 	printf("WRITE string@-------\\010\n");
 	printf("BREAK\n");
 	printf("WRITE string@-------\\010\n");
+}
+
+
+char* generateVariableName(const SymbolVariable* var, char* out){
+	int len = var->type != TypeBlackHole ? sprintf(out,"LF@uid_%d",var->uid) : sprintf(out,"nil@nil");
+	if (len < 0)
+		exit(INTERNAL_ERROR);
+	return out + len;
+}
+
+char* generateIntLiteral(int64_t lit, char* out){
+	int len = sprintf(out,"int@%d",lit);
+	if (len < 0)
+		exit(INTERNAL_ERROR);
+	return out + len;
+}
+
+char* generateFloatLiteral(double lit, char* out){
+	int len = sprintf(out, "float@%a",lit);
+	if (len < 0)
+		exit(INTERNAL_ERROR);
+	return out + len;
+}
+
+char* generateStringLiteral(const char* lit,char* out){
+	int len = sprintf(out, "float@%s",lit); //Todo
+	if (len < 0)
+		exit(INTERNAL_ERROR);
+	return out + len;
+}
+
+char* generateTermRepresentation(const Term* term,char* out){
+	switch(term->type){
+		case TermFloatLiteral:
+			return generateFloatLiteral(term->value.d,out);
+		case TermIntegerLiteral:
+			return generateIntLiteral(term->value.i,out);
+		case TermStringLiteral:
+			return generateStringLiteral(strGetStr(&term->value.s),out);
+		case TermVariable:
+			return generateVariableName(term->value.v,out);
+	}
+}
+
+void generateBuiltInPrint(ASTNodeFunctionCall* printCall){
+	for (int i = 0; i <printCall->parameters.count;i++){
+		char argBuffer[STRING_BUFFER_LENGTH];
+		generateTermRepresentation(printCall->parameters.arr[i],argBuffer);
+		printf("WRITE %s\n",argBuffer);
+	}
 }
