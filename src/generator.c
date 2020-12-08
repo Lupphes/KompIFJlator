@@ -54,6 +54,7 @@ int generateMain(ASTNodeFunction *function){
 	printf("#------------------- main --------------------#\n");
 	printf("LABEL main\n");
 	printf("WRITE string@main\\032over\\032here!!!\\010\n");
+	generateFunction(function);
 	return SUCCESS;
 }
 

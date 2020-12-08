@@ -49,7 +49,7 @@ $(INTER_CODE)-test:	$(TESTSDIR)/$(INTER_CODE)/*.c $(LIBDIR)/*.c $(LIBDIR)/*.h
 	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/$(INTER_CODE)/*.c $(LIBDIR)/$(INTER_CODE).c
 
 generator-test: directories $(TESTSDIR)/generator/*.c $(LIBDIR)/*.c $(LIBDIR)/*.h
-	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/generator/*.c $(LIBDIR)/generator.c
+	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/generator/*.c $(LIBDIR)/*.c
 
 clean:
 	rm -rf $(BUILDDIR)
