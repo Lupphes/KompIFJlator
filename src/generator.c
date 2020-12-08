@@ -100,13 +100,13 @@ void generateFunction(ASTNodeFunction *function){
 	printf("RETURN\n");		// není náhodou RETURN už uložený v kodu ??
 }
 
-// Generates function body
+// Generates function body. Param function guaranteed to NOT be NULL.
 void generateFunctionBody(ASTNodeFunction *function){
-	//function body
-	printf("#DEFVAR all of them.\n");
-
-	// definice všech promennych
 	printf("WRITE string@Hello\\032main!\\010\n");
+	// definice všech promennych
+	printf("#DEFVAR all of them.\n");
+	
+
 
 	// code 
 }
