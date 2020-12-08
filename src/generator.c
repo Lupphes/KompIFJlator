@@ -289,7 +289,7 @@ void generateBuiltInChr(ASTNodeFunctionCall* chrCall){
 void generateBuiltInOrd(ASTNodeFunctionCall* ordCall){
 	//int, int <- str, i<0;len(str)-1>
 	/*
-	if (i > 0 && i < len(str))
+	if (i > -1 && i < len(str))
 		return (char)str[i], 0
 	else
 		return _, 1
@@ -311,15 +311,90 @@ void generateBuiltInOrd(ASTNodeFunctionCall* ordCall){
 	printf("PUSHS int@len\n");
 	printf("PUSHS %s\n",inputIndex);
 	printf("LTS");
-	printf("PUSHS int@0\n");
+	printf("PUSHS int@-1\n");
 	printf("PUSHS %s\n",inputIndex);
 	printf("GTS\n");
 	printf("ANDS\n");
 	printf("PUSHS bool@true\n");
 	printf("JUMPIFNEQS %s_ELSE\n",label);
-	printf("STR2INT %s %s %s",output,inputString,inputIndex);
-	printf("MOVE %s int@1\n",errorCode);
-	printf("JUMP %s_END",label);
-	printf("MOVE %s int@1\n",errorCode);
+		
+		printf("STR2INT %s %s %s",output,inputString,inputIndex);
+		printf("MOVE %s int@1\n",errorCode);
+		printf("JUMP %s_END",label);
+
+		printf("LABEL %s_ELSE\n",label);
+		printf("MOVE %s int@1\n",errorCode);
+	
 	printf("LABEL %s_END",label);
+}
+
+void generateBuiltInSubstr(ASTNodeFunctionCall* substrCall){
+	char output[STRING_BUFFER_LENGTH_SMALL];
+	char errorCode[STRING_BUFFER_LENGTH_SMALL];
+	char inputString[STRING_BUFFER_LENGTH_SMALL];
+	char inputIndex[STRING_BUFFER_LENGTH_SMALL];
+	char inputCount[STRING_BUFFER_LENGTH_SMALL];
+	char label[STRING_BUFFER_LENGTH_SMALL];
+	generateVariableName(substrCall->lValues.arr[0],output);
+	generateVariableName(substrCall->lValues.arr[1],errorCode);
+	generateTermRepresentation(substrCall->parameters.arr[0],inputString);
+	generateTermRepresentation(substrCall->parameters.arr[1],inputIndex);
+	generateTermRepresentation(substrCall->parameters.arr[2],inputCount);
+	getUIDLabelName(label);
+
+
+	printf("CREATEFRAME\n");
+	printf("DEFVAR TF@len\n");
+	printf("STRLEN TF@len %s\n",inputString);
+	printf("PUSHS int@-1\n");
+	printf("PUSHS %s\n",inputCount);
+	printf("GTS\n");
+	printf("PUSHS TF@len\n");
+	printf("PUSHS %s\n",inputIndex);
+	printf("LTS\n");
+	printf("PUSHS int@-1\n");
+	printf("PUSHS %s\n",inputIndex);
+	printf("GTS\n");
+	printf("ANDS\n");
+	printf("ANDS\n");
+	printf("PUSHS bool@true\n");
+	printf("JUMPIFNEQS %s_ELSE\n",label);
+
+		printf("DEFVAR TF@end\n");
+		printf("PUSHS %s\n",inputIndex);
+		printf("PUSHS %s\n",inputCount);
+		printf("ADDS\n");
+		printf("POPS TF@end\n");
+		printf("PUSHS TF@len\n");
+		printf("PUSHS TF@end\n");
+		printf("GTS\n");
+		printf("PUSHS bool@true\n");
+		printf("JUMPIFNEQS %s_ForInit\n",label);
+		printf("MOVE TF@end TF@len\n");
+		
+			printf("LABEL %s_ForInit\n",label);
+			printf("DEFVAR TF@i\n");
+			printf("DEFVAR TF@strBuf\n");
+			printf("MOVE %s string@\n",output);
+			printf("MOVE %s int@0\n",errorCode);
+			printf("MOVE TF@i %s\n",inputIndex);
+			
+			printf("LABEL %s_ForCheck\n",label);
+			printf("PUSHS TF@end\n");
+			printf("PUSHS TF@i\n");
+			printf("LTS\n");
+			printf("PUSHS bool@true\n");
+			printf("JUMPIFNEQS %s_END\n",label);
+
+			printf("GETCHAR TF@strBuf TF@i\n");
+			printf("CONCAT %s %s TF@strBuf\n",output,output);
+			printf("ADD TF@i TF@i int@1\n");
+			printf("JMP %s_ForCheck\n");
+
+			
+		printf("LABEL %s_ELSE\n",label);
+		printf("MOVE %s int@1\n",errorCode);
+	
+	printf("LABEL %s_END",label);
+
 }
