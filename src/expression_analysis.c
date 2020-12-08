@@ -549,8 +549,6 @@ int checkIfValidToken(Token *token, ExpStack *expStack, ExpItem *expItem) {
 int addOperatorAssignToStack(ExpStack *expStack, OperatorAssign assingmentOperation, const SymbolVariable *symbol) {
     int returnCode;
     ExpItem tempPop;
-    // if ((tempPop = malloc(sizeof(ExpItem))) == NULL)
-    //     return INTERNAL_ERROR;
     if (popFromStack(expStack, &tempPop) == INTERNAL_ERROR)
         return INTERNAL_ERROR;
     printStack(expStack); // DEBUG
