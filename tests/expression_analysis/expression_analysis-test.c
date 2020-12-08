@@ -9,14 +9,22 @@
 
 int main() {
     int returnCode = 0;
-    ExpExp *expression;
+    ExpExp *expression = NULL;
     OperatorAssign assingmentOperation = 1;
     string ahoj = {.allocSize = 2,.length = 2,.str = "ah"};
     SymbolVariable symbol = {.id = ahoj,.type = TypeInt,.uid = 1505};
     SymbolVariable *haha = &symbol;
     initVariableTableStack();
+    enterNewStackFrame();
+    addVariable(haha);
     acceptAny();
-    int result = parseExpression(&expression, assingmentOperation, haha);
+    int result = parseExpression(&expression, assingmentOperation, getVariable("ah"));
+    if (expression != NULL) {
+       freeExpExp(expression);
+       free(expression);
+    }
+    freeCurTok();
+    freeVariableTableStack();
     printf("Return code is: %d\n", result);
     return result;
 }
