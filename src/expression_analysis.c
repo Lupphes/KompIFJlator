@@ -369,6 +369,7 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                     newExpExp->ExpProperties.operation.value.binary.first = tmp;
                     newExpExp->dataType = newExpExp->ExpProperties.operation.type >= OperationGth ? TypeBool : newExpExp->ExpProperties.operation.value.binary.first->dataType; //Enum is magic is happening.
                     if (evaluateTypeOfExpressions(newExpExp) == SEMANTIC_ERROR_TYPE_EXPRESSION) {
+                        freeExpExp(newExpExp);
                         return SEMANTIC_ERROR_TYPE_EXPRESSION;
                     }
                     evaluationFinished = false;
@@ -635,7 +636,7 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
         freeExpStack(&expStack);
         return NO_EXPRESSION;
     } else if (expItem.type != ExpItemEnd && expStack.used > 2) {
-        if ((returnCode = evaluateExpression(&expStack, &endStartOperator)) != SUCCESS) { 
+        if ((returnCode = evaluateExpression(&expStack, &endStartOperator)) != SUCCESS) {
             freeExpStack(&expStack);
             return returnCode;
         }
