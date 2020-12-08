@@ -620,6 +620,16 @@ void generateFor(ASTNodeFor* forStatement){
 }
 
 void generateReturn(ASTNodeReturn* returnStatement){
+	if (returnStatement == NULL)
+		return;
+
+	// generate all return variables PUSH them to STACK (left-to-right)
+	for (int i = 0; i < returnStatement->rValues.count; i++){
+		generateExpExp(returnStatement->rValues.arr[i]);
+	}
+
+	// generate return
+	printf("RETURN\n");
 }
 
 // dummy methods
