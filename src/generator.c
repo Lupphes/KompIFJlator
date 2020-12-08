@@ -121,6 +121,23 @@ void generateDebug(){
 }
 
 
+void generateUserFunctionCall(ASTNodeFunctionCall call){
+	//Pushing parameters to stack.
+	for (int i = 0;i < call.parameters.count;i++){
+		char buffer[STRING_BUFFER_LENGTH];
+		generateTermRepresentation(call.parameters.arr[i],buffer);
+		printf("PUSHS %s\n",buffer);
+	}
+	//Calling the function
+	printf("CALL %s\n",strGetStr(&call.function->id));
+	//Assigning the return values
+	for (int i = call.lValues.count-1;i >= 0;i--){
+		char buffer[STRING_BUFFER_LENGTH];
+		generateVariableName(call.lValues.arr[i],buffer);
+		printf("POPS %s\n",buffer);
+	}
+}
+
 char* generateVariableName(const SymbolVariable* var, char* out){
 	int len = var->type != TypeBlackHole ? sprintf(out,"LF@uid_%d",var->uid) : sprintf(out,"nil@nil");
 	if (len < 0)
