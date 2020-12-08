@@ -1,7 +1,8 @@
 /*File name: generator.h---------------------------------------------*
  |Project:    Implementace překladače imperativního jazyka IFJ20     |
  |Team:       124, varianta II                                       |
- |Authors:    Viktor Rucký (xrucky01)                                |
+ |Authors:    Vojtěch Vlach (xvlach22)                               |
+ |            Viktor Rucký (xrucky01)                                |
  |                                                                   |
  |  _      _     _   __                   __  _        _             |
  | | |    (_)   | | /_/                  /_/ | |      | |            |
