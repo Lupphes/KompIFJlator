@@ -92,7 +92,7 @@ void initSymbolVariableArray(SymbolVariableArray* arr){
  */
 int addToSymbolVariableArray(SymbolVariableArray* arr, const SymbolVariable* var){
     int newCount = arr->count + 1;
-    if ((arr->arr = realloc(arr->arr,sizeof(SymbolVariable)*newCount)) == NULL)
+    if ((arr->arr = realloc(arr->arr,sizeof(SymbolVariable*)*newCount)) == NULL)
         return INTERNAL_ERROR;
     arr->arr[newCount-1] = var;
     arr->count++;
@@ -243,9 +243,9 @@ void initExpressionArray(ExpressionArray* arr){
  * @param str The expression to insert into the array.
  * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
  */
-int addToexpressionArray(ExpressionArray* arr, ExpExp* expression){
+int addToExpressionArray(ExpressionArray* arr, ExpExp* expression){
     int newCount = arr->count + 1;
-    if ((arr->arr = realloc(arr->arr,sizeof(ExpExp)*newCount)) == NULL)
+    if ((arr->arr = realloc(arr->arr,sizeof(ExpExp*)*newCount)) == NULL)
         return INTERNAL_ERROR;
     arr->arr[newCount-1] = expression;
     arr->count++;
@@ -264,11 +264,15 @@ int countInExpressionArray(const ExpressionArray* arr){
 }
 
 /**
- * @brief Frees the memory used by the expression array.
+ * @brief Frees the memory used by the expression array (and destroys the objects inside).
  * 
  * @param arr The array to free its memory.
  */
 void freeExpressionArray(ExpressionArray* arr){
+    for (int i = 0; i < arr->count;i++){
+        freeExpExp(arr->arr[i]);
+        free(arr->arr[i]);
+    }
     free(arr->arr);
     arr->count = -1;
 }

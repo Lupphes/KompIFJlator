@@ -1,8 +1,7 @@
-/*File name: error.h ------------------------------------------------*
+/*File name: inter_code.h -------------------------------------------*
  |Project:    Implementace překladače imperativního jazyka IFJ20     |
  |Team:       124, varianta II                                       |
- |Authors:    Viktor Rucký (xrucky01)                                |
- |            Ondřej Sloup (xsloup02)                                |
+ |Authors:    Vojtěch Vlach (xvlach22)                               |
  |                                                                   |
  |  _      _     _   __                   __  _        _             |
  | | |    (_)   | | /_/                  /_/ | |      | |            |
@@ -14,23 +13,37 @@
  |                                      |___/                        |
  *-------------------------------------------------------------------*/
 
-#ifndef ERROR_H
-#define ERROR_H
+#ifndef INTER_CODE_H
+#define INTER_CODE_H
+#include "error.h"
+#include <stdlib.h>
+#include <stdio.h>
 
-#define SUCCESS 0
-#define LEXICAL_ERROR 1
-#define SYNTAX_ERROR 2
-#define SEMANTIC_ERROR_DEFINITION 3
-#define SEMANTIC_ERROR_TYPE_INFERENCE 4
-#define SEMANTIC_ERROR_TYPE_EXPRESSION 5
-#define SEMANTIC_ERROR_TYPE_FUNCTION 6
-#define SEMANTIC_ERROR_OTHER 7
-#define SEMANTIC_ERROR_DIV_ZERO 9
-#define INTERNAL_ERROR 99
+typedef struct _instruction{
+	struct _instruction *ptrNext;
+	struct _instruction * ptrPrev;
+	/*Operation *operation;
+	ExpExp *operand1;
+	ExpExp *operand2;
+	Result *result;*/
+	int data;	/* TOD */
+} Instruction;
 
-#define NO_EXPRESSION 42
-#define MORE_RVALUES_THAN_LVALUES 43
+Instruction *InstrListFirst;
+Instruction *InstrListLast;
 
-typedef int make_iso_compilers_happy;
+// Initialize inctruction list
+void initInstructionList();
+
+// Add instruction to instruction list, copy operands and result pointers (or creates deep copy, idk)
+// return SUCCESS or INTERNAL_ERROR
+int addInstruction(/* TODO */);
+
+Instruction *GetFrist();
+
+void deleteFirst();
+
+void freeList();
 
 #endif
+

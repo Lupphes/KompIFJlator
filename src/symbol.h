@@ -39,7 +39,8 @@ typedef struct _SymbolFunction{
 } SymbolFunction;
 
 typedef struct _SymbolVariable {
-    string id;
+    string id; //The name of the variable, as it shown in the source code, e.g. "foo" for when "foo := 42"
+    int uid; //The unique id of the variable, which no other variable in the whole source code shares.
     DataType type;
 } SymbolVariable;
 
