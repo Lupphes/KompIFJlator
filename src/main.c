@@ -14,8 +14,7 @@
  *-------------------------------------------------------------------*/
 
 #include "parser_common.h"
-/*
+
 int main(){
     return beginParsing();
 }
-*/
