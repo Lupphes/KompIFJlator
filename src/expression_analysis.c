@@ -458,18 +458,15 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
     ExpItem previousExpItem;
     ExpItem newExpression;
 
-    printStack(expStack); // DEBUG
     seekValueBehindE(expStack, &previousExpItem);
     /* Handle for unary operation */
     if (isUnaryOperationInStack(expStack)) {
         ExpItem newUnaryOperation = {.type = ExpItemExpression};
-        printStack(expStack); // DEBUG
         if ((returnCode = rulesEvaluation(expStack, &newUnaryOperation.value.ee)) != SUCCESS) {
             return returnCode;
         }
         if (pushToStack(expStack, newUnaryOperation) == INTERNAL_ERROR)
             return INTERNAL_ERROR;
-        printStack(expStack); // DEBUG
         seekValueBehindE(expStack, &previousExpItem);
 
         if (expItem->type == ExpItemEnd) {
@@ -480,30 +477,24 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
             return SUCCESS;
         }
     }
-    switch (PSATable[previousExpItem.value.op][expItem->value.op]) {
-        case AssociativityLeft:
+    switch (PSATable[previousExpItem.value.op][expItem->value.op]) { // Find value from the table
+        case AssociativityLeft: // Waiting for evaluation
             newExpression.type = ExpItemAssociativity;
             newExpression.value.as = PSATable[previousExpItem.value.op][expItem->value.op];
-            printStack(expStack); // DEBUG
             if (pushToStackBehindE(expStack, newExpression) == INTERNAL_ERROR)
                 return INTERNAL_ERROR;
-            printStack(expStack); // DEBUG
             if (pushToStack(expStack, *expItem) == INTERNAL_ERROR)
                 return INTERNAL_ERROR;
-            printStack(expStack); // DEBUG
             break;
-        case AssociativityRight:
+        case AssociativityRight: // The operation needs to be evaluated
             /* Handle for unary operation */
             if (expItem->value.op == OperatorAdd || expItem->value.op == OperatorSubtract) {
                 newExpression.type = ExpItemAssociativity;
                 newExpression.value.as = AssociativityLeft;
-                printStack(expStack); // DEBUG
                 if (pushToStackBehindE(expStack, newExpression) == INTERNAL_ERROR)
                     return INTERNAL_ERROR;
-                printStack(expStack); // DEBUG
                 if (pushToStack(expStack, *expItem) == INTERNAL_ERROR)
                     return INTERNAL_ERROR;
-                printStack(expStack); // DEBUG
                 break;
             }
             newExpression.type = ExpItemExpression;
@@ -511,12 +502,10 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
                 return returnCode; 
             if (pushToStack(expStack, newExpression) == INTERNAL_ERROR)
                 return INTERNAL_ERROR;
-            printStack(expStack); // DEBUG
             if ((returnCode = evaluateExpression(expStack, expItem)) != SUCCESS) 
                 return returnCode;
-            printStack(expStack); // DEBUG
             break;
-        case AssociativityEqual:
+        case AssociativityEqual: // Handle for brackets
             newExpression.type = ExpItemExpression;
             if (pushToStack(expStack, *expItem) == INTERNAL_ERROR)
                 return INTERNAL_ERROR;
@@ -524,10 +513,9 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
                 return returnCode;
             if (pushToStack(expStack, newExpression) == INTERNAL_ERROR)
                 return INTERNAL_ERROR;
-            printStack(expStack); // DEBUG
             break;
         case AssociativityError:
-            if (previousExpItem.value.op == OperatorEnd && expItem->value.op == OperatorEnd) {
+            if (previousExpItem.value.op == OperatorEnd && expItem->value.op == OperatorEnd) { // Recursion check
                 return SUCCESS;
             }
             return SYNTAX_ERROR;
@@ -620,7 +608,6 @@ int checkIfValidToken(Token *token, ExpStack *expStack, ExpItem *expItem) {
                 expItem->value.ee.ExpProperties.atom = term;
                 if (pushToStack(expStack, *expItem) == INTERNAL_ERROR)
                     return INTERNAL_ERROR;
-                printStack(expStack); // DEBUG
             } else {
                 return returnCode;
             }
@@ -629,26 +616,24 @@ int checkIfValidToken(Token *token, ExpStack *expStack, ExpItem *expItem) {
         return ANALYSIS_END;
         break;
     }
-    acceptAny();
+    acceptAny(); // Call next token
     return SUCCESS;
 }
 
 int addOperatorAssignToStack(ExpStack *expStack, OperatorAssign assingmentOperation, const SymbolVariable *symbol) {
     int returnCode;
-    ExpItem tempPop;
-    if (popFromStack(expStack, &tempPop) == INTERNAL_ERROR) // Remove value
+    ExpItem tmpPopedExpItem;
+    if (popFromStack(expStack, &tmpPopedExpItem) == INTERNAL_ERROR) // Remove value from stack
         return INTERNAL_ERROR;
-    printStack(expStack); // DEBUG
-    ExpItem atomExpItem = {
+    ExpItem newExpItem = { // Create expItem variable to push on stack
         .type = ExpItemExpression,
         .value.ee.type = ExpExpAtom,
         .value.ee.dataType = symbol->type,
         .value.ee.ExpProperties.atom.type = TermVariable,
         .value.ee.ExpProperties.atom.value.v = symbol
         };
-    if (pushToStack(expStack, atomExpItem) == INTERNAL_ERROR)
+    if (pushToStack(expStack, newExpItem) == INTERNAL_ERROR)
         return INTERNAL_ERROR;
-    printStack(expStack); // DEBUG
     
     ExpItem operatorExpItem = {.type = ExpItemOperator};
     switch (assingmentOperation) {
@@ -668,15 +653,12 @@ int addOperatorAssignToStack(ExpStack *expStack, OperatorAssign assingmentOperat
             return INTERNAL_ERROR;
             break;
     }
-    if ((returnCode = evaluateExpression(expStack, &operatorExpItem)) != SUCCESS)
+    if ((returnCode = evaluateExpression(expStack, &operatorExpItem)) != SUCCESS) // Evaluate with operation
         return returnCode;
-    printStack(expStack); // DEBUG
-    if (pushToStack(expStack, tempPop) == INTERNAL_ERROR)
+    if (pushToStack(expStack, tmpPopedExpItem) == INTERNAL_ERROR) // Push poped item
         return INTERNAL_ERROR;
-    printStack(expStack); // DEBUG
-    if ((returnCode = evaluateExpression(expStack, &endStartOperator)) != SUCCESS)
+    if ((returnCode = evaluateExpression(expStack, &endStartOperator)) != SUCCESS) // Evaluate the process
         return returnCode;
-    printStack(expStack); // DEBUG
     return SUCCESS;
 }
 
@@ -748,7 +730,6 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
                 freeExpStack(&expStack);
                 return INTERNAL_ERROR; 
             }
-            printStack(&expStack); // DEBUG
         }
         ExpExp* tmp;
         if ((tmp = malloc(sizeof(ExpExp))) == NULL)
@@ -759,7 +740,6 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
         freeExpStack(&expStack);
         return SYNTAX_ERROR;
     }
-    printStack(&expStack); // DEBUG
     if (popFromStack(&expStack, &expItem) == INTERNAL_ERROR) // Pop value from stack to keep it allocated
         return INTERNAL_ERROR;
     freeExpStack(&expStack);
