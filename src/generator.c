@@ -71,34 +71,23 @@ int generateMain(ASTNodeFunction *function){
 }
 
 /**
- *	@brief	Generates all user finctions by walking through linked list of functions
+ *	@brief	Generates all user functions by walking through linked list of functions
  *
  * 	@param	function 	Pointer to the first function
  */
 void generateUserFunctions(ASTNodeFunction *function){
 	while(function != NULL){
-		generateFunction(function);
+		// generate label + initial frame
+		printf("\tLABEL %s\n", strGetStr(&function->function->id));
+		printf("CREATEFRAME\n");
+		printf("PUSHFRAME\n\n");
+
+		// generate function body
+		generateFunctionBody(function);
+
+		// move to the next function
 		function = function->next;
 	}
-}
-
-/**
- *	@brief	Generates given function. (Only frame and calls generateFunctionBody)
- *
- * 	@param	function 	Pointer to the function definition. Guaranteed to NOT be NULL.
- */
-void generateFunction(ASTNodeFunction *function){
-	printf("WRITE string@New\\032function\\010\n\n");
-	if(strCmpConstStr(&function->function->id, "main")){
-		printf("LABEL %s\n", strGetStr(&function->function->id));
-	}
-
-	printf("CREATEFRAME\n");
-	printf("PUSHFRAME\n\n");
-
-	generateFunctionBody(function);
-
-	printf("RETURN\n");		// není náhodou RETURN už uložený v kodu ??
 }
 
 // Generates function body. Param function guaranteed to NOT be NULL.

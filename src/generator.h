@@ -23,7 +23,6 @@
 int generateTree(ASTRoot *root);
 int generateMain(ASTNodeFunction *function);
 void generateUserFunctions(ASTNodeFunction *function);
-void generateFunction(ASTNodeFunction *function);
 void generateFunctionBody(ASTNodeFunction *function);
 void generateFunctionCall(ASTNodeStatement *functionCall);
 void generateFunctionCodeBlock(ASTNodeBlock* code);
