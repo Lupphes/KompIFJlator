@@ -151,24 +151,6 @@ void generateFunctionCodeBlock(ASTNodeStatement* codeStmnt){
 	}
 }
 
-// Generate functioncall
-void generateFunctionCall(ASTNodeStatement *functionCall){
-	//Až bude funkce generateFunctionCall, tak se skočí do generateBuiltInFunctionCall, 
-	//pozná se, co to je za funkce a zavolá se správná obslužná funkce.
-
-	/*
-	foo, bar = returns2(5, foo, ":)")
-
-	PUSHS int@5
-	PUSHS LF@0
-	PUSHS string@:)
-	CALL returns2
-	POPFRAME       printf("\nPOPFRAME\n"); // uklízí volající
-	POPS LF@1
-	POPS LF@0
-	*/
-}
-
 // Generate variable name to format "LF@$uid"
 char* generateVariableName(const SymbolVariable* var, char* out){
 	int len = var->type != TypeBlackHole ? sprintf(out,"LF@$%d",var->uid) : sprintf(out,"GF@BlackHole");
