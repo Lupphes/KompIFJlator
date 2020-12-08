@@ -120,18 +120,6 @@ int popFromStack(ExpStack *expStack, ExpItem *expItem) {
     return SUCCESS;
 }
 
-void freeExpStack(ExpStack *expStack) {
-    for (int i = 0; i < expStack->used; i++) {
-        if (expStack->values[i].type == ExpItemExpression) {
-            freeExpExp(&expStack->values[i].value.ee);
-        }
-    }
-    free(expStack->values);
-    expStack->values = NULL;
-    expStack->used = 0;
-    expStack->initializedSize = 0;
-}
-
 void printStack(ExpStack *expStack) {
     for (int i = 0; i < expStack->used; i++) {
         switch (expStack->values[i].type) {
@@ -159,6 +147,17 @@ void printStack(ExpStack *expStack) {
     printf("\n");
 }
 
+void freeExpStack(ExpStack *expStack) {
+    for (int i = 0; i < expStack->used; i++) {
+        if (expStack->values[i].type == ExpItemExpression) {
+            freeExpExp(&expStack->values[i].value.ee);
+        }
+    }
+    free(expStack->values);
+    expStack->values = NULL;
+    expStack->used = 0;
+    expStack->initializedSize = 0;
+}
 
 void freeExpExp(ExpExp *expExp) {
     switch(expExp->type){
@@ -211,10 +210,22 @@ DataType getDataTypeOfExpression(ExpExp *expExp) {
     return expExp->dataType;
 }
 
+bool isBinaryOperation(OperationType operation) {
+    switch (operation) {
+    case OperationPar:
+    case OperationUnA:
+    case OperationUnS:
+        return true;
+        break;
+    default:
+        return false;
+        break;
+    }
+}
+
 /** ------------------------ Short-Hands ------------------------ **/
 
 int evaluateTypeOfExpressions(ExpExp *newExpExp) {
-
     switch (newExpExp->ExpProperties.operation.type) {
         case OperationDiv:
         case OperationSub:
@@ -246,7 +257,6 @@ int evaluateTypeOfExpressions(ExpExp *newExpExp) {
     }
     return SUCCESS;
 }
-
 
 int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
     ExpItem seekExpItem;
@@ -450,6 +460,7 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
 
     printStack(expStack); // DEBUG
     seekValueBehindE(expStack, &previousExpItem);
+    /* Handle for unary operation */
     if (isUnaryOperationInStack(expStack)) {
         ExpItem newUnaryOperation = {.type = ExpItemExpression};
         printStack(expStack); // DEBUG
@@ -482,6 +493,7 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
             printStack(expStack); // DEBUG
             break;
         case AssociativityRight:
+            /* Handle for unary operation */
             if (expItem->value.op == OperatorAdd || expItem->value.op == OperatorSubtract) {
                 newExpression.type = ExpItemAssociativity;
                 newExpression.value.as = AssociativityLeft;
@@ -495,27 +507,29 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem) {
                 break;
             }
             newExpression.type = ExpItemExpression;
-            if ((returnCode = rulesEvaluation(expStack, &newExpression.value.ee)) != SUCCESS) {
-                return returnCode;
-            } 
+            if ((returnCode = rulesEvaluation(expStack, &newExpression.value.ee)) != SUCCESS)
+                return returnCode; 
             if (pushToStack(expStack, newExpression) == INTERNAL_ERROR)
                 return INTERNAL_ERROR;
             printStack(expStack); // DEBUG
-            evaluateExpression(expStack, expItem);
+            if ((returnCode = evaluateExpression(expStack, expItem)) != SUCCESS) 
+                return returnCode;
             printStack(expStack); // DEBUG
             break;
         case AssociativityEqual:
             newExpression.type = ExpItemExpression;
             if (pushToStack(expStack, *expItem) == INTERNAL_ERROR)
                 return INTERNAL_ERROR;
-            if ((returnCode = rulesEvaluation(expStack, &newExpression.value.ee)) != SUCCESS) {
+            if ((returnCode = rulesEvaluation(expStack, &newExpression.value.ee)) != SUCCESS)
                 return returnCode;
-            }
             if (pushToStack(expStack, newExpression) == INTERNAL_ERROR)
                 return INTERNAL_ERROR;
             printStack(expStack); // DEBUG
             break;
         case AssociativityError:
+            if (previousExpItem.value.op == OperatorEnd && expItem->value.op == OperatorEnd) {
+                return SUCCESS;
+            }
             return SYNTAX_ERROR;
     }
     return SUCCESS;
