@@ -24,6 +24,8 @@ int generateTree(ASTRoot *root);
 int generateMain(ASTNodeFunction *function);
 void generateUserFunctions(ASTNodeFunction *function);
 void generateFunction(ASTNodeFunction *function);
+void generateFunctionBody(ASTNodeFunction *function);
 
+void generateDebug();
 
 #endif
