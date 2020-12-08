@@ -143,10 +143,29 @@ void generateFunctionCodeBlock(ASTNodeStatement* codeStmnt){
 
 	// go through all codeStatments and generate them
 	while(codeStmnt != NULL){
-		printf("WRITE string@Another\\032code\\032statemnt\\010\n");
 		// generate this codeStatment
-		//switch(codeStmnt->type){ }
+		switch(codeStmnt->type){ 
+			case StatementInvalid:
+				generateStatementInvalid(codeStmnt);
+				break;
+			case StatementTypeAssignment:
+				generateStatementTypeAssignment(codeStmnt);
+				break;
+			case StatementTypeFunctionCall:
+				generateStatementTypeFunctionCall(codeStmnt);
+				break;
+			case StatementTypeIf:
+				generateStatementTypeIf(codeStmnt);
+				break;
+			case StatementTypeFor:
+				generateStatementTypeFor(codeStmnt);
+				break;
+			case StatementTypeReturn:
+				generateStatementTypeReturn(codeStmnt);
+				break;
+		}
 
+		// move to the next code statement
 		codeStmnt = codeStmnt->next;
 	}
 }
@@ -528,3 +547,26 @@ void generateBuiltInInputf(ASTNodeFunctionCall* inputfStatment){
 	printf("LABEL %s_END\n",label);
 }
 
+void generateStatementInvalid(ASTNodeStatement* codeStmnt){
+
+}
+
+void generateStatementTypeAssignment(ASTNodeStatement* codeStmnt){
+	printf("# Statement Assignment generated.\n");
+}
+
+void generateStatementTypeFunctionCall(ASTNodeStatement* codeStmnt){
+
+}
+
+void generateStatementTypeIf(ASTNodeStatement* codeStmnt){
+
+}
+
+void generateStatementTypeFor(ASTNodeStatement* codeStmnt){
+
+}
+
+void generateStatementTypeReturn(ASTNodeStatement* codeStmnt){
+
+}

@@ -44,6 +44,12 @@ void generateBuiltInInputs(ASTNodeFunctionCall* inputsStatment);
 void generateBuiltInInputi(ASTNodeFunctionCall* inputiStatment);
 void generateBuiltInInputf(ASTNodeFunctionCall* inputfStatment);
 
+void generateStatementInvalid(ASTNodeStatement* codeStmnt);
+void generateStatementTypeAssignment(ASTNodeStatement* codeStmnt);
+void generateStatementTypeFunctionCall(ASTNodeStatement* codeStmnt);
+void generateStatementTypeIf(ASTNodeStatement* codeStmnt);
+void generateStatementTypeFor(ASTNodeStatement* codeStmnt);
+void generateStatementTypeReturn(ASTNodeStatement* codeStmnt);
 void generateDebug();
 
 int getUID();
