@@ -315,12 +315,16 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                                 case ExpExpAtom:
                                     switch (newExpExp->ExpProperties.operation.value.binary.second->ExpProperties.atom.type) {
                                     case TermIntegerLiteral:
-                                        if (newExpExp->ExpProperties.operation.value.binary.second->ExpProperties.atom.value.i == 0)
+                                        if (newExpExp->ExpProperties.operation.value.binary.second->ExpProperties.atom.value.i == 0) {
+                                            free(newExpExp->ExpProperties.operation.value.binary.second);
                                             return SEMANTIC_ERROR_DIV_ZERO;
+                                        }
                                         break;
                                     case TermFloatLiteral:
-                                        if (newExpExp->ExpProperties.operation.value.binary.second->ExpProperties.atom.value.d == 0.0)
+                                        if (newExpExp->ExpProperties.operation.value.binary.second->ExpProperties.atom.value.d == 0.0) {
+                                            free(newExpExp->ExpProperties.operation.value.binary.second);
                                             return SEMANTIC_ERROR_DIV_ZERO;
+                                        }
                                         break;
                                     default:
                                         break;
