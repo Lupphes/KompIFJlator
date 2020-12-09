@@ -568,7 +568,7 @@ int checkIfValidToken(Token *token, ExpStack *expStack, ExpItem *expItem) {
             if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
             expItem->type = ExpItemOperator;
-            expItem->value.op = OperatorIsGreaterEqual;
+            expItem->value.op = OperatorIsLessEqual;
             break;
         case TokenIsGreaterThan:
             if(isInStackOperator(expStack)) 

@@ -642,11 +642,10 @@ int FunctionCall_rule(ASTNodeStatement* astStatement, SymbolVariableArray* lValu
         callAndHandleException_clean(validateFunctionCall(function,lValues,functionParameters));
     }
     else{ //We cannot determine the semantic correctness of the function call yet; we instead save this occurence for later investigation.
-        DubiousFunctionCall functionCall = {.functionParameters=functionParameters, .lValues=lValues};
+        DubiousFunctionCall functionCall = {.functionParameters=functionParameters, .lValues=lValues,.astRepresentation=&astStatement->value.functionCall};
         callAndHandleException_clean(strInit(&functionCall.functionName));
         callAndHandleException_clean(strCopyString(&functionCall.functionName,functionName));
         callAndHandleException_clean(addToDubiousFunctionCallArray(&dubiousFunctionCalls,&functionCall));
-        return SUCCESS; //We don't want to clean the function-parameter array here because we need it later in the dubious-function-call check at the end of parsing.
     }
 
     astStatement->type = StatementTypeFunctionCall;
@@ -658,7 +657,7 @@ int FunctionCall_rule(ASTNodeStatement* astStatement, SymbolVariableArray* lValu
     memcpy(astStatement->value.functionCall.lValues.arr,lValues->arr,sizeof(SymbolVariable*)*lValues->count);
     astStatement->value.functionCall.lValues.count = lValues->count;
 
-    free(functionParameters);
+    if (function != NULL) free(functionParameters);
     return SUCCESS;
     CLEAN_UP:
     freeTermArray(functionParameters);

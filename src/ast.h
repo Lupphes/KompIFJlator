@@ -52,7 +52,7 @@ typedef struct {
     struct _ASTNodeBlock* elseClause;
 } ASTNodeIf;
 
-typedef struct {
+typedef struct _ASTNodeFunctionCall {
     SymbolVariableArray lValues;
     TermArray parameters;
     const SymbolFunction* function;

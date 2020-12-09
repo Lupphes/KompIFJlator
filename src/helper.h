@@ -44,21 +44,24 @@ typedef struct {
     int count;
 } TermArray;
 
-typedef struct{ //I'd like for this declaration to be in parser.h, but there are some problems with circular dependencies.
+typedef struct {
+    ExpExp** arr;
+    int count;
+} ExpressionArray;
+
+#include "ast.h"
+
+typedef struct{ //There is some circular dependency magic going on; couldn't fix it in time.
     string functionName;
     SymbolVariableArray* lValues;
     TermArray* functionParameters;
+    struct _ASTNodeFunctionCall* astRepresentation;
 } DubiousFunctionCall;
 
 typedef struct {
     DubiousFunctionCall* arr;
     int count;
 } DubiousFunctionCallArray;
-
-typedef struct {
-    ExpExp** arr;
-    int count;
-} ExpressionArray;
 
 void initSymbolVariableArray(SymbolVariableArray* arr);
 int addToSymbolVariableArray(SymbolVariableArray* arr, const SymbolVariable* var);

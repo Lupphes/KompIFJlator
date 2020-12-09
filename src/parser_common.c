@@ -62,6 +62,7 @@ int beginParsing(){
         if (function == NULL)
             returnAndClean(SEMANTIC_ERROR_DEFINITION);
         callAndHandleException_clean(validateFunctionCall(function,dubiousFunctionCalls.arr[i].lValues,dubiousFunctionCalls.arr[i].functionParameters));
+        dubiousFunctionCalls.arr[i].astRepresentation->function = function;
     }
     
     generateTree(&astRoot);

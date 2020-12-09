@@ -172,7 +172,7 @@ void generateOperation(OperationType opType, DataType dataType){
 			break;
 		case OperationUnS:
 			printf("POPS GF@BlackHole\n");
-			dataType == TypeInt ? printf("PUSHS int@-1\n") : printf("PUSHS float@-0x1p+0\n");
+			dataType == TypeInt ? printf("PUSHS int@0\n") : printf("PUSHS float@0x0p+0\n");
 			printf("PUSHS GF@BlackHole\n");
 			printf("SUBS\n");
 			break;
@@ -367,30 +367,6 @@ void generateBuiltInLen(ASTNodeFunctionCall* lenCall){
 }
 
 void generateBuiltInChr(ASTNodeFunctionCall* chrCall){
-	//str, int <- int<0;255>
-	/*
-	if (i < 0 || i > 255)
-		return _, 1
-	else
-		return (char)i, 0
-	*/
-	/*
-	PUSHS int@255
-	PUSHS LF@i
-	GTS
-	PUSHS int@0
-	PUSHS LF@i
-	LTS 
-	ORS
-	PUSHS bool@true
-	JUMPIFNEQS &UID_ELSE
-	MOVE LF@R2 int@1
-	JUMP &UID_END
-	LABEL &UID_ELSE
-	INT2CHAR LF@R1 LF@i
-	MOVE LF@R2 int@0
-	LABEL &UID_END
-	*/
 	char output[STRING_BUFFER_LENGTH_SMALL];
 	char errorCode[STRING_BUFFER_LENGTH_SMALL];
 	char input[STRING_BUFFER_LENGTH_SMALL];
@@ -399,20 +375,20 @@ void generateBuiltInChr(ASTNodeFunctionCall* chrCall){
 	generateVariableName(chrCall->lValues.arr[1],errorCode);
 	generateTermRepresentation(chrCall->parameters.arr[0],input);
 	getUIDLabelName(label);
+	printf("PUSHS %s\n",input);
 	printf("PUSHS int@255\n");
-	printf("PUSHS %s\n",input);
 	printf("GTS\n");
-	printf("PUSHS int@0\n");
 	printf("PUSHS %s\n",input);
+	printf("PUSHS int@0\n");
 	printf("LTS\n");
 	printf("ORS\n");
 	printf("PUSHS bool@true\n");
 	printf("JUMPIFNEQS %s_ELSE\n",label);
-	printf("MOVE %s int@1\n",errorCode);
-	printf("JUMP %s_END\n",label);
+		printf("MOVE %s int@1\n",errorCode);
+		printf("JUMP %s_END\n",label);
 	printf("LABEL %s_ELSE\n",label);
-	printf("INT2CHAR %s %s\n",output,input);
-	printf("MOVE %s int@0\n",errorCode);
+		printf("INT2CHAR %s %s\n",output,input);
+		printf("MOVE %s int@0\n",errorCode);
 	printf("LABEL %s_END\n",label);
 }
 
@@ -438,18 +414,18 @@ void generateBuiltInOrd(ASTNodeFunctionCall* ordCall){
 	printf("CREATEFRAME\n");
 	printf("DEFVAR TF@len\n");
 	printf("STRLEN TF@len %s\n",inputString);
+	printf("PUSHS %s\n",inputIndex);
 	printf("PUSHS TF@len\n");
-	printf("PUSHS %s\n",inputIndex);
 	printf("LTS\n");
-	printf("PUSHS int@-1\n");
 	printf("PUSHS %s\n",inputIndex);
+	printf("PUSHS int@-1\n");
 	printf("GTS\n");
 	printf("ANDS\n");
 	printf("PUSHS bool@true\n");
 	printf("JUMPIFNEQS %s_ELSE\n",label);
 		
 		printf("STRI2INT %s %s %s\n",output,inputString,inputIndex);
-		printf("MOVE %s int@1\n",errorCode);
+		printf("MOVE %s int@0\n",errorCode);
 		printf("JUMP %s_END\n",label);
 
 		printf("LABEL %s_ELSE\n",label);
@@ -476,14 +452,14 @@ void generateBuiltInSubstr(ASTNodeFunctionCall* substrCall){
 	printf("CREATEFRAME\n");
 	printf("DEFVAR TF@len\n");
 	printf("STRLEN TF@len %s\n",inputString);
-	printf("PUSHS int@-1\n");
 	printf("PUSHS %s\n",inputCount);
+	printf("PUSHS int@-1\n");
 	printf("GTS\n");
 	printf("PUSHS TF@len\n");
 	printf("PUSHS %s\n",inputIndex);
-	printf("LTS\n");
-	printf("PUSHS int@-1\n");
+	printf("GTS\n");
 	printf("PUSHS %s\n",inputIndex);
+	printf("PUSHS int@-1\n");
 	printf("GTS\n");
 	printf("ANDS\n");
 	printf("ANDS\n");
@@ -499,32 +475,36 @@ void generateBuiltInSubstr(ASTNodeFunctionCall* substrCall){
 		printf("PUSHS TF@end\n");
 		printf("GTS\n");
 		printf("PUSHS bool@true\n");
-		printf("JUMPIFNEQS %s_ForInit\n",label);
+		printf("JUMPIFEQS %s_ForInit\n",label);
 		printf("MOVE TF@end TF@len\n");
 		
 			printf("LABEL %s_ForInit\n",label);
 			printf("DEFVAR TF@i\n");
 			printf("DEFVAR TF@strBuf\n");
-			printf("MOVE %s string@\n",output);
+			printf("DEFVAR TF@outBuf\n");
+			printf("MOVE TF@outBuf string@\n");
 			printf("MOVE %s int@0\n",errorCode);
 			printf("MOVE TF@i %s\n",inputIndex);
 			
 			printf("LABEL %s_ForCheck\n",label);
-			printf("PUSHS TF@end\n");
 			printf("PUSHS TF@i\n");
+			printf("PUSHS TF@end\n");
 			printf("LTS\n");
 			printf("PUSHS bool@true\n");
-			printf("JUMPIFNEQS %s_END\n",label);
+			printf("JUMPIFNEQS %s_FLUSH_BUFFER\n",label);
 
 			printf("GETCHAR TF@strBuf %s TF@i\n",inputString);
-			printf("CONCAT %s %s TF@strBuf\n",output,output);
+			printf("CONCAT TF@outBuf TF@outBuf TF@strBuf\n");
 			printf("ADD TF@i TF@i int@1\n");
 			printf("JUMP %s_ForCheck\n",label);
 
 
 		printf("LABEL %s_ELSE\n",label);
 		printf("MOVE %s int@1\n",errorCode);
+		printf("JUMP %s_END\n",label);
 	
+	printf("LABEL %s_FLUSH_BUFFER\n",label);
+	printf("MOVE %s TF@outBuf\n",output);
 	printf("LABEL %s_END\n",label);
 
 }
