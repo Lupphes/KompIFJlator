@@ -40,7 +40,7 @@ $(PRJ)-test3: $(LIBDIR)/*.h $(LIBDIR)/$(PRJ).h $(TESTSDIR)/$(PRJ)/*.h $(LIBDIR)/
 	$(CC) $(WEXFLAGS) $(CFLAGS) -o $(BUILDDIR)/$@.out $(TESTSDIR)/$(PRJ)/$(PRJ)-test3.c $(LIBDIR)/$(PRJ).c $(LIBDIR)/str.c
 
 $(PRJ3)-test: $(LIBDIR)/*.h $(LIBDIR)/$(PRJ3).h $(TESTSDIR)/$(PRJ3)/*.h $(LIBDIR)/*.c  $(LIBDIR)/$(PRJ3).c $(TESTSDIR)/$(PRJ3)/*.c 
-	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@.out $(TESTSDIR)/$(PRJ3)/$(PRJ3)-test.c $(LIBDIR)/$(PRJ3).c $(LIBDIR)/str.c $(LIBDIR)/parser_common.c  $(LIBDIR)/symtable.c $(LIBDIR)/scanner.c $(LIBDIR)/helper.c $(LIBDIR)/parser.c $(LIBDIR)/ast.c $(LIBDIR)/parser_builtin_functions.c
+	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@.out $(TESTSDIR)/$(PRJ3)/$(PRJ3)-test.c $(LIBDIR)/$(PRJ3).c $(LIBDIR)/str.c $(LIBDIR)/parser_common.c  $(LIBDIR)/symtable.c $(LIBDIR)/scanner.c $(LIBDIR)/helper.c $(LIBDIR)/parser.c $(LIBDIR)/ast.c $(LIBDIR)/parser_builtin_functions.c $(LIBDIR)/generator.c
 
 # $(SYMTABLE)-test:	$(TESTSDIR)/$(SYMTABLE)/*.c $(LIBDIR)/$(SYMTABLE).h $(LIBDIR)/$(SYMTABLE).c $(LIBDIR)/*.h $(LIBDIR)/*.c
 # 	$(CC) $(CFLAGS) $(DEBUGFLAG) -o $(BUILDDIR)/$@ $(TESTSDIR)/$(SYMTABLE)/*.c $(LIBDIR)/$(SYMTABLE).c $(LIBDIR)/str.c
