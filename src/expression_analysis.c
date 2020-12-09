@@ -14,7 +14,6 @@
  |                                      |___/                        |
  *-------------------------------------------------------------------*/
 
-
 #include <stdio.h>
 
 #include "expression_analysis.h"
@@ -24,7 +23,6 @@
 
 #define ANALYSIS_END -1
 ExpItem endStartOperator = {.type = ExpItemEnd, .value = {OperatorEnd}};
-ExpExp nothingOperator = {.type = ExpExpOperation, .ExpProperties = {{OperatorNothing}}};
 
 /** ---------------------- Stack Functions ---------------------- **/
 
@@ -167,7 +165,7 @@ void freeExpExp(ExpExp *expExp) {
         case ExpExpOperation:
             if(expExp->ExpProperties.operation.type == OperationPar ||
             expExp->ExpProperties.operation.type == OperationUnA ||
-            expExp->ExpProperties.operation.type == OperationUnS) { //TODO: add checks for other unary operations
+            expExp->ExpProperties.operation.type == OperationUnS) {
                 freeExpExp(expExp->ExpProperties.operation.value.unary.first);
                 free(expExp->ExpProperties.operation.value.unary.first);
             } else {
@@ -215,10 +213,10 @@ bool isBinaryOperation(OperationType operation) {
     case OperationPar:
     case OperationUnA:
     case OperationUnS:
-        return true;
+        return false;
         break;
     default:
-        return false;
+        return true;
         break;
     }
 }
@@ -230,7 +228,7 @@ int evaluateTypeOfExpressions(ExpExp *newExpExp) {
         case OperationDiv:
         case OperationSub:
         case OperationMul:
-            if (newExpExp->ExpProperties.operation.value.binary.first->dataType == TypeString || newExpExp->ExpProperties.operation.value.binary.second->dataType == TypeString) {
+            if (newExpExp->ExpProperties.operation.value.binary.first->dataType == TypeString || newExpExp->ExpProperties.operation.value.binary.second->dataType == TypeString) { // Simple operations cannot be done with string
                 return SEMANTIC_ERROR_TYPE_EXPRESSION;
             }
         /* FALLTHRU */
@@ -241,13 +239,13 @@ int evaluateTypeOfExpressions(ExpExp *newExpExp) {
         case OperationEqu:
         case OperationNEq:
         case OperationAdd:
-            if (newExpExp->ExpProperties.operation.value.binary.first->dataType != newExpExp->ExpProperties.operation.value.binary.second->dataType){
+            if (newExpExp->ExpProperties.operation.value.binary.first->dataType != newExpExp->ExpProperties.operation.value.binary.second->dataType) { // Operations can be only with same term types
                 return SEMANTIC_ERROR_TYPE_EXPRESSION;
             } 
         break;
         case OperationUnA:
         case OperationUnS:
-            if (newExpExp->ExpProperties.operation.value.unary.first->dataType == TypeString) {
+            if (newExpExp->ExpProperties.operation.value.unary.first->dataType == TypeString) { // Unary operations cannot be done with string
                 return SEMANTIC_ERROR_TYPE_EXPRESSION;
             }
         break;
@@ -259,12 +257,12 @@ int evaluateTypeOfExpressions(ExpExp *newExpExp) {
 }
 
 int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
-    ExpItem seekExpItem;
-    ExpItem previousExpItem;
-    ExpExp *tmp;
+    ExpItem seekExpItem; // When unary + or - saves the previous item
+    ExpItem previousExpItem; // Popped item from stack
+    ExpExp *tmp; // Allocated value
     OperationState state = OperationStateStart;
-    bool evaluationFinished = true;
-    while (evaluationFinished) {
+    bool isEvaluationRunning = true;
+    while (isEvaluationRunning) {
         if (popFromStack(expStack, &previousExpItem) == INTERNAL_ERROR)
             return INTERNAL_ERROR;
         switch (state) {
@@ -309,7 +307,7 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                         if (evaluateTypeOfExpressions(newExpExp) == SEMANTIC_ERROR_TYPE_EXPRESSION) {
                             return SEMANTIC_ERROR_TYPE_EXPRESSION;
                         }
-                        evaluationFinished = false;
+                        isEvaluationRunning = false;
                     }
                 }
                 break;
@@ -331,7 +329,7 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                                     freeExpExp(newExpExp);
                                     return SEMANTIC_ERROR_TYPE_EXPRESSION;
                                 }
-                                evaluationFinished = false;
+                                isEvaluationRunning = false;
                                 break;
                             }
                             newExpExp->ExpProperties.operation.value.binary.second = tmp;
@@ -351,7 +349,7 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                                     freeExpExp(newExpExp);
                                     return SEMANTIC_ERROR_TYPE_EXPRESSION;
                                 }
-                                evaluationFinished = false;
+                                isEvaluationRunning = false;
                                 break;
                             }
                             newExpExp->ExpProperties.operation.value.binary.second = tmp;
@@ -434,16 +432,16 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp) {
                         freeExpExp(newExpExp);
                         return SEMANTIC_ERROR_TYPE_EXPRESSION;
                     }
-                    evaluationFinished = false;
+                    isEvaluationRunning = false;
                 }
                 break;
         }
     }
     ExpItem lastExpItem;
-    if (seekValueStackValue(expStack, &lastExpItem) == INTERNAL_ERROR) {
+    if (seekValueStackValue(expStack, &lastExpItem) == INTERNAL_ERROR) { // Update
         return INTERNAL_ERROR;
     }
-    if (lastExpItem.type == ExpItemAssociativity) {
+    if (lastExpItem.type == ExpItemAssociativity) { // Pop association from the stack
         if (lastExpItem.value.as == AssociativityLeft) {
             if (popFromStack(expStack, &previousExpItem) == INTERNAL_ERROR)
                 return INTERNAL_ERROR;
@@ -568,7 +566,7 @@ int checkIfValidToken(Token *token, ExpStack *expStack, ExpItem *expItem) {
             if(isInStackOperator(expStack)) 
                 return SYNTAX_ERROR;
             expItem->type = ExpItemOperator;
-            expItem->value.op = OperatorIsGreaterEqual;
+            expItem->value.op = OperatorIsLessEqual;
             break;
         case TokenIsGreaterThan:
             if(isInStackOperator(expStack)) 
@@ -745,4 +743,3 @@ int parseExpression(ExpExp** expression, OperatorAssign assingmentOperation, con
     freeExpStack(&expStack);
     return SUCCESS;
 }
-
