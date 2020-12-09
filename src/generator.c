@@ -21,20 +21,33 @@
 #define STRING_BUFFER_LENGTH 4096
 #define STRING_BUFFER_LENGTH_SMALL 256
 
+/**
+ * @brief	Increment counter of IDs and return actual value.
+ *			Ids used only to name ifjcode labels
+ *
+ * @return 	Return unique ID
+ */
 int getUID(){
 	static int uid = 0;
 	return uid++;
 }
 
+/**
+ * @brief	Create unique ifjcode label name out of '&' and unique ID.
+ *			Used for jumping between blocks of ifjcode code.
+ *
+ * @param 	out 	Pointer to initialized string (char* or char[]) 
+ *					where the output is saved. Needs to have enough memory allocated. 
+ */
 void getUIDLabelName(char* out){
 	if (sprintf(out,"&%d",getUID()) < 0)
 		exit(INTERNAL_ERROR);
 }
 
 /**
- *	@brief	Generates the whole tree
+ *	@brief	Generate the whole syntax tree (AST) to ifjcode. (print to stdout)
  *
- *	@param	root	Root of the tree
+ *	@param	root	Root of the syntax tree (AST)
  * 
  *	@return	SUCCESS 	If generating successful
  *	@return	INTERNAL_ERROR 	IF parameter root = NULL
@@ -60,9 +73,10 @@ int generateTree(ASTRoot *root){
 }
 
 /**
- *	@brief	Generates all user functions by walking through linked list of functions
+ *	@brief	Generate all user functions by walking through linked list of functions. 
+ * 			Handel function parametrs right to left.
  *
- * 	@param	function 	Pointer to the first function
+ * 	@param	function 	Pointer to the first function in the list
  */
 void generateUserFunctions(ASTNodeFunction *function){
 	while(function != NULL){
@@ -82,7 +96,7 @@ void generateUserFunctions(ASTNodeFunction *function){
 			}
 		}
 
-		// generate handling parameters
+		// generate handling parameters (right to left)
 		for(int i = (function->function->parameters.count - 1); i >= 0; --i){
 			// foreach parameter
 			// definition
@@ -95,20 +109,19 @@ void generateUserFunctions(ASTNodeFunction *function){
 
 		// generate function body
 		printf("\n# Code of this function.\n");
-		generateFunctionBody(function);
+		generateFunctionCodeBlock(function->code->firstStatement);
 
 		// move to the next function
 		function = function->next;
 	}
 }
 
-// Generates function body. Param function guaranteed to NOT be NULL.
-void generateFunctionBody(ASTNodeFunction *function){
-	// generate function code block
-	generateFunctionCodeBlock(function->code->firstStatement);
-}
-
-// Generate code blocK of the function
+/**
+ * @brief	Generate code block of the function. Go through all the statements 
+ *			in the linked list.
+ *
+ * @param 	codeStmnt	Pointer to a first statement in the list
+ */
 void generateFunctionCodeBlock(ASTNodeStatement* codeStmnt){
 	// go through all codeStatments and generate them
 	while(codeStmnt != NULL){
@@ -139,6 +152,12 @@ void generateFunctionCodeBlock(ASTNodeStatement* codeStmnt){
 	}
 }
 
+/**
+ * @brief	Generate operation (+, -, *, /, >, <, =, !=, >=, <=)
+ *
+ * @param 	opType 		Type of the operation.
+ * @param 	dataType 	Type of the output of the operation
+ */
 void generateOperation(OperationType opType, DataType dataType){
 	char buffer[STRING_BUFFER_LENGTH_SMALL];
 	switch(opType){
@@ -203,6 +222,11 @@ void generateOperation(OperationType opType, DataType dataType){
 	}
 }
 
+/**
+ * @brief	Generate expression. Atom or operation (unary and binary). Recursive. Push result value to stack.
+ *
+ * @param 	exp		Expression to be generated.
+ */
 void generateExpresion(ExpExp* exp){
 	char buffer[STRING_BUFFER_LENGTH];
 	switch(exp->type){
@@ -222,7 +246,16 @@ void generateExpresion(ExpExp* exp){
 	}
 }
 
-// Generate variable name to format "LF@$uid"
+/**
+ * @brief	Generate variable name to format "LF@$<uid>". 
+ * 			Use uid stored in the variable definition.
+ *
+ * @param 	var 	Variable defintion whose name is being generated
+ * @param 	out 	Pointer to initialized string (char* or char[]) 
+ *					where the output is saved. Needs to have enough memory allocated.
+ *
+ * @return 	Pointer to the end of the generated name in parameter out.
+ */
 char* generateVariableName(const SymbolVariable* var, char* out){
 	int len = var->type != TypeBlackHole ? sprintf(out,"LF@$%d",var->uid) : sprintf(out,"GF@BlackHole");
 	if (len < 0)
@@ -230,13 +263,21 @@ char* generateVariableName(const SymbolVariable* var, char* out){
 	return out + len;
 }
 
-// Generate debug instruction to ifjcode output
+/**
+ * @brief	Generate debug instruction to ifjcode output
+ */
 void generateDebug(){
 	printf("WRITE string@-------\\010\n");
 	printf("BREAK\n");
 	printf("WRITE string@-------\\010\n");
 }
 
+/**
+ * @brief	Generate function call. Decide if it calls ifj20 built-in function or 
+ * 			a user created function.
+ *
+ * @param 	call 	Pointer to FunctionCall statement.
+ */
 void generateFunctionCall(ASTNodeFunctionCall* call){
 	if (call->function->builtIn)
 		generateBuiltInFunctionCall(call);
@@ -244,6 +285,11 @@ void generateFunctionCall(ASTNodeFunctionCall* call){
 		generateUserFunctionCall(call);
 }
 
+/**
+ * @brief	Generate ifj20 builtIn function. Decide which one of them it is according to function id.
+ *
+ * @param 	call 	Pointer to FunctionCall statement where all the needed data is stored.
+ */
 void generateBuiltInFunctionCall(ASTNodeFunctionCall* call){
 	if (!strCmpConstStr(&call->function->id,"inputs"))
 		generateBuiltInInputs(call);
@@ -269,6 +315,13 @@ void generateBuiltInFunctionCall(ASTNodeFunctionCall* call){
 		exit(INTERNAL_ERROR);
 }
 
+/**
+ * @brief	Generate a user created function. Push parameters to stack left to right.
+ *			Pop return values from stack left to right
+ *
+ * @param 	call 	Pointer to FunctionCall statement where all the needed data is stored. 
+ *					(parameters expression to push to stack and symbols of variables to pop return value to)
+ */
 void generateUserFunctionCall(ASTNodeFunctionCall* call){
 	//Pushing parameters to stack.
 	for (int i = 0;i < call->parameters.count;i++){
@@ -287,6 +340,15 @@ void generateUserFunctionCall(ASTNodeFunctionCall* call){
 	}
 }
 
+/**
+ * @brief	Generates ifjcode int literal term.
+ *
+ * @param 	lit 	Integer value to be generated.
+ * @param 	out 	Pointer to initialized string (char* or char[]) 
+ *					where the output is saved. Needs to have enough memory allocated. 
+ *
+ * @return 	Pointer to the end of the generated string in parameter out.
+ */
 char* generateIntLiteral(int64_t lit, char* out){
 	int len = sprintf(out,"int@%"PRId64,lit);
 	if (len < 0)
@@ -294,6 +356,15 @@ char* generateIntLiteral(int64_t lit, char* out){
 	return out + len;
 }
 
+/**
+ * @brief	Generates ifjcode float literal term.
+ *
+ * @param 	lit 	Double value to be generated.
+ * @param 	out 	Pointer to initialized string (char* or char[]) 
+ *					where the output is saved. Needs to have enough memory allocated. 
+ *
+ * @return 	Pointer to the end of the generated string in parameter out.
+ */
 char* generateFloatLiteral(double lit, char* out){
 	int len = sprintf(out, "float@%a",lit);
 	if (len < 0)
@@ -301,6 +372,15 @@ char* generateFloatLiteral(double lit, char* out){
 	return out + len;
 }
 
+/**
+ * @brief	Generates ifjcode string literal term.
+ *
+ * @param 	lit 	String value to be generated.
+ * @param 	out 	Pointer to initialized string (char* or char[]) 
+ *					where the output is saved. Needs to have enough memory allocated. 
+ *
+ * @return 	Pointer to the end of the generated string in parameter out.
+ */
 char* generateStringLiteral(const char* lit,char* out){
 	int len = sprintf(out, "string@");
 	if (len < 0)
@@ -319,6 +399,15 @@ char* generateStringLiteral(const char* lit,char* out){
 	return out;
 }
 
+/**
+ * @brief	Decide what type the term is and generate it by calling proper method.
+ *
+ * @param 	term	Pointer to the terminal (term) to be generated.
+ * @param 	out 	Pointer to initialized string (char* or char[]) 
+ *					where the output is saved. Needs to have enough memory allocated. 
+ *
+ * @return 	Pointer to the end of the generated string in parameter out.
+ */
 char* generateTermRepresentation(const Term* term,char* out){
 	switch(term->type){
 		case TermFloatLiteral:
@@ -334,6 +423,12 @@ char* generateTermRepresentation(const Term* term,char* out){
 	}
 }
 
+/**
+ * @brief	Generate ifj20 builtIn function print. Write all terms.
+ *
+ * @param 	call 	Pointer to FunctionCall statement where all the needed data is stored. 
+ *					(terms to print)
+ */
 void generateBuiltInPrint(ASTNodeFunctionCall* printCall){
 	for (int i = 0; i <printCall->parameters.count;i++){
 		char argBuffer[STRING_BUFFER_LENGTH];
@@ -342,6 +437,11 @@ void generateBuiltInPrint(ASTNodeFunctionCall* printCall){
 	}
 }
 
+/**
+ * @brief	Generate ifj20 builtIn function int2float.
+ *
+ * @param 	call 	Pointer to FunctionCall statement where all the needed data is stored. 
+ */
 void generateBuiltInInt2Float(ASTNodeFunctionCall* int2floatCall){
 	char lValue[STRING_BUFFER_LENGTH];
 	char rValue[STRING_BUFFER_LENGTH];
@@ -350,6 +450,11 @@ void generateBuiltInInt2Float(ASTNodeFunctionCall* int2floatCall){
 	printf("INT2FLOAT %s %s\n",lValue,rValue);
 }
 
+/**
+ * @brief	Generate ifj20 builtIn function float2int. 
+ *
+ * @param 	call 	Pointer to FunctionCall statement where all the needed data is stored. 
+ */
 void generateBuiltInFloat2Int(ASTNodeFunctionCall* float2intCall){
 	char lValue[STRING_BUFFER_LENGTH];
 	char rValue[STRING_BUFFER_LENGTH];
@@ -358,6 +463,11 @@ void generateBuiltInFloat2Int(ASTNodeFunctionCall* float2intCall){
 	printf("FLOAT2INT %s %s\n",lValue,rValue);
 }
 
+/**
+ * @brief	Generate ifj20 builtIn function Len. 
+ *
+ * @param 	call 	Pointer to FunctionCall statement where all the needed data is stored. 
+ */
 void generateBuiltInLen(ASTNodeFunctionCall* lenCall){
 	char lValue[STRING_BUFFER_LENGTH];
 	char rValue[STRING_BUFFER_LENGTH];
@@ -366,6 +476,11 @@ void generateBuiltInLen(ASTNodeFunctionCall* lenCall){
 	printf("STRLEN %s %s\n",lValue,rValue);
 }
 
+/**
+ * @brief	Generate ifj20 builtIn function chr. 
+ *
+ * @param 	call 	Pointer to FunctionCall statement where all the needed data is stored. 
+ */
 void generateBuiltInChr(ASTNodeFunctionCall* chrCall){
 	char output[STRING_BUFFER_LENGTH_SMALL];
 	char errorCode[STRING_BUFFER_LENGTH_SMALL];
@@ -392,6 +507,11 @@ void generateBuiltInChr(ASTNodeFunctionCall* chrCall){
 	printf("LABEL %s_END\n",label);
 }
 
+/**
+ * @brief	Generate ifj20 builtIn function ord. 
+ *
+ * @param 	call 	Pointer to FunctionCall statement where all the needed data is stored. 
+ */
 void generateBuiltInOrd(ASTNodeFunctionCall* ordCall){
 	//int, int <- str, i<0;len(str)-1>
 	/*
@@ -434,6 +554,11 @@ void generateBuiltInOrd(ASTNodeFunctionCall* ordCall){
 	printf("LABEL %s_END\n",label);
 }
 
+/**
+ * @brief	Generate ifj20 builtIn function substr. 
+ *
+ * @param 	call 	Pointer to FunctionCall statement where all the needed data is stored. 
+ */
 void generateBuiltInSubstr(ASTNodeFunctionCall* substrCall){
 	char output[STRING_BUFFER_LENGTH_SMALL];
 	char errorCode[STRING_BUFFER_LENGTH_SMALL];
@@ -506,9 +631,13 @@ void generateBuiltInSubstr(ASTNodeFunctionCall* substrCall){
 	printf("LABEL %s_FLUSH_BUFFER\n",label);
 	printf("MOVE %s TF@outBuf\n",output);
 	printf("LABEL %s_END\n",label);
-
 }
 
+/**
+ * @brief	Generate ifj20 builtIn function inputs. 
+ *
+ * @param 	call 	Pointer to FunctionCall statement where all the needed data is stored. 
+ */
 void generateBuiltInInputs(ASTNodeFunctionCall* inputsStatment){
 	char output[STRING_BUFFER_LENGTH_SMALL];
 	char errorCode[STRING_BUFFER_LENGTH_SMALL];
@@ -532,6 +661,11 @@ void generateBuiltInInputs(ASTNodeFunctionCall* inputsStatment){
 	printf("LABEL %s_END\n",label);
 }
 
+/**
+ * @brief	Generate ifj20 builtIn function inputi. 
+ *
+ * @param 	call 	Pointer to FunctionCall statement where all the needed data is stored. 
+ */
 void generateBuiltInInputi(ASTNodeFunctionCall* inputiStatment){
 	char output[STRING_BUFFER_LENGTH_SMALL];
 	char errorCode[STRING_BUFFER_LENGTH_SMALL];
@@ -555,6 +689,11 @@ void generateBuiltInInputi(ASTNodeFunctionCall* inputiStatment){
 	printf("LABEL %s_END\n",label);
 }
 
+/**
+ * @brief	Generate ifj20 builtIn function inputf. 
+ *
+ * @param 	call 	Pointer to FunctionCall statement where all the needed data is stored. 
+ */
 void generateBuiltInInputf(ASTNodeFunctionCall* inputfStatment){
 	char output[STRING_BUFFER_LENGTH_SMALL];
 	char errorCode[STRING_BUFFER_LENGTH_SMALL];
@@ -578,6 +717,12 @@ void generateBuiltInInputf(ASTNodeFunctionCall* inputfStatment){
 	printf("LABEL %s_END\n",label);
 }
 
+/**
+ * @brief	Generate assignment n right values to n left values. (eg. i, _ = input(i))
+ *
+ * @param 	assignment 	Pointer to assignment which contains array of right values (expressions) 
+ *			and left values (symbolVariables).
+ */
 void generateAssignment(ASTNodeAssignment *assignment){
 	if(assignment == NULL)
 		return;
@@ -585,18 +730,25 @@ void generateAssignment(ASTNodeAssignment *assignment){
 	// save the smaller number from these two
 	int valuesCount = (assignment->lValues.count < assignment->rValues.count) ? assignment->lValues.count : assignment->rValues.count ;
 
+	// push rValue to stack right to left
 	for(int i = (valuesCount - 1); i >= 0; i--){
-		// push rValue
 		generateExpresion(assignment->rValues.arr[i]);
 	}
+	
+	// pop it to lValue left to right
 	for(int i = 0; i < valuesCount;i++){
-		// pop it to lValue
 		char lValueName[STRING_BUFFER_LENGTH];
 		generateVariableName(assignment->lValues.arr[i], lValueName);
 		printf("POPS %s\n", lValueName);
 	}
 }
 
+/**
+ * @brief	Generate if structure.
+ *
+ * @param 	ifStatement 	Pointer to a ifStatement which cointains all data that needs to be generated.
+ *							(condition, if clause, else clause)
+ */
 void generateIf(ASTNodeIf* ifStatement){
 	if (ifStatement == NULL)
 		return;
@@ -612,20 +764,26 @@ void generateIf(ASTNodeIf* ifStatement){
 	printf("PUSHS bool@false\n");	// condition negation for eliminating redundant jumps
 	printf("\nJUMPIFEQS %s\n", elseLabel);
 
-	// generate true code block and jump to endIfLabel
+	// generate if clause and jump to endIfLabel
 	generateFunctionCodeBlock(ifStatement->ifClause->firstStatement);
 	printf("JUMP %s\n", endIfLabel);
 
 	// generate elseLabel
 	printf("\tLABEL %s\n", elseLabel);
 
-	// generate false code block
+	// generate else clause
 	generateFunctionCodeBlock(ifStatement->elseClause->firstStatement);
 
 	// generate endIfLabel
 	printf("\tLABEL %s\n", endIfLabel);
 }
 
+/**
+ * @brief	Generate for structure.
+ *
+ * @param 	forStatement 	Pointer to a forStatement which cointains all data that needs to be generated.
+ *							(initial assignment, condition, increment assignment, inside code)
+ */
 void generateFor(ASTNodeFor* forStatement){
 	if (forStatement == NULL)
 		return;
@@ -661,11 +819,17 @@ void generateFor(ASTNodeFor* forStatement){
 	printf("\tLABEL %s\n", endForLabel);
 }
 
+/**
+ * @brief	Generate return statement. Push return values to stack right to left
+ *
+ * @param 	returnStatement 	Pointer to a returnStatement which cointains all data that needs to be generated.
+ *								(array of expression)
+ */
 void generateReturn(ASTNodeReturn* returnStatement){
 	if (returnStatement == NULL)
 		return;
 
-	// generate all return variables PUSH them to STACK (right-to-left)
+	// generate all return expressions and PUSH them to STACK (right-to-left)
 	for (int i = (returnStatement->rValues.count-1); i >= 0; i--){
 		generateExpresion(returnStatement->rValues.arr[i]);
 	}

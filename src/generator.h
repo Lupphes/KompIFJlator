@@ -23,7 +23,6 @@
 
 int generateTree(ASTRoot *root);
 void generateUserFunctions(ASTNodeFunction *function);
-void generateFunctionBody(ASTNodeFunction *function);
 void generateFunctionCodeBlock(ASTNodeStatement* codeStmnt);
 char* generateVariableName(const SymbolVariable* var, char* out);
 char* generateIntLiteral(int64_t lit, char* out);
