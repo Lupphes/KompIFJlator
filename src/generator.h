@@ -22,7 +22,6 @@
 #include "error.h"
 
 int generateTree(ASTRoot *root);
-int generateMain(ASTNodeFunction *function);
 void generateUserFunctions(ASTNodeFunction *function);
 void generateFunctionBody(ASTNodeFunction *function);
 void generateFunctionCodeBlock(ASTNodeStatement* codeStmnt);

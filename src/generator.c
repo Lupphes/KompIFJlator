@@ -54,32 +54,7 @@ int generateTree(ASTRoot *root){
 	printf("#--------------- user funtions ---------------#\n");
 
 	generateUserFunctions(root->userFunctions);
-	generateMain(root->mainFunction);
-
-	return SUCCESS;
-}
-
-/**
- *	@brief	Generates main function of given program
- *
- * 	@param	function 	Pointer to the function
- *
- *	@return	SUCCESS			If generating was successful
- *	@return	INTERNAL_ERROR	If param function is NULL and main does not exist
- */
-int generateMain(ASTNodeFunction *function){
-	if(function == NULL){
-		fprintf(stderr, "missing main\n");
-		return INTERNAL_ERROR;
-	}
-
-	// generate main label and initial frame
-	printf("\n#------------------- main --------------------#\n");
-	printf("\tLABEL main\n");
-	printf("CREATEFRAME\n");
-	printf("PUSHFRAME\n\n");
-
-	generateFunctionBody(function);
+	generateUserFunctions(root->mainFunction);
 
 	return SUCCESS;
 }
@@ -96,19 +71,30 @@ void generateUserFunctions(ASTNodeFunction *function){
 		printf("CREATEFRAME\n");
 		printf("PUSHFRAME\n\n");
 
+		// Generate Definitions Of Variables
+		printf("# Define all variables of function.\n");
+
+		for(int i = 0; i < function->variables.count; i++){
+			if(function->variables.arr[i] != NULL){
+				char newVarName[STRING_BUFFER_LENGTH];
+				generateVariableName(function->variables.arr[i], newVarName);
+				printf("DEFVAR %s\n", newVarName);
+			}
+		}
+
 		// generate handling parameters
 		for(int i = (function->function->parameters.count - 1); i >= 0; --i){
 			// foreach parameter
 			// definition
 			char newVarName[STRING_BUFFER_LENGTH];
 			generateVariableName(function->variables.arr[i], newVarName);
-			printf("DEFVAR %s\n", newVarName);
 
 			// pop value from stack
 			printf("POPS %s\n", newVarName);
 		}
 
 		// generate function body
+		printf("\n# Code of this function.\n");
 		generateFunctionBody(function);
 
 		// move to the next function
@@ -118,25 +104,12 @@ void generateUserFunctions(ASTNodeFunction *function){
 
 // Generates function body. Param function guaranteed to NOT be NULL.
 void generateFunctionBody(ASTNodeFunction *function){
-	// Generate Definitions Of Variables
-	printf("# Define all variables of function.\n");
-
-	for(int i = 0; i < function->variables.count; i++){
-		if(function->variables.arr[i] != NULL){
-			char newVarName[STRING_BUFFER_LENGTH];
-			generateVariableName(function->variables.arr[i], newVarName);
-			printf("DEFVAR %s\n", newVarName);
-		}
-	}
-
 	// generate function code block
 	generateFunctionCodeBlock(function->code->firstStatement);
 }
 
 // Generate code blocK of the function
 void generateFunctionCodeBlock(ASTNodeStatement* codeStmnt){
-	printf("\n# Code of this function.\n");
-
 	// go through all codeStatments and generate them
 	while(codeStmnt != NULL){
 		// generate this codeStatment
@@ -218,11 +191,11 @@ void generateOperation(OperationType opType, DataType dataType){
 			break;
 		case OperationGEq:
 			printf("LTS\n");
-			printf("NOT\n");
+			printf("NOTS\n");
 			break;
 		case OperationLEq:
 			printf("GTS\n");
-			printf("NOT\n");
+			printf("NOTS\n");
 			break;
 		case OperationPar:
 		case OperationUnA:
@@ -307,7 +280,7 @@ void generateUserFunctionCall(ASTNodeFunctionCall* call){
 	printf("CALL %s\n",strGetStr(&call->function->id));
 	printf("POPFRAME\n");
 	//Assigning the return values
-	for (int i = call->lValues.count-1;i >= 0;i--){
+	for (int i = 0 ;i < call->lValues.count;i++){
 		char buffer[STRING_BUFFER_LENGTH];
 		generateVariableName(call->lValues.arr[i],buffer);
 		printf("POPS %s\n",buffer);
@@ -428,7 +401,7 @@ void generateBuiltInChr(ASTNodeFunctionCall* chrCall){
 	getUIDLabelName(label);
 	printf("PUSHS int@255\n");
 	printf("PUSHS %s\n",input);
-	printf("GTS");
+	printf("GTS\n");
 	printf("PUSHS int@0\n");
 	printf("PUSHS %s\n",input);
 	printf("LTS\n");
@@ -436,11 +409,11 @@ void generateBuiltInChr(ASTNodeFunctionCall* chrCall){
 	printf("PUSHS bool@true\n");
 	printf("JUMPIFNEQS %s_ELSE\n",label);
 	printf("MOVE %s int@1\n",errorCode);
-	printf("JUMP %s_END",label);
+	printf("JUMP %s_END\n",label);
 	printf("LABEL %s_ELSE\n",label);
-	printf("INT2CHAR %s %s",output,input);
+	printf("INT2CHAR %s %s\n",output,input);
 	printf("MOVE %s int@0\n",errorCode);
-	printf("LABEL %s_END",label);
+	printf("LABEL %s_END\n",label);
 }
 
 void generateBuiltInOrd(ASTNodeFunctionCall* ordCall){
@@ -462,12 +435,12 @@ void generateBuiltInOrd(ASTNodeFunctionCall* ordCall){
 	generateTermRepresentation(ordCall->parameters.arr[1],inputIndex);
 	getUIDLabelName(label);
 	
-	printf("CREATEFRAME");
-	printf("DEFVAR TF@len");
+	printf("CREATEFRAME\n");
+	printf("DEFVAR TF@len\n");
 	printf("STRLEN TF@len %s\n",inputString);
-	printf("PUSHS int@len\n");
+	printf("PUSHS TF@len\n");
 	printf("PUSHS %s\n",inputIndex);
-	printf("LTS");
+	printf("LTS\n");
 	printf("PUSHS int@-1\n");
 	printf("PUSHS %s\n",inputIndex);
 	printf("GTS\n");
@@ -475,14 +448,14 @@ void generateBuiltInOrd(ASTNodeFunctionCall* ordCall){
 	printf("PUSHS bool@true\n");
 	printf("JUMPIFNEQS %s_ELSE\n",label);
 		
-		printf("STR2INT %s %s %s",output,inputString,inputIndex);
+		printf("STRI2INT %s %s %s\n",output,inputString,inputIndex);
 		printf("MOVE %s int@1\n",errorCode);
-		printf("JUMP %s_END",label);
+		printf("JUMP %s_END\n",label);
 
 		printf("LABEL %s_ELSE\n",label);
 		printf("MOVE %s int@1\n",errorCode);
 	
-	printf("LABEL %s_END",label);
+	printf("LABEL %s_END\n",label);
 }
 
 void generateBuiltInSubstr(ASTNodeFunctionCall* substrCall){
@@ -543,7 +516,7 @@ void generateBuiltInSubstr(ASTNodeFunctionCall* substrCall){
 			printf("PUSHS bool@true\n");
 			printf("JUMPIFNEQS %s_END\n",label);
 
-			printf("GETCHAR TF@strBuf TF@i\n");
+			printf("GETCHAR TF@strBuf %s TF@i\n",inputString);
 			printf("CONCAT %s %s TF@strBuf\n",output,output);
 			printf("ADD TF@i TF@i int@1\n");
 			printf("JUMP %s_ForCheck\n",label);
@@ -552,7 +525,7 @@ void generateBuiltInSubstr(ASTNodeFunctionCall* substrCall){
 		printf("LABEL %s_ELSE\n",label);
 		printf("MOVE %s int@1\n",errorCode);
 	
-	printf("LABEL %s_END",label);
+	printf("LABEL %s_END\n",label);
 
 }
 
@@ -571,7 +544,7 @@ void generateBuiltInInputs(ASTNodeFunctionCall* inputsStatment){
 
 		printf("MOVE %s TF@out\n",output);
 		printf("MOVE %s int@0\n",errorCode);
-		printf("JUMP %s_END",label);
+		printf("JUMP %s_END\n",label);
 
 		printf("LABEL %s_ERROR\n",label);
 		printf("MOVE %s int@1\n",errorCode);
@@ -594,7 +567,7 @@ void generateBuiltInInputi(ASTNodeFunctionCall* inputiStatment){
 
 		printf("MOVE %s TF@out\n",output);
 		printf("MOVE %s int@0\n",errorCode);
-		printf("JUMP %s_END",label);
+		printf("JUMP %s_END\n",label);
 
 		printf("LABEL %s_ERROR\n",label);
 		printf("MOVE %s int@1\n",errorCode);
@@ -617,7 +590,7 @@ void generateBuiltInInputf(ASTNodeFunctionCall* inputfStatment){
 
 		printf("MOVE %s TF@out\n",output);
 		printf("MOVE %s int@0\n",errorCode);
-		printf("JUMP %s_END",label);
+		printf("JUMP %s_END\n",label);
 
 		printf("LABEL %s_ERROR\n",label);
 		printf("MOVE %s int@1\n",errorCode);
@@ -632,10 +605,11 @@ void generateAssignment(ASTNodeAssignment *assignment){
 	// save the smaller number from these two
 	int valuesCount = (assignment->lValues.count < assignment->rValues.count) ? assignment->lValues.count : assignment->rValues.count ;
 
-	for(int i = 0; i < valuesCount; i++){
+	for(int i = (valuesCount - 1); i >= 0; i--){
 		// push rValue
 		generateExpresion(assignment->rValues.arr[i]);
-
+	}
+	for(int i = 0; i < valuesCount;i++){
 		// pop it to lValue
 		char lValueName[STRING_BUFFER_LENGTH];
 		generateVariableName(assignment->lValues.arr[i], lValueName);
@@ -655,7 +629,7 @@ void generateIf(ASTNodeIf* ifStatement){
 
 	// generate condition 
 	generateExpresion(ifStatement->condition);
-	printf("PUSH bool@false\n");	// condition negation for eliminating redundant jumps
+	printf("PUSHS bool@false\n");	// condition negation for eliminating redundant jumps
 	printf("\nJUMPIFEQS %s\n", elseLabel);
 
 	// generate true code block and jump to endIfLabel
@@ -690,7 +664,7 @@ void generateFor(ASTNodeFor* forStatement){
 
 	// for condition	(eg. i < 5)
 	generateExpresion(forStatement->condition);
-	printf("PUSH bool@false\n");	// condition negation for eliminating redundant jumps
+	printf("PUSHS bool@false\n");	// condition negation for eliminating redundant jumps
 	printf("\nJUMPIFEQS %s\n", endForLabel);
 
     // generate code inside of for   struct _ASTNodeBlock* code;
@@ -711,8 +685,8 @@ void generateReturn(ASTNodeReturn* returnStatement){
 	if (returnStatement == NULL)
 		return;
 
-	// generate all return variables PUSH them to STACK (left-to-right)
-	for (int i = 0; i < returnStatement->rValues.count; i++){
+	// generate all return variables PUSH them to STACK (right-to-left)
+	for (int i = (returnStatement->rValues.count-1); i >= 0; i--){
 		generateExpresion(returnStatement->rValues.arr[i]);
 	}
 
