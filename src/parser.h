@@ -20,33 +20,33 @@
 #include "term.h"
 #include "str.h"
 #include "helper.h"
+#include "ast.h"
 
-int parseExpression_Dummy();
-
-int Start();
+int Start(ASTRoot* astRoot);
 int Prolog();
-int Chief();
-int FunctionDefinition();
+int Chief(ASTRoot* astRoot);
+int FunctionDefinition(ASTRoot* astRoot);
 int FunctionDefinitionParameters_Start(SymbolFunction* function);
 int FunctionDefinitionParameters_Next(SymbolFunction* function);
 int FunctionReturnValues(SymbolFunction* function);
 int FunctionReturnValues_First(SymbolFunction* function);
 int FunctionReturnValues_Next(SymbolFunction* function);
-int Block();
-int Statement();
-int StatementStartingWithIdentifier();
-int Assignment(SymbolVariableArray* lValues);
-int ExpressionList_Start();
-int ExpressionList_Next();
-int IDList_Next(SymbolVariableArray* lValues);
-int VariableDefinition(string* id_name);
-int FunctionCall_rule(SymbolVariableArray* lValues, const SymbolFunction* function, string* functionName);
+int Block(ASTNodeBlock* astBlock,bool generateNewStackFrame);
+int Statement(ASTNodeStatement** astStatement);
+int StatementStartingWithIdentifier(ASTNodeStatement* astStatement);
+int Assignment(ASTNodeStatement* astStatement,SymbolVariableArray* lValues);
+int AssignmentOfExpressions(ASTNodeAssignment* astAsignment, const SymbolVariableArray* lValues);
+int ExpressionList_Start(ExpressionArray* expressionList);
+int ExpressionList_Next(ExpressionArray* expressionList);
+int VariableList_Next(SymbolVariableArray* lValues);
+int VariableDefinition(ASTNodeAssignment* astAssignmentStatement, string* id_name);
+int FunctionCall_rule(ASTNodeStatement* astStatement,SymbolVariableArray* lValues, const SymbolFunction* function, const string* functionName);
 int TermList(TermArray* functionParameters);
 int TermListNext(TermArray* functionParameters);
-int If();
-int Return();
-int For();
-int For_Definition();
-int For_Assignment();
+int If(ASTNodeStatement* astStatement);
+int Return(ASTNodeStatement* astStatement);
+int For(ASTNodeStatement* astStatement);
+int For_Definition(ASTNodeFor* astForStatement);
+int For_Assignment(ASTNodeFor* astForStatement);
 
 #endif

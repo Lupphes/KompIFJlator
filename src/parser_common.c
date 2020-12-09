@@ -24,6 +24,8 @@
 #include "error.h"
 #include "scanner.h"
 #include "parser_builtin_functions.h"
+#include "ast.h"
+#include "generator.h"
 
 Token curTok = {TokenEOF}; //We initialise the current token so that the function nextToken works properly.
 Token cacheTok = {TokenEOF};
@@ -38,13 +40,14 @@ DubiousFunctionCallArray dubiousFunctionCalls;
  */
 int beginParsing(){
     int returnCode = SUCCESS;
+    ASTRoot astRoot = {NULL, NULL};
     initDubiousFunctionCallArray(&dubiousFunctionCalls);
     callAndHandleException_clean(initFunctionTable());
     callAndHandleException_clean(initVariableTableStack());
     callAndHandleException_clean(nextToken()) //First read of the token.
     callAndHandleException_clean(initBuiltInFunctions());
 
-    callAndHandleException_clean(Start());
+    callAndHandleException_clean(Start(&astRoot));
     
     //Checking for existence and proper form of main function.
     const SymbolFunction* mainFunction = getFunction("main");
@@ -59,11 +62,13 @@ int beginParsing(){
         if (function == NULL)
             returnAndClean(SEMANTIC_ERROR_DEFINITION);
         callAndHandleException_clean(validateFunctionCall(function,dubiousFunctionCalls.arr[i].lValues,dubiousFunctionCalls.arr[i].functionParameters));
+        dubiousFunctionCalls.arr[i].astRepresentation->function = function;
     }
     
-    //TODO: Start code generation here.
+    generateTree(&astRoot);
 
     CLEAN_UP:
+    freeAST(&astRoot);
     freeDubiousFunctionCallArray(&dubiousFunctionCalls);
     freeFunctionTable();
     freeVariableTableStack();
@@ -163,7 +168,7 @@ int validateFunctionCall(const SymbolFunction* function, const SymbolVariableArr
     }
 
     //Return value count check
-    if(countInSymbolVariableArray(lValues) != function->returnTypes.count){ //TODO: change on behest of the boss mayble later.
+    if(countInSymbolVariableArray(lValues) != function->returnTypes.count){
         return SEMANTIC_ERROR_TYPE_FUNCTION;
     }
 
@@ -234,7 +239,7 @@ int parseTerm(Term* term, bool autoAdvance){
  */
 DataType termType(Term* term){
     if (term->type != TermVariable)
-        return term->type; //The TermType enum has equivalent enum values for all types except TermVariable.
+        return term->type; //The TermType enum has enum values equivalent with DatyType for all types except TermVariable.
     else
         return term->value.v->type;
 }

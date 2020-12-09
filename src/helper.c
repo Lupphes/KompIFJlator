@@ -40,9 +40,10 @@ void initStringArray(StringArray* arr){
 int addToStringArray(StringArray* arr, string* str){
     int returnCode;
     
-    int newCount = ++arr->count;
+    int newCount = arr->count + 1;
     if ((arr->arr = realloc(arr->arr,sizeof(string)*newCount)) == NULL)
         return INTERNAL_ERROR;
+    newCount++;
     callAndHandleException(strInit(&arr->arr[newCount-1]));
     callAndHandleException(strCopyString(&arr->arr[newCount-1],str));
 
@@ -90,10 +91,11 @@ void initSymbolVariableArray(SymbolVariableArray* arr){
  * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
  */
 int addToSymbolVariableArray(SymbolVariableArray* arr, const SymbolVariable* var){
-    int newCount = ++arr->count;
-    if ((arr->arr = realloc(arr->arr,sizeof(SymbolVariable)*newCount)) == NULL)
+    int newCount = arr->count + 1;
+    if ((arr->arr = realloc(arr->arr,sizeof(SymbolVariable*)*newCount)) == NULL)
         return INTERNAL_ERROR;
     arr->arr[newCount-1] = var;
+    arr->count++;
 
     return SUCCESS;
 }
@@ -136,10 +138,11 @@ void initTermArray(TermArray* arr){
  * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
  */
 int addToTermArray(TermArray* arr, Term* term){
-    int newCount = ++arr->count;
+    int newCount = arr->count + 1;
     if ((arr->arr = realloc(arr->arr,sizeof(Term)*newCount)) == NULL)
         return INTERNAL_ERROR;
     arr->arr[newCount-1] = term;
+    arr->count++;
 
     return SUCCESS;
 }
@@ -187,10 +190,11 @@ void initDubiousFunctionCallArray(DubiousFunctionCallArray* arr){
  * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
  */
 int addToDubiousFunctionCallArray(DubiousFunctionCallArray* arr, DubiousFunctionCall* functionCall){
-    int newCount = ++arr->count;
+    int newCount = arr->count + 1;
     if ((arr->arr = realloc(arr->arr,sizeof(DubiousFunctionCall)*newCount)) == NULL)
         return INTERNAL_ERROR;
     arr->arr[newCount-1] = *functionCall;
+    arr->count++;
 
     return SUCCESS;
 }
@@ -213,10 +217,61 @@ int countInDubiousFunctionCallArray(const DubiousFunctionCallArray* arr){
 void freeDubiousFunctionCallArray(DubiousFunctionCallArray* arr){
     for(int i = 0; i < arr->count;i++){
         freeSymbolVariableArray(arr->arr[i].lValues);
-        freeTermArray(arr->arr[i].functionParameters);
+        //freeTermArray(arr->arr[i].functionParameters);
         free(arr->arr[i].lValues);
         free(arr->arr[i].functionParameters);
         strFree(&arr->arr[i].functionName);
+    }
+    free(arr->arr);
+    arr->count = -1;
+}
+
+/**
+ * @brief Initalises the expression array for use. This function must be called before any other on an uninitialised expression array.
+ * 
+ * @param arr The expression array to initialise.
+ */
+void initExpressionArray(ExpressionArray* arr){
+    arr->count = 0;
+    arr->arr = NULL;
+}
+
+/**
+ * @brief Adds an expression to the specified expression array (by performing a shallow copy).
+ * 
+ * @param arr The array to insert the expression into.
+ * @param str The expression to insert into the array.
+ * @return int SUCCESS if the operation was succesful. INTERNAL_ERROR if there was a problem with memory allocation.
+ */
+int addToExpressionArray(ExpressionArray* arr, ExpExp* expression){
+    int newCount = arr->count + 1;
+    if ((arr->arr = realloc(arr->arr,sizeof(ExpExp*)*newCount)) == NULL)
+        return INTERNAL_ERROR;
+    arr->arr[newCount-1] = expression;
+    arr->count++;
+
+    return SUCCESS;
+}
+
+/**
+ * @brief Return the number of elements in the specified expression array.
+ * 
+ * @param arr The array to get the number of elements of.
+ * @return int The number of elements in the specified array.
+ */
+int countInExpressionArray(const ExpressionArray* arr){
+    return arr->count;
+}
+
+/**
+ * @brief Frees the memory used by the expression array (and destroys the objects inside).
+ * 
+ * @param arr The array to free its memory.
+ */
+void freeExpressionArray(ExpressionArray* arr){
+    for (int i = 0; i < arr->count;i++){
+        freeExpExp(arr->arr[i]);
+        free(arr->arr[i]);
     }
     free(arr->arr);
     arr->count = -1;

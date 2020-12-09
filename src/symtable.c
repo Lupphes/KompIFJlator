@@ -266,6 +266,7 @@ int addVariableToTable(const SymbolVariable* variable, VariableTable* table){
 	}
 
 	newElPtr->VarData.type = variable->type;
+	newElPtr->VarData.uid = variable->uid;
 
 	newElPtr->ptrNext = (*table)[hash];
 	(*table)[hash] = newElPtr;
@@ -385,7 +386,10 @@ void leaveStackFrame(){
  *		(The variable may or may not exist in the previous stack frames, but this is does not concern 
  *		the output of this function.)
  */
-int addVariable(const SymbolVariable* variable){
+int addVariable(SymbolVariable* variable){
+	static int uid = 0;
+	variable->uid = uid;
+	uid++;
 	return addVariableToTable(variable, &mainStack->table);
 }
 

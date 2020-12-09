@@ -28,6 +28,9 @@ extern DubiousFunctionCallArray dubiousFunctionCalls;
 //Shorthand. Advances to the next token without any checks of the current token. If there are issues raised by the nextToken function, returns from the function with the return code returned by nextToken.
 #define acceptAny() {if ((returnCode = nextToken()) != SUCCESS) return returnCode;}
 
+//Shorthand. Advances to the next token without any checks of the current token. If there are issues raised by the nextToken function, returns from the function with the return code returned by nextToken.
+#define acceptAny_clean() {if ((returnCode = nextToken()) != SUCCESS) goto CLEAN_UP;}
+
 //Short hand. Tries to accept the specied token type. If the current token isn't of the specied type, returns from the current function with SYNTAX_ERROR. If the acceptance of the next token fails, returns the error value returned by nextToken.
 #define assert(term) {if((returnCode =  accept(term)) != SUCCESS) return returnCode;}
 
@@ -42,6 +45,9 @@ extern DubiousFunctionCallArray dubiousFunctionCalls;
 
 //Short hand. Asserts the existence of a TokenEOL on the input. Then it reads TokenEOLs from the input until it hits the first token that isn't TokenEOL.
 #define EOL_Mandatory() {assert(TokenEOL); while(peek(TokenEOL)) { acceptAny(); }}
+
+//Clean variant of EOL_Mandatory
+#define EOL_Mandatory_clean() {assert_clean(TokenEOL); while(peek(TokenEOL)) { acceptAny_clean(); }}
 
 //Short hand. Reads TokenEOLs from the input until it hits the first token that isn't TokenEOL.
 #define EOL_Optional() {while(peek(TokenEOL)) { acceptAny(); }}

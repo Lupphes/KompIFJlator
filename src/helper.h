@@ -18,6 +18,7 @@
 #include "str.h"
 #include "symbol.h"
 #include "term.h"
+#include "expression_analysis.h"
 
 //Short hand. Process the "call" (usually a function call, but can technically be any expression in C) and returns its return code if is non-zero (i.e. the function returned unsuccesfully.)
 #define callAndHandleException(call) {if ((returnCode = (call))) return returnCode;}
@@ -43,10 +44,18 @@ typedef struct {
     int count;
 } TermArray;
 
-typedef struct{ //I'd like for this declaration to be in parser.h, but there are some problems with circular dependencies.
+typedef struct {
+    ExpExp** arr;
+    int count;
+} ExpressionArray;
+
+#include "ast.h"
+
+typedef struct{ //There is some circular dependency magic going on; couldn't fix it in time.
     string functionName;
     SymbolVariableArray* lValues;
     TermArray* functionParameters;
+    struct _ASTNodeFunctionCall* astRepresentation;
 } DubiousFunctionCall;
 
 typedef struct {
@@ -74,5 +83,9 @@ int addToDubiousFunctionCallArray(DubiousFunctionCallArray* arr, DubiousFunction
 int countInDubiousFunctionCallArray(const DubiousFunctionCallArray* arr);
 void freeDubiousFunctionCallArray(DubiousFunctionCallArray* arr);
 
+void initExpressionArray(ExpressionArray* arr);
+int addToExpressionArray(ExpressionArray* arr, ExpExp* expression);
+int countInExpressionArray(const ExpressionArray* arr);
+void freeExpressionArray(ExpressionArray* arr);
 
 #endif
