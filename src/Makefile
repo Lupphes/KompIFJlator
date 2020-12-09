@@ -6,7 +6,7 @@ TESTSDIR := $(PROJDIR)/tests
 
 MKDIR_P = mkdir -p
 
-CC=gcc -std=c11 
+CC=gcc -std=c11
 CFLAGS=-g -Wall -Werror -pedantic -Werror
 DEBUGFLAG=-fsanitize=address -fno-omit-frame-pointer
 WEXFLAGS=-Wextra -Wno-missing-field-initializers
@@ -30,11 +30,14 @@ GNROBJ=$(GNR)-test
 
 # Compiler
 COM=compiler
+NAME=ifj20.out
 
-.PHONY: directories
+# Compiler
+$(COM): $(LIBDIR)/*.h $(LIBDIR)/*.c 
+	$(CC) -o $(NAME) $<
 
-all: directories $(SCANNEROBJ) $(EXPRESSOBJ) $(GNROBJ) $(COM)
-#symtable-test generator-test
+.PHONY: all
+all: directories $(SCANNEROBJ) $(EXPRESSOBJ) $(SYM)-test $(INT)-test $(GNROBJ) $(COM)
 
 directories: ${BUILDDIR}
 ${BUILDDIR}:
@@ -42,34 +45,34 @@ ${BUILDDIR}:
 
 # Scanner
 $(SCN)-test: $(LIBDIR)/*.h $(LIBDIR)/$(SCN).h $(TESTSDIR)/$(SCN)/*.h $(LIBDIR)/*.c  $(LIBDIR)/$(SCN).c $(TESTSDIR)/$(SCN)/*.c 
-	$(CC) $(WEXFLAGS) $(CFLAGS) $(DEBUGFLAG) -o $(BUILDDIR)/$@ $(TESTSDIR)/$(SCN)/$(SCN)-test.c $(LIBDIR)/$(SCN).c $(LIBDIR)/str.c
+	$(CC) $(WEXFLAGS) $(CFLAGS) $(DEBUGFLAG) -o $(BUILDDIR)/$@ $<
 
 $(SCN)-test2: $(LIBDIR)/*.h $(LIBDIR)/$(SCN).h $(TESTSDIR)/$(SCN)/*.h $(LIBDIR)/*.c  $(LIBDIR)/$(SCN).c $(TESTSDIR)/$(SCN)/*.c 
-	$(CC) $(WEXFLAGS) $(CFLAGS) $(DEBUGFLAG) -o $(BUILDDIR)/$@ $(TESTSDIR)/$(SCN)/$(SCN)-test2.c $(LIBDIR)/$(SCN).c $(LIBDIR)/str.c
+	$(CC) $(WEXFLAGS) $(CFLAGS) $(DEBUGFLAG) -o $(BUILDDIR)/$@ $<
 
 $(SCN)-test3: $(LIBDIR)/*.h $(LIBDIR)/$(SCN).h $(TESTSDIR)/$(SCN)/*.h $(LIBDIR)/*.c  $(LIBDIR)/$(SCN).c $(TESTSDIR)/$(SCN)/*.c 
-	$(CC) $(WEXFLAGS) $(CFLAGS) $(DEBUGFLAG) -o $(BUILDDIR)/$@ $(TESTSDIR)/$(SCN)/$(SCN)-test3.c $(LIBDIR)/$(SCN).c $(LIBDIR)/str.c
+	$(CC) $(WEXFLAGS) $(CFLAGS) $(DEBUGFLAG) -o $(BUILDDIR)/$@ $<
 
 # Expression analysis
-$(EXP)-test: $(LIBDIR)/*.h $(LIBDIR)/$(EXP).h $(TESTSDIR)/$(EXP)/*.h $(LIBDIR)/*.c  $(LIBDIR)/$(EXP).c $(TESTSDIR)/$(EXP)/*.c 
-	$(CC) $(CFLAGS) $(DEBUGFLAG) -o $(BUILDDIR)/$@ $(TESTSDIR)/$(EXP)/$(EXP)-test.c $(LIBDIR)/$(EXP).c $(LIBDIR)/str.c $(LIBDIR)/parser_common.c  $(LIBDIR)/symtable.c $(LIBDIR)/scanner.c $(LIBDIR)/helper.c $(LIBDIR)/parser.c $(LIBDIR)/ast.c $(LIBDIR)/parser_builtin_functions.c
+$(EXPRESSOBJ): $(LIBDIR)/*.h $(LIBDIR)/$(EXP).h $(TESTSDIR)/$(EXP)/*.h $(LIBDIR)/*.c  $(LIBDIR)/$(EXP).c $(TESTSDIR)/$(EXP)/*.c 
+	$(CC) $(WEXFLAGS) $(CFLAGS) $(DEBUGFLAG) -o $(BUILDDIR)/$@ $<
 
 # Symtable
-$(SYM)-test: $(TESTSDIR)/$(SYM)/*.c $(LIBDIR)/$(SYM).h $(LIBDIR)/$(SYM).c $(LIBDIR)/*.h $(LIBDIR)/*.c
-	$(CC) $(CFLAGS) $(DEBUGFLAG) -o $(BUILDDIR)/$@ $(TESTSDIR)/$(SYM)/*.c $(LIBDIR)/$(SYM).c $(LIBDIR)/str.c
+$(SYM)-test: $(LIBDIR)/*.h $(LIBDIR)/$(SYM).h $(LIBDIR)/*.c $(LIBDIR)/$(SYM).c $(TESTSDIR)/$(SYM)/*.c
+	$(CC) $(CFLAGS) $(DEBUGFLAG) -o $(BUILDDIR)/$@ $<
 
 # Inter-code
-$(INT)-test: $(TESTSDIR)/$(INT)/*.c $(LIBDIR)/*.c $(LIBDIR)/*.h
-	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/$(INT)/*.c $(LIBDIR)/$(INT).c
+$(INT)-test: $(LIBDIR)/*.h $(LIBDIR)/*.c $(TESTSDIR)/$(INT)/*.c
+	$(CC) $(WEXFLAGS) $(CFLAGS) -o $(BUILDDIR)/$@ $<
 
 # Generator
-$(GNR)-test: directories $(TESTSDIR)/generator/*.c $(LIBDIR)/*.c $(LIBDIR)/*.h
-	$(CC) $(CFLAGS) -o $(BUILDDIR)/$@ $(TESTSDIR)/generator/*.c parser_common.c parser_builtin_functions.c scanner.c parser.c symtable.c helper.c str.c expression_analysis.c ast.c generator.c
+$(GNROBJ): $(LIBDIR)/*.h $(LIBDIR)/*.c $(TESTSDIR)/$(GNR)/*.c
+	$(CC) $(WEXFLAGS) $(CFLAGS) -o $(BUILDDIR)/$@ $<
 
-# Compiler
-$(COM): directories $(LIBDIR)/*.h $(LIBDIR)/*.c 
-	$(CC) $(CFLAGS) $(WEXFLAGS) -o $(BUILDDIR)/$@  main.c parser_common.c parser_builtin_functions.c scanner.c parser.c symtable.c helper.c str.c expression_analysis.c ast.c generator.c
-
-clean:
+.PHONY: clean-test
+clean-test:
 	rm -rf $(BUILDDIR)
-#
+
+.PHONY: clean
+clean:
+	rm -r $(NAME)
