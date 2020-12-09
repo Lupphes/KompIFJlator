@@ -461,7 +461,7 @@ int Assignment(ASTNodeStatement* astStatement,SymbolVariableArray* lValues){
 
     callAndHandleException_clean(VariableList_Next(lValues));
     OperatorAssign bonusOperation = getAssignmentBonusOperation();
-    if (bonusOperation == INTERNAL_ERROR)
+    if (bonusOperation == INTERNAL_ERROR || (lValues->count != 1 && bonusOperation != PLAIN_ASSIGEMENT))
         returnAndClean(SYNTAX_ERROR);
     acceptAny_clean();
 
@@ -471,8 +471,6 @@ int Assignment(ASTNodeStatement* astStatement,SymbolVariableArray* lValues){
         if(peek(TokenLeftBracket)){ //We are dealing with a function call with assignment now.
             if (getVariable(strGetStr(&functionCandidate)) != NULL)
                 returnAndClean(SEMANTIC_ERROR_OTHER);
-            if (bonusOperation != PLAIN_ASSIGEMENT)
-                returnAndClean(SYNTAX_ERROR);
             const SymbolFunction* function = getFunction(strGetStr(&functionCandidate));
             callAndHandleException_clean(FunctionCall_rule(astStatement,lValues, function,&functionCandidate));
         }
@@ -563,10 +561,10 @@ int ExpressionList_Next(ExpressionArray* expressionList, OperatorAssign bonusOpe
 
     assertOrEpsilon(TokenComma);
 
-    if (lValues != NULL && i + 1 > lValues->count)
+    if (lValues != NULL && i + 1 >= lValues->count)
         return SEMANTIC_ERROR_OTHER;
             
-    if ((returnCode = parseExpression(&expression,bonusOperation,lValues != NULL ? lValues->arr[0] : NULL)) == NO_EXPRESSION){
+    if ((returnCode = parseExpression(&expression,bonusOperation,lValues != NULL ? lValues->arr[i+1] : NULL)) == NO_EXPRESSION){
         return SYNTAX_ERROR;
     }
     else if (returnCode != SUCCESS){
