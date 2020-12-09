@@ -141,7 +141,6 @@ void generateFunctionBody(ASTNodeFunction *function){
 // Generate code blocK of the function
 void generateFunctionCodeBlock(ASTNodeStatement* codeStmnt){
 	printf("\n# Code of this function.\n");
-	//printf("WRITE string@I'm\\032still\\032here!\\010\n");
 
 	// go through all codeStatments and generate them
 	while(codeStmnt != NULL){
