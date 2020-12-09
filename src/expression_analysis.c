@@ -215,10 +215,10 @@ bool isBinaryOperation(OperationType operation) {
     case OperationPar:
     case OperationUnA:
     case OperationUnS:
-        return true;
+        return false;
         break;
     default:
-        return false;
+        return true;
         break;
     }
 }
