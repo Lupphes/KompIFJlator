@@ -20,6 +20,7 @@
 #include "term.h"
 #include "str.h"
 #include "helper.h"
+#include "expression_analysis.h"
 #include "ast.h"
 
 int Start(ASTRoot* astRoot);
@@ -35,9 +36,9 @@ int Block(ASTNodeBlock* astBlock,bool generateNewStackFrame);
 int Statement(ASTNodeStatement** astStatement);
 int StatementStartingWithIdentifier(ASTNodeStatement* astStatement);
 int Assignment(ASTNodeStatement* astStatement,SymbolVariableArray* lValues);
-int AssignmentOfExpressions(ASTNodeAssignment* astAsignment, const SymbolVariableArray* lValues);
-int ExpressionList_Start(ExpressionArray* expressionList);
-int ExpressionList_Next(ExpressionArray* expressionList);
+int AssignmentOfExpressions(ASTNodeAssignment* astAsignment, const SymbolVariableArray* lValues, OperatorAssign bonusOperation);
+int ExpressionList_Start(ExpressionArray* expressionList, OperatorAssign bonusOperation, const SymbolVariableArray* lValues);
+int ExpressionList_Next(ExpressionArray* expressionList,  OperatorAssign bonusOperation, const SymbolVariableArray* lValues, int i);
 int VariableList_Next(SymbolVariableArray* lValues);
 int VariableDefinition(ASTNodeAssignment* astAssignmentStatement, string* id_name);
 int FunctionCall_rule(ASTNodeStatement* astStatement,SymbolVariableArray* lValues, const SymbolFunction* function, const string* functionName);

@@ -36,6 +36,28 @@ SymbolVariableArray variablesInCurrentFunction;
 //Variant of assert that executes the clean-up function instead of returning straight away in case of failure.
 #define NTERM_clean(nt) callAndHandleException_clean(nt())
 
+/**
+ * @brief Looking at the current token, returns the operation coresponding to the specifed enhanced assignment (+=, -=, *=, /=), if any.
+ * 
+ * @return Operators The operation coresponding to the specifed enhanced assignment.
+ */
+OperatorAssign getAssignmentBonusOperation(){
+    switch (curTok.type){
+        case TokenAddEqual:
+            return OAssignAdd;
+        case TokenSubtractEqual:
+            return OAssignSub;
+        case TokenMultiplyEqual:
+            return OAssignMul;
+        case TokenDivideEqual:
+            return OAssignDiv;
+        case TokenAssignment:
+            return PLAIN_ASSIGEMENT;
+        default:
+            return INTERNAL_ERROR;
+    }
+}
+
 int Start(ASTRoot* astRoot){
     int returnCode;    
 
@@ -407,6 +429,10 @@ int StatementStartingWithIdentifier(ASTNodeStatement* astStatement){
             callAndHandleException_clean(VariableDefinition(&astStatement->value.assignment, &firstID));
             returnAndClean(SUCCESS);
         case TokenAssignment:
+        case TokenAddEqual:
+        case TokenSubtractEqual:
+        case TokenMultiplyEqual:
+        case TokenDivideEqual:
         case TokenComma:
             firstVariable = getVariable(strGetStr(&firstID));
             if (firstVariable == NULL) //No variable with the given name exists in the current context.
@@ -434,7 +460,10 @@ int Assignment(ASTNodeStatement* astStatement,SymbolVariableArray* lValues){
     callAndHandleException(strInit(&functionCandidate));
 
     callAndHandleException_clean(VariableList_Next(lValues));
-    assert_clean(TokenAssignment);
+    OperatorAssign bonusOperation = getAssignmentBonusOperation();
+    if (bonusOperation == INTERNAL_ERROR)
+        returnAndClean(SYNTAX_ERROR);
+    acceptAny_clean();
 
     if (peek(TokenIdentifier)){
         callAndHandleException_clean(strCopyString(&functionCandidate, &curTok.attribute.s));
@@ -442,18 +471,20 @@ int Assignment(ASTNodeStatement* astStatement,SymbolVariableArray* lValues){
         if(peek(TokenLeftBracket)){ //We are dealing with a function call with assignment now.
             if (getVariable(strGetStr(&functionCandidate)) != NULL)
                 returnAndClean(SEMANTIC_ERROR_OTHER);
+            if (bonusOperation != PLAIN_ASSIGEMENT)
+                returnAndClean(SYNTAX_ERROR);
             const SymbolFunction* function = getFunction(strGetStr(&functionCandidate));
             callAndHandleException_clean(FunctionCall_rule(astStatement,lValues, function,&functionCandidate));
         }
         else{
             callAndHandleException_clean(prevToken());
             astStatement->type = StatementTypeAssignment;
-            callAndHandleException_clean(AssignmentOfExpressions(&astStatement->value.assignment,lValues));
+            callAndHandleException_clean(AssignmentOfExpressions(&astStatement->value.assignment,lValues, bonusOperation));
         }
     }
     else{
         astStatement->type = StatementTypeAssignment;
-        callAndHandleException_clean(AssignmentOfExpressions(&astStatement->value.assignment,lValues));
+        callAndHandleException_clean(AssignmentOfExpressions(&astStatement->value.assignment,lValues, bonusOperation));
     }
     
     CLEAN_UP:
@@ -461,7 +492,8 @@ int Assignment(ASTNodeStatement* astStatement,SymbolVariableArray* lValues){
     return returnCode;
 }
 
-int AssignmentOfExpressions(ASTNodeAssignment* astAsignment,const SymbolVariableArray* lValues){
+
+int AssignmentOfExpressions(ASTNodeAssignment* astAsignment,const SymbolVariableArray* lValues, OperatorAssign bonusOperation){
     int returnCode = SUCCESS;
     
     initSymbolVariableArray(&astAsignment->lValues);
@@ -470,8 +502,15 @@ int AssignmentOfExpressions(ASTNodeAssignment* astAsignment,const SymbolVariable
     ExpressionArray expressionList;
     initExpressionArray(&expressionList);
 
-    callAndHandleException_clean(ExpressionList_Start(&expressionList));
-
+    if ((returnCode = ExpressionList_Start(&expressionList, bonusOperation,lValues)) != SUCCESS){
+        if (returnCode == MORE_RVALUES_THAN_LVALUES){
+            returnAndClean(SEMANTIC_ERROR_OTHER);
+        }
+        else{
+            returnAndClean(returnCode);
+        }
+    }
+    
     if (countInExpressionArray(&expressionList) == 0)
         returnAndClean(SYNTAX_ERROR);
     if (countInSymbolVariableArray(lValues) != countInExpressionArray(&expressionList))
@@ -494,22 +533,22 @@ int AssignmentOfExpressions(ASTNodeAssignment* astAsignment,const SymbolVariable
     return returnCode;
 }
 
-int ExpressionList_Start(ExpressionArray* expressionList){
+int ExpressionList_Start(ExpressionArray* expressionList, OperatorAssign bonusOperation, const SymbolVariableArray* lValues){
     int returnCode;
     ExpExp* expression;
 
-    if ((returnCode = parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)) == NO_EXPRESSION){
-        return SUCCESS; //Epsilon rule.
-    }
-    else if (returnCode != SUCCESS){
+    if ((returnCode = parseExpression(&expression,bonusOperation,lValues != NULL ? lValues->arr[0] : NULL)) != SUCCESS && returnCode != NO_EXPRESSION){
         return returnCode; //If there is an error while parsing the expression
+    }
+    else if (returnCode == NO_EXPRESSION){
+        return SUCCESS; //Epsilon rule.
     }
     
     if (getDataTypeOfExpression(expression) == TypeBlackHole)
         returnAndClean(SEMANTIC_ERROR_DEFINITION);
 
     callAndHandleException_clean(addToExpressionArray(expressionList,expression));
-    callAndHandleException(ExpressionList_Next(expressionList));
+    callAndHandleException(ExpressionList_Next(expressionList,bonusOperation,lValues,0));
 
     return SUCCESS;
     CLEAN_UP:
@@ -518,13 +557,16 @@ int ExpressionList_Start(ExpressionArray* expressionList){
     return returnCode;
 }
 
-int ExpressionList_Next(ExpressionArray* expressionList){
+int ExpressionList_Next(ExpressionArray* expressionList, OperatorAssign bonusOperation, const SymbolVariableArray* lValues, int i){
     int returnCode;
     ExpExp* expression;
 
     assertOrEpsilon(TokenComma);
-    
-    if ((returnCode = parseExpression(&expression,PLAIN_ASSIGEMENT,NULL)) == NO_EXPRESSION){
+
+    if (lValues != NULL && i + 1 > lValues->count)
+        return SEMANTIC_ERROR_OTHER;
+            
+    if ((returnCode = parseExpression(&expression,bonusOperation,lValues != NULL ? lValues->arr[0] : NULL)) == NO_EXPRESSION){
         return SYNTAX_ERROR;
     }
     else if (returnCode != SUCCESS){
@@ -533,7 +575,7 @@ int ExpressionList_Next(ExpressionArray* expressionList){
     if (getDataTypeOfExpression(expression) == TypeBlackHole)
         returnAndClean(SEMANTIC_ERROR_DEFINITION);
     callAndHandleException_clean(addToExpressionArray(expressionList,expression));
-    callAndHandleException(ExpressionList_Next(expressionList));
+    callAndHandleException(ExpressionList_Next(expressionList,bonusOperation,lValues,i+1));
 
     return SUCCESS;
     CLEAN_UP:
@@ -755,7 +797,7 @@ int Return(ASTNodeStatement* astStatement){
     currentFunctionContainsReturnStatement = true;
 
     assert(TokenReturn);
-    callAndHandleException_clean(ExpressionList_Start(&expressions));
+    callAndHandleException_clean(ExpressionList_Start(&expressions,PLAIN_ASSIGEMENT,NULL));
 
     if (countInExpressionArray(&expressions) != currentFunction->returnTypes.count)
         returnAndClean(SEMANTIC_ERROR_TYPE_FUNCTION);
@@ -881,11 +923,14 @@ int For_Assignment(ASTNodeFor* astForStatement){
     acceptAny();
     callAndHandleException(addToSymbolVariableArray(&lValues,firstVariable));
     callAndHandleException_clean(VariableList_Next(&lValues));
-    assert_clean(TokenAssignment);
+    OperatorAssign bonusOperation = getAssignmentBonusOperation();
+    if (bonusOperation == INTERNAL_ERROR)
+        returnAndClean(SYNTAX_ERROR);
+    acceptAny_clean();
     tmp = malloc(sizeof(ASTNodeAssignment));
     if (tmp == NULL)
         returnAndClean(INTERNAL_ERROR);
-    callAndHandleException_clean(AssignmentOfExpressions(tmp,&lValues));
+    callAndHandleException_clean(AssignmentOfExpressions(tmp,&lValues,bonusOperation));
     astForStatement->incrementAssignment = tmp;
     
     freeSymbolVariableArray(&lValues);
