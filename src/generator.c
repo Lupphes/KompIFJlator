@@ -141,7 +141,7 @@ void generateFunctionBody(ASTNodeFunction *function){
 // Generate code blocK of the function
 void generateFunctionCodeBlock(ASTNodeStatement* codeStmnt){
 	printf("\n# Code of this function.\n");
-	printf("WRITE string@I'm\\032still\\032here!\\010\n");
+	//printf("WRITE string@I'm\\032still\\032here!\\010\n");
 
 	// go through all codeStatments and generate them
 	while(codeStmnt != NULL){
@@ -201,7 +201,7 @@ void generateOperation(OperationType opType, DataType dataType){
 			printf("EXIT int@9\n");
 			printf("LABEL %s\n",buffer);
 			printf("PUSHS GF@BlackHole\n");
-			dataType == TypeInt ? printf("IDIV\n") : printf("DIV\n");
+			dataType == TypeInt ? printf("IDIVS\n") : printf("DIVS\n");
 			break;
 		case OperationUnS:
 			printf("POPS GF@BlackHole\n");
@@ -341,7 +341,7 @@ char* generateStringLiteral(const char* lit,char* out){
 	out += len;
 	for(const char* i = lit; *i !='\0'; i++){
 		if (*i <= 32 || *i == 35 || *i == 92){
-			sprintf(out,"\\%3d",*i);
+			sprintf(out,"\\%03d",*i);
 			out += 4;
 		} else {
 			*out = *i;
