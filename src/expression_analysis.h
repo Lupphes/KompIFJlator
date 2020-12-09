@@ -209,6 +209,7 @@ typedef struct {
  * 
  */
 int initExpStack(ExpStack *expStack, int64_t initialSize);
+
 /**
  * @brief Pushes value to the stack
  * 
@@ -219,6 +220,7 @@ int initExpStack(ExpStack *expStack, int64_t initialSize);
  * 
  */
 int pushToStack(ExpStack *expStack, ExpItem stackItem);
+
 /**
  * @brief Pushes value to stack behind. If it encouters expression, it is pushed behind it. Right to left process.
  * 
@@ -229,6 +231,7 @@ int pushToStack(ExpStack *expStack, ExpItem stackItem);
  * 
  */
 int pushToStackBehindE(ExpStack *expStack, ExpItem expItem);
+
 /**
  * @brief Looks for first value in stack. If it encouters expression, it returns value behind it. Right to left process.
  * 
@@ -238,6 +241,7 @@ int pushToStackBehindE(ExpStack *expStack, ExpItem expItem);
  * 
  */
 int seekValueBehindE(ExpStack *expStack, ExpItem *expItem);
+
 /**
  * @brief Looks for specific unary pattern "[,-,E" or "[,+,E".
  * 
@@ -247,6 +251,7 @@ int seekValueBehindE(ExpStack *expStack, ExpItem *expItem);
  * 
  */
 bool isUnaryOperationInStack(ExpStack *expStack);
+
 /**
  * @brief Looks for first value in stack
  * 
@@ -257,6 +262,7 @@ bool isUnaryOperationInStack(ExpStack *expStack);
  * 
  */
 int seekValueStackValue(ExpStack *expStack, ExpItem *expItem);
+
 /**
  * @brief Pops value from stack and returns it via expItem
  * 
@@ -267,18 +273,21 @@ int seekValueStackValue(ExpStack *expStack, ExpItem *expItem);
  * 
  */
 int popFromStack(ExpStack *expStack, ExpItem *expItem);
+
 /**
  * @brief Debug function which is not used in final product, but it was used in tests.
  * 
  * @param expStack Stack to be printed
  */
 void printStack(ExpStack *expStack);
+
 /**
  * @brief Frees whole stack and all its allocated values
  * 
  * @param expStack Stack to be freed
  */
 void freeExpStack(ExpStack *expStack);
+
 /**
  * @brief Frees expression and all its allocated values
  * 
@@ -300,6 +309,7 @@ void freeExpExp(ExpExp *expExp);
  * @return false First value from right is not an operator
  */
 bool isInStackOperator(ExpStack *expStack);
+
 /**
  * @brief Finds if first value on stack is an expression
  * 
@@ -308,6 +318,7 @@ bool isInStackOperator(ExpStack *expStack);
  * @return false First value from right is not an expression
  */
 bool isInStackExpression(ExpStack *expStack);
+
 /**
  * @brief Finds if buffer is empty
  * 
@@ -316,13 +327,15 @@ bool isInStackExpression(ExpStack *expStack);
  * @return false Stack is not empty
  */
 bool isBufferEmpty(ExpStack *expStack);
+
 /**
- * @brief Get the datatype Of expression object
+ * @brief Get the datatype of expression object
  * 
  * @param expExp Stack to be processed
  * @return DataType Returned data type of expression
  */
 DataType getDataTypeOfExpression(ExpExp *expExp);
+
 /**
  * @brief Finds if the operation inputted is binary or unary
  * 
@@ -342,6 +355,7 @@ bool isBinaryOperation(OperationType operation);
  * 
  */
 int evaluateTypeOfExpressions(ExpExp *newExpExp);
+
 /**
  * @brief The final state machine which analyzes the rules in stack
  * 
@@ -355,6 +369,7 @@ int evaluateTypeOfExpressions(ExpExp *newExpExp);
  * 
  */
 int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp);
+
 /**
  * @brief Evaluates how new expression fits into stacks and assigns associativity
  * 
@@ -368,6 +383,7 @@ int rulesEvaluation(ExpStack *expStack, ExpExp *newExpExp);
  * 
  */
 int evaluateExpression(ExpStack *expStack, ExpItem *expItem);
+
 /**
  * @brief Translates tokens to operators and expressions. It also validates the order. 
  * 
@@ -381,6 +397,7 @@ int evaluateExpression(ExpStack *expStack, ExpItem *expItem);
  * 
  */
 int checkIfValidToken(Token *token, ExpStack *expStack, ExpItem *expItem);
+
 /**
  * @brief This function will process the assingment operation after completed expression evaluation
  * 
@@ -395,6 +412,7 @@ int checkIfValidToken(Token *token, ExpStack *expStack, ExpItem *expItem);
  * 
  */
 int addOperatorAssignToStack(ExpStack *expStack, OperatorAssign assingmentOperation, const SymbolVariable *symbol);
+
 /**
  * @brief Main function which is executed by parser
  * 
